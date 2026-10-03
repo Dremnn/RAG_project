@@ -39,6 +39,7 @@ class VectorStore:
     Combines storage, indexing, and multi-mode search in a single class.
     """
     chunks: dict[str, DocumentChunk] = field(default_factory=dict)
+    file_meta: dict[str, float] = field(default_factory=dict)  # file_name -> last_modified_timestamp
     _embedding_gen: Optional[EmbeddingGenerator] = field(default=None, repr=False)
     _chunk_keys: list[str] = field(default_factory=list, repr=False)
     _embeddings: list[list[float]] = field(default_factory=list, repr=False)
@@ -156,9 +157,24 @@ class VectorStore:
             for i in ranked_idx
         ]
 
+    def remove_chunks_by_file(self, file_name: str) -> int:
+        """Remove all chunks belonging to a specific file name."""
+        to_del = [
+            cid for cid, c in self.chunks.items()
+            if c.metadata.get("file_name") == file_name
+        ]
+        for cid in to_del:
+            del self.chunks[cid]
+        if file_name in self.file_meta:
+            del self.file_meta[file_name]
+        if to_del:
+            self._rebuild_indices()
+        return len(to_del)
+
     def save_to_json(self, file_path: str | Path) -> None:
         """Persist chunks and embeddings to a JSON file."""
         data = {
+            "file_meta": self.file_meta,
             "chunks": [chunk.to_dict() for chunk in self.chunks.values()]
         }
         with open(file_path, "w", encoding="utf-8") as f:
@@ -175,6 +191,7 @@ class VectorStore:
             data = json.load(f)
 
         store = cls()
+        store.file_meta = data.get("file_meta", {})
         for c_dict in data.get("chunks", []):
             chunk = DocumentChunk.from_dict(c_dict)
             store.chunks[chunk.chunk_id] = chunk

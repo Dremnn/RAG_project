@@ -15,7 +15,7 @@ _HERE = Path(__file__).resolve().parent
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
-from src.loaders import DocumentLoaderFactory
+from src.loaders import DocumentLoaderFactory, SUPPORTED_EXTENSIONS
 from src.chunking import RecursiveChunker
 from src.retrieval import VectorStore, EmbeddingGenerator
 
@@ -31,33 +31,95 @@ INDEX_PATH = DATA_DIR / "index.json"
 STORE = VectorStore()
 
 
+def sync_knowledge_base() -> dict:
+    """
+    Incremental synchronization of data/ directory:
+    - Finds new files -> chunks, embeds, adds to store.
+    - Finds modified files -> removes old chunks, re-chunks, re-embeds.
+    - Finds deleted files -> removes chunks from store.
+    - Saves updated store to index.json.
+    """
+    global STORE
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    # 1. Discover all supported files currently on disk in data/
+    current_files = {}
+    for p in DATA_DIR.glob("*"):
+        if p.is_file() and p.suffix.lower() in SUPPORTED_EXTENSIONS:
+            current_files[p.name] = (p, p.stat().st_mtime)
+
+    # Populate file_meta if missing from existing chunks
+    if not STORE.file_meta and STORE.chunks:
+        for chunk in STORE.chunks.values():
+            fname = chunk.metadata.get("file_name")
+            if fname and fname in current_files and fname not in STORE.file_meta:
+                STORE.file_meta[fname] = current_files[fname][1]
+
+    added_files = []
+    updated_files = []
+    removed_files = []
+
+    # 2. Check for deleted files (was in store, but no longer on disk)
+    for indexed_file in list(STORE.file_meta.keys()):
+        if indexed_file not in current_files:
+            STORE.remove_chunks_by_file(indexed_file)
+            removed_files.append(indexed_file)
+
+    # 3. Check for new or modified files
+    emb_gen = None
+    chunker = RecursiveChunker(chunk_size=600, chunk_overlap=80)
+
+    for fname, (fpath, mtime) in current_files.items():
+        is_new = fname not in STORE.file_meta
+        is_modified = not is_new and mtime > STORE.file_meta[fname]
+
+        if is_new or is_modified:
+            if is_modified:
+                STORE.remove_chunks_by_file(fname)
+                updated_files.append(fname)
+            else:
+                added_files.append(fname)
+
+            # Load and chunk this file only
+            docs = DocumentLoaderFactory.load_file(fpath)
+            chunks = chunker.split_documents(docs)
+
+            if chunks:
+                if emb_gen is None:
+                    emb_gen = EmbeddingGenerator()
+                texts = [c.content for c in chunks]
+                embeddings = emb_gen.embed_documents(texts, batch_size=16)
+                STORE.add_chunks(chunks, embeddings)
+
+            STORE.file_meta[fname] = mtime
+
+    # 4. Save to index.json if any changes occurred
+    if added_files or updated_files or removed_files or not INDEX_PATH.exists():
+        STORE.save_to_json(INDEX_PATH)
+
+    return {
+        "added": added_files,
+        "updated": updated_files,
+        "removed": removed_files,
+        "total_chunks": len(STORE.chunks),
+        "total_files": len(STORE.file_meta),
+    }
+
+
 def _ensure_index_loaded() -> None:
-    """Load cached index or build a new one from data/ directory."""
+    """Load cached index and incrementally synchronize with data/."""
     global STORE
     if INDEX_PATH.exists():
-        STORE = VectorStore.load_from_json(INDEX_PATH)
-        return
-
-    # If index doesn't exist, build from data/
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    docs = DocumentLoaderFactory.load_directory(DATA_DIR)
-    if not docs:
-        STORE = VectorStore()
-        return
-
-    chunker = RecursiveChunker(chunk_size=600, chunk_overlap=80)
-    chunks = chunker.split_documents(docs)
-
-    emb_gen = EmbeddingGenerator()
-    texts = [c.content for c in chunks]
-    embeddings = emb_gen.embed_documents(texts, batch_size=16)
-
-    STORE = VectorStore()
-    STORE.add_chunks(chunks, embeddings)
-    STORE.save_to_json(INDEX_PATH)
+        try:
+            STORE = VectorStore.load_from_json(INDEX_PATH)
+        except Exception as e:
+            STORE = VectorStore()
+    
+    # Sync any new or modified files in data/
+    sync_knowledge_base()
 
 
-# Initialize store on startup
+# Initialize and sync store on startup
 _ensure_index_loaded()
 
 
@@ -148,5 +210,25 @@ def get_document_full(doc_id: str) -> str:
     return f"=== Full Document: {file_name} ({doc_id}) ===\n\n{full_text}"
 
 
+@mcp.tool()
+def sync_documents() -> str:
+    """Rescan the data/ directory for new, updated, or deleted documents
+    and incrementally update the knowledge index without re-indexing unchanged files.
+    Call this when the user asks to refresh, reload, or sync newly added files."""
+    report = sync_knowledge_base()
+    lines = ["Knowledge Base Synchronization Report:"]
+    if report["added"]:
+        lines.append(f"  • Added new files: {', '.join(report['added'])}")
+    if report["updated"]:
+        lines.append(f"  • Updated modified files: {', '.join(report['updated'])}")
+    if report["removed"]:
+        lines.append(f"  • Removed deleted files: {', '.join(report['removed'])}")
+    if not (report["added"] or report["updated"] or report["removed"]):
+        lines.append("  • All documents are already up-to-date. No changes detected.")
+    lines.append(f"  • Current Status: {report['total_files']} files, {report['total_chunks']} total chunks.")
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
     mcp.run(transport="stdio")
+
