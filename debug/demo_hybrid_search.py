@@ -25,25 +25,25 @@ def main():
     index_file = data_dir / "index.json"
 
     print("=" * 70)
-    print("🔍 TESTING UNIFIED VECTOR STORE WITH BUILT-IN HYBRID SEARCH")
+    print("TESTING UNIFIED VECTOR STORE WITH BUILT-IN HYBRID SEARCH")
     print("=" * 70)
 
     # 1. Initialize or load VectorStore
     if index_file.exists():
-        print(f"📦 Loading cached vector store from: {index_file.name}")
+        print(f"[INFO] Loading cached vector store from: {index_file.name}")
         store = VectorStore.load_from_json(index_file)
-        print(f"✅ Loaded {len(store.chunks)} indexed chunks.")
+        print(f"[OK] Loaded {len(store.chunks)} indexed chunks.")
     else:
-        print("📄 Step 1: Loading documents from data/ ...")
+        print("Step 1: Loading documents from data/ ...")
         docs = DocumentLoaderFactory.load_directory(data_dir)
         print(f"   Loaded {len(docs)} documents.")
 
-        print("✂️ Step 2: Chunking documents (size=600, overlap=80) ...")
+        print("Step 2: Chunking documents (size=600, overlap=80) ...")
         chunker = RecursiveChunker(chunk_size=600, chunk_overlap=80)
         chunks = chunker.split_documents(docs)
         print(f"   Created {len(chunks)} chunks.")
 
-        print("🧠 Step 3: Generating embeddings via Jina AI API ...")
+        print("Step 3: Generating embeddings via Jina AI API ...")
         emb_gen = EmbeddingGenerator()
         texts_to_embed = [c.content for c in chunks]
         embeddings = emb_gen.embed_documents(texts_to_embed, batch_size=16)
@@ -51,7 +51,7 @@ def main():
         store = VectorStore()
         store.add_chunks(chunks, embeddings)
         store.save_to_json(index_file)
-        print(f"💾 Saved {len(store.chunks)} chunks to {index_file.name}")
+        print(f"[OK] Saved {len(store.chunks)} chunks to {index_file.name}")
 
     # 2. Test Queries using store.search() directly!
     test_queries = [
@@ -61,7 +61,7 @@ def main():
 
     for q in test_queries:
         print("\n" + "=" * 70)
-        print(f"❓ QUERY: \"{q}\"")
+        print(f"QUERY: \"{q}\"")
         print("-" * 70)
 
         # Call store.search with mode='hybrid' directly!
@@ -72,7 +72,7 @@ def main():
             page_info = f" (Page {chunk.metadata.get('page_number')})" if "page_number" in chunk.metadata else ""
 
             print(f"Top {rank} | Score: {score:.4f} | Chunk ID: {chunk.chunk_id} | Source: {source_file}{page_info}")
-            print("  • Content snippet:")
+            print("  - Content snippet:")
             snippet = chunk.content.replace("\n", " ")
             if len(snippet) > 160:
                 snippet = snippet[:160] + "..."

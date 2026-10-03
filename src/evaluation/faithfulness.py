@@ -28,19 +28,20 @@ class FaithfulnessReport:
     def format_terminal(self) -> str:
         """Format a clean visual report for terminal display."""
         percent = int(self.score * 100)
-        badge = "🟢 ĐỘ TIN CẬY CAO" if self.is_trustworthy else "🔴 CẢNH BÁO ẢO GIÁC"
-        
+        badge = "[DO TIN CAY CAO]" if self.is_trustworthy else "[CANH BAO AO GIAC]"
+
         lines = [
-            f"┌─── 🛡️ BÁO CÁO THẨM ĐỊNH ĐỘ TRUNG THỰC (FAITHFULNESS) ───┐",
-            f"│ Điểm số: {percent}% ({self.supported_claims}/{self.total_claims} mệnh đề)  |  Đánh giá: {badge}",
-            f"├────────────────────────────────────────────────────────┤",
+            "=" * 60,
+            "BAO CAO THAM DINH DO TRUNG THUC (FAITHFULNESS)",
+            f"Diem so: {percent}% ({self.supported_claims}/{self.total_claims} menh de) | Danh gia: {badge}",
+            "-" * 60,
         ]
         for idx, v in enumerate(self.verdicts, 1):
-            icon = "✅" if v.supported else "❌"
-            lines.append(f"│ {icon} Mệnh đề {idx}: \"{v.claim}\"")
+            status = "[PASS]" if v.supported else "[FAIL]"
+            lines.append(f"{status} Menh de {idx}: \"{v.claim}\"")
             if not v.supported:
-                lines.append(f"│    ↳ Nhận định: {v.reason}")
-        lines.append(f"└────────────────────────────────────────────────────────┘")
+                lines.append(f"    -> Nhan dinh: {v.reason}")
+        lines.append("=" * 60)
         return "\n".join(lines)
 
 

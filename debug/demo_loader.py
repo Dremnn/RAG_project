@@ -22,22 +22,22 @@ from src.loaders import DocumentLoaderFactory, PDFLoader, DocxLoader, TextLoader
 def main():
     data_dir = CURRENT_DIR / "data"
     print("=" * 60)
-    print("🚀 TESTING RAG DOCUMENT LOADERS (PDF, Word DOCX, TXT)")
+    print("TESTING RAG DOCUMENT LOADERS (PDF, Word DOCX, TXT)")
     print("=" * 60)
 
     # 1. Load all documents in data/
-    print(f"\n📂 Loading all documents from: {data_dir}")
+    print(f"\nLoading all documents from: {data_dir}")
     documents = DocumentLoaderFactory.load_directory(data_dir)
-    print(f"✅ Total documents loaded: {len(documents)}\n")
+    print(f"[OK] Total documents loaded: {len(documents)}\n")
 
     for i, doc in enumerate(documents, 1):
         print(f"--- Document #{i}: {doc.title} ---")
-        print(f"  • Doc ID     : {doc.doc_id}")
-        print(f"  • Source     : {doc.source}")
-        print(f"  • Extension  : {doc.metadata.get('extension')}")
-        print(f"  • Metadata   : {doc.metadata}")
-        print(f"  • Length     : {len(doc.content)} chars")
-        print("  • Content Preview (first 200 chars):")
+        print(f"  - Doc ID     : {doc.doc_id}")
+        print(f"  - Source     : {doc.source}")
+        print(f"  - Extension  : {doc.metadata.get('extension')}")
+        print(f"  - Metadata   : {doc.metadata}")
+        print(f"  - Length     : {len(doc.content)} chars")
+        print("  - Content Preview (first 200 chars):")
         preview = doc.content[:200].replace("\n", " ")
         print(f"    \"{preview}...\"\n")
 
@@ -45,16 +45,16 @@ def main():
     pdf_file = data_dir / "sample_ai_intro.pdf"
     if pdf_file.exists():
         print("=" * 60)
-        print("📄 Testing PDFLoader with split_pages=True:")
+        print("Testing PDFLoader with split_pages=True:")
         pdf_loader = PDFLoader(pdf_file, split_pages=True)
         pdf_pages = pdf_loader.load()
-        print(f"✅ PDF split into {len(pdf_pages)} page documents.")
+        print(f"[OK] PDF split into {len(pdf_pages)} page documents.")
         for page in pdf_pages:
             print(f"  - [{page.doc_id}] Page {page.metadata.get('page_number')}: {len(page.content)} chars")
 
     # 3. Test JSON Export (Week 1 Data Structure concept)
     print("=" * 60)
-    print("📦 Testing Document JSON serialization (Week 1):")
+    print("Testing Document JSON serialization (Week 1):")
     sample_doc = documents[0]
     print(sample_doc.to_json(indent=2)[:300] + "\n  ...\n}")
 

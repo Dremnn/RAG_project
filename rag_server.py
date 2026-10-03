@@ -182,7 +182,7 @@ def list_indexed_documents() -> str:
     for doc_id, info in doc_summary.items():
         pages_info = f", Pages: {info['total_pages']}" if info["total_pages"] else ""
         lines.append(
-            f"• [{doc_id}] {info['file_name']} (Format: {info['extension']}, Chunks: {info['chunk_count']}{pages_info})"
+            f"  - [{doc_id}] {info['file_name']} (Format: {info['extension']}, Chunks: {info['chunk_count']}{pages_info})"
         )
 
     return "\n".join(lines)
@@ -218,14 +218,14 @@ def sync_documents() -> str:
     report = sync_knowledge_base()
     lines = ["Knowledge Base Synchronization Report:"]
     if report["added"]:
-        lines.append(f"  • Added new files: {', '.join(report['added'])}")
+        lines.append(f"  - Added new files: {', '.join(report['added'])}")
     if report["updated"]:
-        lines.append(f"  • Updated modified files: {', '.join(report['updated'])}")
+        lines.append(f"  - Updated modified files: {', '.join(report['updated'])}")
     if report["removed"]:
-        lines.append(f"  • Removed deleted files: {', '.join(report['removed'])}")
+        lines.append(f"  - Removed deleted files: {', '.join(report['removed'])}")
     if not (report["added"] or report["updated"] or report["removed"]):
-        lines.append("  • All documents are already up-to-date. No changes detected.")
-    lines.append(f"  • Current Status: {report['total_files']} files, {report['total_chunks']} total chunks.")
+        lines.append("  - All documents are already up-to-date. No changes detected.")
+    lines.append(f"  - Current Status: {report['total_files']} files, {report['total_chunks']} total chunks.")
     return "\n".join(lines)
 
 

@@ -22,7 +22,7 @@ from src.chunking import RecursiveChunker, FixedSizeChunker
 def main():
     data_dir = CURRENT_DIR / "data"
     print("=" * 65)
-    print("✂️ TESTING CHUNKING STRATEGY (Recursive Character Splitting)")
+    print("TESTING CHUNKING STRATEGY (Recursive Character Splitting)")
     print("=" * 65)
 
     # 1. Load documents using our factory from Part 1
@@ -45,7 +45,7 @@ def main():
     for doc_id, chunks in doc_chunk_map.items():
         doc_title = chunks[0].metadata.get("title", doc_id)
         doc_ext = chunks[0].metadata.get("extension", "")
-        print(f"\n📄 Document: '{doc_title}' ({doc_ext}) -> {len(chunks)} chunks:")
+        print(f"\nDocument: '{doc_title}' ({doc_ext}) -> {len(chunks)} chunks:")
         for c in chunks:
             preview = c.content.replace("\n", " ")
             if len(preview) > 90:
@@ -56,7 +56,7 @@ def main():
     # 3. Demonstrate Overlap between two consecutive chunks
     if len(all_chunks) >= 2:
         print("\n" + "=" * 65)
-        print("🔍 DEMONSTRATING OVERLAP (Gối đầu giữa Chunk 0 và Chunk 1):")
+        print("DEMONSTRATING OVERLAP (Goi dau giua Chunk 0 va Chunk 1):")
         c0 = all_chunks[0]
         c1 = all_chunks[1]
         print(f"Chunk 0 End:   ...{c0.content[-40:].strip()}")

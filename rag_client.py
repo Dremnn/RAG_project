@@ -78,9 +78,9 @@ async def run_agent_turn(
                 except Exception:
                     tool_args = {}
 
-                print(f"\n⚙️  [Agent Action] Gọi công cụ: '{tool_name}'...")
+                print(f"\n[Action] Goi cong cu: '{tool_name}'...")
                 if tool_name == "search_documents":
-                    print(f"    ↳ Query: \"{tool_args.get('query')}\"")
+                    print(f"    -> Query: \"{tool_args.get('query')}\"")
 
                 # 3. Gọi Tool trên MCP Server qua stdio
                 try:
@@ -89,7 +89,7 @@ async def run_agent_turn(
                 except Exception as e:
                     result_text = f"Lỗi khi thực thi tool: {e}"
 
-                print(f"    ↳ Nhận kết quả: {len(result_text)} ký tự.")
+                print(f"    -> Nhan ket qua: {len(result_text)} ky tu.")
                 accumulated_context.append(result_text)
 
                 # 4. Gửi kết quả quan sát (Observation) lại cho LLM
@@ -106,19 +106,19 @@ async def run_agent_turn(
         messages.append({"role": "assistant", "content": final_answer})
         return final_answer, "\n\n".join(accumulated_context)
 
-    return "⚠️ Quá số vòng lặp cho phép (Iteration cap reached). Vui lòng thử lại với câu hỏi cụ thể hơn.", "\n\n".join(accumulated_context)
+    return "[Warning] Qua so vong lap cho phep (Iteration cap reached). Vui long thu lai voi cau hoi cu the hon.", "\n\n".join(accumulated_context)
 
 
 async def main():
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        print("❌ Lỗi: Chưa tìm thấy GROQ_API_KEY trong file .env")
+        print("[Error] Chua tim thay GROQ_API_KEY trong file .env")
         return
 
     groq_client = Groq(api_key=api_key)
 
     print("\n" + "=" * 65)
-    print("🤖 ĐANG KẾT NỐI VỚI RAG MCP SERVER...")
+    print("[INFO] DANG KET NOI VOI RAG MCP SERVER...")
     print("=" * 65)
 
     async with stdio_client(SERVER_PARAMS) as (read, write):
@@ -139,14 +139,14 @@ async def main():
                 for t in mcp_tools
             ]
 
-            print("✅ Đã kết nối MCP Server thành công!")
-            print(f"🔧 Các công cụ sẵn sàng: {', '.join([t.name for t in mcp_tools])}")
-            print("\n💡 Các lệnh tiện ích:")
-            print("   • /docs : Xem danh sách tài liệu hiện có")
-            print("   • /sync : Quét và nạp ngay các file mới được thêm vào data/")
-            print("   • /eval : Thẩm định độ trung thực của câu trả lời vừa rồi (Week 5)")
-            print("   • /clear: Xóa lịch sử ngữ cảnh cuộc trò chuyện")
-            print("   • exit  : Thoát chương trình")
+            print("[OK] Da ket noi MCP Server thanh cong!")
+            print(f"Cac cong cu san sang: {', '.join([t.name for t in mcp_tools])}")
+            print("\nCac lenh tien ich:")
+            print("   - /docs : Xem danh sach tai lieu hien co")
+            print("   - /sync : Quet va nap ngay cac file moi duoc them vao data/")
+            print("   - /eval : Tham dinh do trung thuc cua cau tra loi vua roi (Week 5)")
+            print("   - /clear: Xoa lich su ngu canh cuoc tro chuyen")
+            print("   - exit  : Thoat chuong trinh")
             print("=" * 65)
 
             # Lịch sử hội thoại & bộ thẩm định
@@ -157,42 +157,42 @@ async def main():
 
             while True:
                 try:
-                    user_input = input("\n👤 Bạn: ").strip()
+                    user_input = input("\nBan: ").strip()
                 except (EOFError, KeyboardInterrupt):
-                    print("\nTạm biệt!")
+                    print("\nTam biet!")
                     break
 
                 if not user_input:
                     continue
 
                 if user_input.lower() in ["exit", "quit", ":q"]:
-                    print("\nĐã ngắt kết nối. Hẹn gặp lại bạn!")
+                    print("\nDa ngat ket noi. Hen gap lai ban!")
                     break
 
                 if user_input.lower() in ["/clear", "clear"]:
                     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
                     last_answer = ""
                     last_context = ""
-                    print("🧹 Đã làm mới lịch sử cuộc trò chuyện.")
+                    print("[OK] Da lam moi lich su cuoc tro chuyen.")
                     continue
 
                 if user_input.lower() in ["/docs", "/list"]:
-                    print("\n📚 Đang tra cứu danh mục tài liệu...")
+                    print("\n[INFO] Dang tra cuu danh muc tai lieu...")
                     res = await session.call_tool("list_indexed_documents", arguments={})
                     print(res.content[0].text)
                     continue
 
                 if user_input.lower() in ["/sync", "/reload", "sync"]:
-                    print("\n🔄 Đang đồng bộ hóa thư mục data/...")
+                    print("\n[INFO] Dang dong bo hoa thu muc data/...")
                     res = await session.call_tool("sync_documents", arguments={})
                     print(res.content[0].text)
                     continue
 
                 if user_input.lower() in ["/eval", "eval"]:
                     if not last_answer:
-                        print("⚠️ Chưa có câu trả lời nào để thẩm định. Hãy đặt một câu hỏi trước.")
+                        print("[Warning] Chua co cau tra loi nao de tham dinh. Hay dat mot cau hoi truoc.")
                         continue
-                    print("\n🛡️ Đang phân tích mệnh đề và thẩm định độ trung thực (LLM-as-a-judge)...")
+                    print("\n[INFO] Dang phan tich menh de va tham dinh do trung thuc (LLM-as-a-judge)...")
                     report = evaluator.evaluate(last_answer, last_context)
                     print(report.format_terminal())
                     continue
@@ -200,7 +200,7 @@ async def main():
                 # Thêm tin nhắn người dùng vào messages
                 messages.append({"role": "user", "content": user_input})
 
-                print("\n🤖 Trợ lý AI đang suy luận...")
+                print("\n[INFO] Tro ly AI dang suy luan...")
                 answer, context = await run_agent_turn(
                     session=session,
                     groq_client=groq_client,
@@ -210,10 +210,10 @@ async def main():
                 last_answer = answer
                 last_context = context
 
-                print("\n" + "─" * 60)
-                print(f"📝 TRẢ LỜI:\n{answer}")
-                print("─" * 60)
-                print("💡 Mẹo: Gõ /eval để kiểm tra xem câu trả lời trên có chuẩn xác theo tài liệu không.")
+                print("\n" + "-" * 60)
+                print(f"TRA LOI:\n{answer}")
+                print("-" * 60)
+                print("Meo: Go /eval de kiem tra xem cau tra loi tren co chuan xac theo tai lieu khong.")
 
 
 if __name__ == "__main__":

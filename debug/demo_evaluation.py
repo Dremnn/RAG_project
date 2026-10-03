@@ -26,7 +26,7 @@ load_dotenv()
 def main():
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        print("❌ Lỗi: Chưa có GROQ_API_KEY trong file .env")
+        print("[Error] Chua co GROQ_API_KEY trong file .env")
         return
 
     groq_client = Groq(api_key=api_key)
@@ -43,7 +43,7 @@ def main():
     """
 
     print("=" * 65)
-    print("🧪 KIỂM THỬ THẨM ĐỊNH FAITHFULNESS (LLM-AS-A-JUDGE)")
+    print("KIEM THU THAM DINH FAITHFULNESS (LLM-AS-A-JUDGE)")
     print("=" * 65)
 
     # Case 1: Faithful Answer
