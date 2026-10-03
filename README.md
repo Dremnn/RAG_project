@@ -1,84 +1,44 @@
-# RAG Knowledge Assistant - Architecture W1 to W7
+# Mini RAG Assistant
 
-Hệ thống RAG Agent thông minh chạy trên Terminal, được thiết kế theo chuẩn kiến trúc từ **Week 1 đến Week 7** với sự kết hợp của **Model Context Protocol (MCP)**, **Hybrid Search (BM25 + Dense Vector)**, **Smart Incremental Sync** và **LLM-as-a-Judge Faithfulness Evaluation**.
-
----
-
-## 🏛️ Sơ đồ Kiến trúc Tổng thể (Architecture Map)
-
-```text
-┌────────────────────────────────────────────────────────┐
-│            TERMINAL MCP CLIENT (rag_client.py)         │
-│  - Giao diện dòng lệnh tương tác trực tiếp             │
-│  - ReAct Agent Loop (W6): suy luận & gọi tool          │
-│  - Strict Grounding & Anti-Hallucination               │
-│  - LLM-as-a-judge Faithfulness Evaluator (W5)          │
-└──────────────────────────┬─────────────────────────────┘
-                           │ (Giao thức chuẩn MCP / stdio)
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│             RAG MCP SERVER (rag_server.py)             │
-│  - Multi-format Loaders: PDF, DOCX, TXT, MD (W1 & W3)  │
-│  - Recursive Character Chunking with Overlap (W3)      │
-│  - Unified VectorStore with Hybrid Search (W3 & W4)    │
-│  - Smart Incremental Sync (Tự động nhận diện file mới) │
-│  - Khai báo MCP Tools:                                 │
-│      • search_documents(query, top_k)                  │
-│      • list_indexed_documents()                        │
-│      • get_document_full(doc_id)                       │
-│      • sync_documents()                                │
-└────────────────────────────────────────────────────────┘
-```
+Hệ thống hỏi đáp tài liệu thông minh (RAG) chạy trên Terminal, được xây dựng theo chuẩn kiến trúc **Model Context Protocol (MCP)** và tích hợp từ Week 1 đến Week 7.
 
 ---
 
-## 📁 Cấu trúc Thư mục
+## 🌟 Tính năng nổi bật
 
-```text
-RAG_project/
-├── data/                               # Kho tài liệu nội bộ (.pdf, .docx, .txt, .md)
-│   ├── sample_ai_intro.pdf
-│   ├── sample_company_policy.docx
-│   ├── sample_notes.txt
-│   └── index.json                      # Cache Vector và Metadata đã lập chỉ mục
-├── src/
-│   ├── models.py                       # Dataclass Document, DocumentChunk (W1 & W3)
-│   ├── loaders/                        # Module đọc tài liệu đa định dạng (W1 & W3)
-│   │   ├── base.py
-│   │   ├── pdf_loader.py               # pypdf (hỗ trợ phân trang)
-│   │   ├── docx_loader.py              # python-docx (bóc tách bảng biểu sang Markdown)
-│   │   ├── text_loader.py              # Xử lý text/markdown/encoding
-│   │   └── factory.py                  # DocumentLoaderFactory tự động phân loại
-│   ├── chunking/                       # Cắt nhỏ văn bản (W3)
-│   │   └── splitter.py                 # RecursiveChunker (ưu tiên đoạn > câu > từ + overlap)
-│   ├── retrieval/                      # Động cơ tìm kiếm (W3 & W4)
-│   │   ├── embeddings.py               # Jina AI Embeddings v3 (1024 chiều)
-│   │   └── vector_store.py             # VectorStore tích hợp Hybrid Search (BM25 + Cosine)
-│   └── evaluation/                     # Thẩm định độ tin cậy (W5)
-│       └── faithfulness.py             # Phân rã Atomic Claims & LLM-as-a-judge
-├── rag_server.py                       # MCP Server chuẩn Week 7
-├── rag_client.py                       # Terminal Client & ReAct Agent (Week 6 & Week 7)
-├── demo_loader.py                      # Test độc lập Loaders
-├── demo_chunker.py                     # Test độc lập Chunking
-├── demo_hybrid_search.py               # Test độc lập Hybrid Search
-├── demo_evaluation.py                  # Test độc lập Faithfulness Evaluation
-└── README.md
-```
+- **Đọc đa định dạng**: Tự động đọc và xử lý file PDF (có phân trang), Word DOCX (trích xuất văn bản & bảng biểu), Text, Markdown.
+- **Hybrid Search**: Kết hợp tìm kiếm từ khóa chính xác (**BM25**) và tìm kiếm ngữ nghĩa (**Dense Vector Cosine Similarity** qua Jina Embeddings 1024-dim).
+- **Kiến trúc MCP (Week 7)**: Tách biệt **RAG Server** (`rag_server.py`) và **Terminal Client** (`rag_client.py`) qua giao thức `stdio`.
+- **ReAct Agent (Week 6)**: Sử dụng mô hình Groq (`qwen/qwen3.8-27b`) tự suy luận, gọi công cụ tìm kiếm và đính kèm trích dẫn nguồn (**Citations**).
+- **Smart Incremental Sync**: Tự động phát hiện và nạp các file mới được thêm vào thư mục `data/` mà không cần tính toán lại các file cũ.
+- **Thẩm định độ trung thực (Week 5)**: Bẻ nhỏ câu trả lời thành từng mệnh đề thực tế (*Atomic Claims*) và dùng LLM-as-a-judge chấm điểm **Faithfulness** để ngăn ngừa ảo giác (*Hallucination*).
+
+---
+
+## 🛠️ Cài đặt & Chuẩn bị
+
+1. **Yêu cầu môi trường**: Python 3.11+ và công cụ `uv`.
+2. **Cấu hình API Key**: Tạo file `.env` tại thư mục gốc với nội dung:
+   ```env
+   GROQ_API_KEY=your_groq_api_key
+   JINA_API_KEY=your_jina_api_key
+   ```
+3. **Tài liệu**: Thả các file tài liệu (`.pdf`, `.docx`, `.txt`, `.md`) cần tra cứu vào thư mục `data/`.
 
 ---
 
 ## 🚀 Hướng dẫn Sử dụng
 
-### 1. Khởi chạy Trợ lý RAG trên Terminal
+Khởi chạy hệ thống hỏi đáp trực tiếp trên Terminal:
+
 ```powershell
-cd "RAG_project"
-uv run .\rag_client.py
+uv run python rag_client.py
 ```
 
-### 2. Các lệnh tiện ích trong Terminal
-* **Hỏi đáp tự nhiên:** Nhập bất kỳ câu hỏi nào về nội dung các tài liệu trong `data/`.
-* **`/docs`**: Xem danh mục toàn bộ file hiện có trong cơ sở tri thức.
-* **`/sync`**: Quét và nạp ngay các file PDF, Word mới bạn vừa thả vào `data/` mà không cần thoát Terminal.
-* **`/eval`**: Thẩm định độ trung thực (Faithfulness) của câu trả lời vừa rồi để phát hiện ảo giác (Hallucination).
-* **`/clear`**: Xóa ngữ cảnh để bắt đầu phiên hỏi đáp mới.
-* **`exit`**: Thoát chương trình.
+### Các lệnh tiện ích trong phiên chat:
+- **Nhập câu hỏi**: Chat tự nhiên để hỏi đáp về nội dung tài liệu.
+- **`/docs`**: Xem danh mục toàn bộ tài liệu đang có trong hệ thống.
+- **`/sync`**: Quét và nạp ngay tài liệu mới vừa thả vào `data/` mà không cần khởi động lại.
+- **`/eval`**: Thẩm định độ trung thực (Faithfulness) của câu trả lời vừa nhận.
+- **`/clear`**: Làm mới lịch sử trò chuyện.
+- **`exit`**: Thoát chương trình.
