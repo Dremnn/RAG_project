@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from groq import Groq
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from src.evaluation import FaithfulnessEvaluator
 
 # Ensure UTF-8 output on Windows terminal
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -47,8 +48,10 @@ async def run_agent_turn(
     groq_client: Groq,
     groq_tools: list[dict],
     messages: list[dict],
-) -> str:
-    """Execute ReAct Agent Loop (Thought -> Tool Call -> Observation -> Final Answer)."""
+) -> tuple[str, str]:
+    """Execute ReAct Agent Loop. Returns (final_answer, accumulated_context)."""
+    accumulated_context = []
+
     for iteration in range(MAX_ITERATIONS):
         # Ở lượt đầu tiên của câu hỏi mới, BẮT BUỘC Model phải gọi tool tra cứu (Strict Grounding)
         current_tool_choice = "required" if iteration == 0 else "auto"
@@ -66,7 +69,6 @@ async def run_agent_turn(
 
         # 2. Kiểm tra xem LLM có yêu cầu gọi Tool không
         if response_message.tool_calls:
-            # Lưu lại lời gọi của assistant vào lịch sử
             messages.append(response_message)
 
             for tool_call in response_message.tool_calls:
@@ -88,6 +90,7 @@ async def run_agent_turn(
                     result_text = f"Lỗi khi thực thi tool: {e}"
 
                 print(f"    ↳ Nhận kết quả: {len(result_text)} ký tự.")
+                accumulated_context.append(result_text)
 
                 # 4. Gửi kết quả quan sát (Observation) lại cho LLM
                 messages.append({
@@ -96,15 +99,14 @@ async def run_agent_turn(
                     "content": result_text,
                 })
 
-            # Tiếp tục vòng lặp để LLM đọc kết quả và suy luận tiếp
             continue
 
         # 5. Nếu không gọi tool -> Đã có câu trả lời cuối cùng
         final_answer = response_message.content or ""
         messages.append({"role": "assistant", "content": final_answer})
-        return final_answer
+        return final_answer, "\n\n".join(accumulated_context)
 
-    return "⚠️ Quá số vòng lặp cho phép (Iteration cap reached). Vui lòng thử lại với câu hỏi cụ thể hơn."
+    return "⚠️ Quá số vòng lặp cho phép (Iteration cap reached). Vui lòng thử lại với câu hỏi cụ thể hơn.", "\n\n".join(accumulated_context)
 
 
 async def main():
@@ -142,12 +144,16 @@ async def main():
             print("\n💡 Các lệnh tiện ích:")
             print("   • /docs : Xem danh sách tài liệu hiện có")
             print("   • /sync : Quét và nạp ngay các file mới được thêm vào data/")
+            print("   • /eval : Thẩm định độ trung thực của câu trả lời vừa rồi (Week 5)")
             print("   • /clear: Xóa lịch sử ngữ cảnh cuộc trò chuyện")
             print("   • exit  : Thoát chương trình")
             print("=" * 65)
 
-            # Lịch sử hội thoại
+            # Lịch sử hội thoại & bộ thẩm định
             messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+            evaluator = FaithfulnessEvaluator(groq_client=groq_client)
+            last_answer = ""
+            last_context = ""
 
             while True:
                 try:
@@ -165,6 +171,8 @@ async def main():
 
                 if user_input.lower() in ["/clear", "clear"]:
                     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+                    last_answer = ""
+                    last_context = ""
                     print("🧹 Đã làm mới lịch sử cuộc trò chuyện.")
                     continue
 
@@ -180,20 +188,32 @@ async def main():
                     print(res.content[0].text)
                     continue
 
+                if user_input.lower() in ["/eval", "eval"]:
+                    if not last_answer:
+                        print("⚠️ Chưa có câu trả lời nào để thẩm định. Hãy đặt một câu hỏi trước.")
+                        continue
+                    print("\n🛡️ Đang phân tích mệnh đề và thẩm định độ trung thực (LLM-as-a-judge)...")
+                    report = evaluator.evaluate(last_answer, last_context)
+                    print(report.format_terminal())
+                    continue
+
                 # Thêm tin nhắn người dùng vào messages
                 messages.append({"role": "user", "content": user_input})
 
                 print("\n🤖 Trợ lý AI đang suy luận...")
-                answer = await run_agent_turn(
+                answer, context = await run_agent_turn(
                     session=session,
                     groq_client=groq_client,
                     groq_tools=groq_tools,
                     messages=messages,
                 )
+                last_answer = answer
+                last_context = context
 
                 print("\n" + "─" * 60)
                 print(f"📝 TRẢ LỜI:\n{answer}")
                 print("─" * 60)
+                print("💡 Mẹo: Gõ /eval để kiểm tra xem câu trả lời trên có chuẩn xác theo tài liệu không.")
 
 
 if __name__ == "__main__":
