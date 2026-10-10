@@ -1,0 +1,201 @@
+{
+  "total_testcases": 12,
+  "no_answer_testcases": 4,
+  "refusal_rate_percent": 75.0,
+  "average_faithfulness": 0.97,
+  "average_tokens_per_query": 8559.2,
+  "details": [
+    {
+      "id": "q1",
+      "category": "logic_rules",
+      "query": "Tôi muốn xin hoãn thi môn Cơ sở dữ liệu thì phải nộp đơn trong vòng mấy ngày kể từ ngày thi và cần giấy khám bệnh ở đâu?",
+      "is_no_answer": false,
+      "is_refused": true,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 5.44,
+      "tokens": {
+        "prompt_tokens": 5132,
+        "completion_tokens": 415,
+        "total_tokens": 5547,
+        "api_calls": 2
+      },
+      "answer_preview": "Dựa trên quy định mới nhất hiện hành (Quy chế 2024), tôi xin trả lời câu hỏi của bạn như sau:\n\n**1. Thời hạn nộp đơn hoãn thi**\nĐơn phải được nộp **tr"
+    },
+    {
+      "id": "q2",
+      "category": "version_comparison",
+      "query": "Quy định xin hoãn thi năm 2024 có gì khác biệt so với quy chế cũ năm 2021?",
+      "is_no_answer": false,
+      "is_refused": true,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 45.64,
+      "tokens": {
+        "prompt_tokens": 5752,
+        "completion_tokens": 639,
+        "total_tokens": 6391,
+        "api_calls": 2
+      },
+      "answer_preview": "Dựa trên các văn bản hiện hành, Quy chế 2024 (hiệu lực) có những điểm khác biệt rất rõ ràng và nghiêm khắc hơn so với Quy chế 2021 (đã hết hiệu lực) v"
+    },
+    {
+      "id": "q3",
+      "category": "logic_rules",
+      "query": "Sinh viên muốn rút bớt học phần thì phải rút trước tuần thứ mấy và sau khi rút phải còn tối thiểu bao nhiêu tín chỉ?",
+      "is_no_answer": false,
+      "is_refused": false,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 47.67,
+      "tokens": {
+        "prompt_tokens": 5187,
+        "completion_tokens": 302,
+        "total_tokens": 5489,
+        "api_calls": 2
+      },
+      "answer_preview": "Theo **Quy chế Đào tạo Học vụ năm 2024 (Phân ban 2.0 – đang hiệu lực)**, điều kiện để rút bớt học phần đã đăng ký được quy định tại **Điều 14** như sa"
+    },
+    {
+      "id": "q4",
+      "category": "version_comparison",
+      "query": "Điều kiện điểm rèn luyện để được xét nghỉ học tạm thời (bảo lưu) theo quy chế 2024 là bao nhiêu điểm, trước đây năm 2021 là bao nhiêu?",
+      "is_no_answer": false,
+      "is_refused": false,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 46.03,
+      "tokens": {
+        "prompt_tokens": 5836,
+        "completion_tokens": 562,
+        "total_tokens": 6398,
+        "api_calls": 2
+      },
+      "answer_preview": "## Điều kiện điểm rèn luyện để xét nghỉ học tạm thời (bảo lưu)\n\n**Theo Quy chế Đào tạo 2024 (hiện hành, Version 2.0 – Điều 20):**\n- Điểm rèn luyện học"
+    },
+    {
+      "id": "q5",
+      "category": "logic_rules",
+      "query": "Lệ phí cấp bảng điểm chính thức là bao nhiêu tiền và thời gian nhận là mấy ngày làm việc?",
+      "is_no_answer": false,
+      "is_refused": false,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 48.92,
+      "tokens": {
+        "prompt_tokens": 5735,
+        "completion_tokens": 256,
+        "total_tokens": 5991,
+        "api_calls": 2
+      },
+      "answer_preview": "Theo văn bản quy chế hiện hành của Phòng Công tác Sinh viên, thông tin về lệ phí và thời gian cấp **Bảng điểm học tập** như sau:\n\n**1. Lệ phí (Biểu ph"
+    },
+    {
+      "id": "q6",
+      "category": "logic_rules",
+      "query": "Lệ phí xin giấy xác nhận sinh viên là bao nhiêu và sau bao lâu thì nhận được?",
+      "is_no_answer": false,
+      "is_refused": false,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 49.22,
+      "tokens": {
+        "prompt_tokens": 5743,
+        "completion_tokens": 327,
+        "total_tokens": 6070,
+        "api_calls": 2
+      },
+      "answer_preview": "Bạn quan tâm đến **lệ phí** và **thời gian nhận giấy xác nhận sinh viên** — đây là nội dung thuộc **Quy trình cấp giấy tờ và bảng điểm sinh viên** (mã"
+    },
+    {
+      "id": "q7",
+      "category": "action_write_verify",
+      "query": "Tôi là sinh viên Lê Hoàng Nam, MSSV 22110099. Tôi bị viêm ruột thừa cấp có giấy ra viện Bệnh viện Chợ Rẫy, tôi thi môn Mạng máy tính ngày 2024-10-05, hôm nay 2024-10-06 tôi nộp đơn xin hoãn thi, hãy làm thủ tục tiếp nhận đơn cho tôi.",
+      "is_no_answer": false,
+      "is_refused": true,
+      "faithfulness_score": 0.75,
+      "duration_seconds": 85.77,
+      "tokens": {
+        "prompt_tokens": 9910,
+        "completion_tokens": 1085,
+        "total_tokens": 10995,
+        "api_calls": 3
+      },
+      "answer_preview": "Chào em **Lê Hoàng Nam (MSSV: 22110099)**, tôi đã hoàn tất việc lập và tiếp nhận đơn xin hoãn thi cho em. Dưới đây là tổng hợp thẩm định và xác nhận h"
+    },
+    {
+      "id": "q8",
+      "category": "missing_info",
+      "query": "Em muốn xin hoãn thi vì bị ốm, trường duyệt giúp em với ạ.",
+      "is_no_answer": false,
+      "is_refused": true,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 40.46,
+      "tokens": {
+        "prompt_tokens": 5106,
+        "completion_tokens": 436,
+        "total_tokens": 5542,
+        "api_calls": 2
+      },
+      "answer_preview": "Em ơi, hỗ trợ được đây nhé. Tuy nhiên, dựa theo **Quy định hoãn thi & thi bổ sung 2024** đang áp dụng, em cần bổ sung đầy đủ thông tin dưới đây để thầ"
+    },
+    {
+      "id": "q9",
+      "category": "no_answer",
+      "query": "Thủ tục xin cấp Visa du học Đức và chứng minh tài chính tại trường như thế nào?",
+      "is_no_answer": true,
+      "is_refused": true,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 45.63,
+      "tokens": {
+        "prompt_tokens": 6228,
+        "completion_tokens": 370,
+        "total_tokens": 6598,
+        "api_calls": 2
+      },
+      "answer_preview": "Quy định này không có trong các văn bản quy chế học vụ hiện hành của trường.\n\nCác tài liệu nội bộ của trường (Quy chế Đào tạo 2021/2024, Quy định Hoàn"
+    },
+    {
+      "id": "q10",
+      "category": "no_answer",
+      "query": "Quy định thi bằng lái xe máy A1 cho sinh viên năm nhất diễn ra vào ngày nào và học phí bao nhiêu?",
+      "is_no_answer": true,
+      "is_refused": true,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 43.06,
+      "tokens": {
+        "prompt_tokens": 5123,
+        "completion_tokens": 399,
+        "total_tokens": 5522,
+        "api_calls": 2
+      },
+      "answer_preview": "Quy định về việc **thi bằng lái xe máy A1 cho sinh viên** không có trong các văn bản quy chế học vụ hiện hành của trường. \n\nTrong hệ thống tài liệu qu"
+    },
+    {
+      "id": "q11",
+      "category": "no_answer",
+      "query": "Thời gian đóng cửa ký túc xá vào ban đêm và mức xử phạt nếu về muộn theo nội quy KTX là gì?",
+      "is_no_answer": true,
+      "is_refused": true,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 83.08,
+      "tokens": {
+        "prompt_tokens": 9758,
+        "completion_tokens": 480,
+        "total_tokens": 10238,
+        "api_calls": 3
+      },
+      "answer_preview": "Tôi đã tra cứu toàn bộ cơ sở dữ liệu văn bản quy chế hiện có của trường (bao gồm Quy chế Đào tạo 2024 v2, Quy chế Đào tạo 2021, Quy chế Hoàn thi 2024 "
+    },
+    {
+      "id": "q12",
+      "category": "no_answer",
+      "query": "Theo quy chế của trường Đại học Bách Khoa Hà Nội, sinh viên bị cảnh cáo học vụ mức 2 sẽ xử lý thế nào?",
+      "is_no_answer": true,
+      "is_refused": false,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 236.44,
+      "tokens": {
+        "prompt_tokens": 27529,
+        "completion_tokens": 400,
+        "total_tokens": 27929,
+        "api_calls": 6
+      },
+      "answer_preview": "[Thong bao] Da vuot qua gioi han 6 buoc xu ly cho phep. Vui long cung cap yeu cau cu the hon de tro ly phuc vu tot hon."
+    }
+  ]
+}

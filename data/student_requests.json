@@ -1,0 +1,42 @@
+[
+  {
+    "request_id": "REQ-2024-001",
+    "mssv": "22110001",
+    "student_name": "Tran Van An",
+    "request_type": "HOAN_THI",
+    "course_name": "Kien truc May tinh",
+    "exam_date": "2024-10-01",
+    "submission_date": "2024-10-02",
+    "reason": "Cap cuu vi ruot thua",
+    "attachment": "Giay ra vien Benh vien Cho Ray",
+    "status": "APPROVED",
+    "note": "Hop le, nop trong vong 1 ngay lam viec va benh vien tuyen tren."
+  },
+  {
+    "request_id": "REQ-2024-002",
+    "mssv": "22110002",
+    "student_name": "Le Thi Binh",
+    "request_type": "HOAN_THI",
+    "course_name": "Co so du lieu",
+    "exam_date": "2024-10-01",
+    "submission_date": "2024-10-08",
+    "reason": "Bi cam sot",
+    "attachment": "Giay xac nhan Tram y te phuong",
+    "status": "REJECTED",
+    "note": "Tu choi: Nop sau 5 ngay lam viec (qua han 3 ngay) va giay tram y te phuong khong hop le theo Quy che 2024."
+  },
+  {
+    "request_id": "REQ-20261010-133411-4425",
+    "mssv": "22110099",
+    "student_name": "Lê Hoàng Nam",
+    "request_type": "HOAN_THI",
+    "course_name": "Mạng máy tính",
+    "exam_date": "2024-10-05",
+    "submission_date": "2024-10-06",
+    "reason": "Bị viêm ruột thừa cấp, có giấy ra viện của Bệnh viện Chợ Rẫy",
+    "attachment": "Giấy ra viện Bệnh viện Chợ Rẫy",
+    "status": "PENDING",
+    "note": "Don da duoc tiep nhan tren he thong va dang cho phe duyet.",
+    "created_at": "2026-10-10T13:34:11.979115"
+  }
+]

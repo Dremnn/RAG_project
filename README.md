@@ -1,44 +1,88 @@
-# Mini RAG Assistant
+# Tro ly Quy che & Thu tuc Sinh vien (Student Academic Regulations Assistant)
 
-Hệ thống hỏi đáp tài liệu thông minh (RAG) chạy trên Terminal, được xây dựng theo chuẩn kiến trúc **Model Context Protocol (MCP)** và tích hợp từ Week 1 đến Week 7.
-
----
-
-## 🌟 Tính năng nổi bật
-
-- **Đọc đa định dạng**: Tự động đọc và xử lý file PDF (có phân trang), Word DOCX (trích xuất văn bản & bảng biểu), Text, Markdown.
-- **Hybrid Search**: Kết hợp tìm kiếm từ khóa chính xác (**BM25**) và tìm kiếm ngữ nghĩa (**Dense Vector Cosine Similarity** qua Jina Embeddings 1024-dim).
-- **Kiến trúc MCP (Week 7)**: Tách biệt **RAG Server** (`rag_server.py`) và **Terminal Client** (`rag_client.py`) qua giao thức `stdio`.
-- **ReAct Agent (Week 6)**: Sử dụng mô hình Groq (`qwen/qwen3.8-27b`) tự suy luận, gọi công cụ tìm kiếm và đính kèm trích dẫn nguồn (**Citations**).
-- **Smart Incremental Sync**: Tự động phát hiện và nạp các file mới được thêm vào thư mục `data/` mà không cần tính toán lại các file cũ.
-- **Thẩm định độ trung thực (Week 5)**: Bẻ nhỏ câu trả lời thành từng mệnh đề thực tế (*Atomic Claims*) và dùng LLM-as-a-judge chấm điểm **Faithfulness** để ngăn ngừa ảo giác (*Hallucination*).
+Du an cuoi ky mon AI Programming / AIPR. He thong tro ly AI ho tro giai dap quy che hoc vu, phan tich bien doi so sanh cac phien ban quy dinh (2021 vs 2024), va truc tiep tiep nhan, xac thuc cac don thu tuc hoc vu cua sinh vien thong qua Model Context Protocol (MCP).
 
 ---
 
-## 🛠️ Cài đặt & Chuẩn bị
+## 1. Tinh nang noi bat (Dap ung yeu cau Giang vien)
 
-1. **Yêu cầu môi trường**: Python 3.11+ và công cụ `uv`.
-2. **Cấu hình API Key**: Tạo file `.env` tại thư mục gốc với nội dung:
-   ```env
-   GROQ_API_KEY=your_groq_api_key
-   JINA_API_KEY=your_jina_api_key
-   ```
-3. **Tài liệu**: Thả các file tài liệu (`.pdf`, `.docx`, `.txt`, `.md`) cần tra cứu vào thư mục `data/`.
+1. **Tang (a) Tra cuu (Grounding & Calibration):**
+   - Su dung Hybrid Search ket hop Vector Search (`jina-embeddings-v3`) va BM25 keyword matching.
+   - Luon trich dan nguon van ban va Chunk ID thuc te (`[Nguon: ... | Chunk ID: ...]`).
+   - Co kha nang **Calibration (tu choi dung)** voi cac cau hoi ngoai pham vi hoac thieu du lieu quy che (`no_answer`).
+
+2. **Tang (b) Bien doi (Synthesis & Reasoning):**
+   - Khong copy nguyen van 1 chunk.
+   - So sanh doi chieu mau thuan va su thay doi giua cac phien ban quy che: Ban cu 2021 (het hieu luc) vs Ban hien hanh 2024.
+   - Tinh toan thoi han nop don (ngay lam viec), dieu kien tin chi va diem ren luyen de duoc bao luu/rut mon.
+
+3. **Tang (c) Hanh dong (Agent Side Effect + Verification):**
+   - Cap cong cu bat buoc: `submit_academic_request` (Write Tool - tao don that vao database JSON) -> goi ngay `get_request_status` (Verify Read Tool - kiem tra trang thai that trong he thong).
+
+4. **Kien truc Ky thuat Chuan muc:**
+   - **Custom ReAct Agent Loop**: Tu viet tay bang Python thuan, `MAX_STEPS = 6`, parse tool an toan, khong dung LangChain hay CrewAI.
+   - **MCP Server doc lap**: Chay qua `stdio`, expose danh muc cong cu de Client discover dong qua `session.list_tools()`.
+   - **Typing chat che**: Toan bo models va schemas deu duoc dinh nghia bang `@dataclass` trong `src/models.py`.
+   - **Evaluation (Week 5)**: Testset 12 cau trong `tests/testset.jsonl`, do ti le tu choi dung (Calibration) va do trung thuc (Faithfulness - LLM as a judge), luu ket qua vao `logs/eval_report.json` va ghi log thuc thi vao `logs/run_*.jsonl`.
 
 ---
 
-## 🚀 Hướng dẫn Sử dụng
+## 2. Cau truc thu muc
 
-Khởi chạy hệ thống hỏi đáp trực tiếp trên Terminal:
-
-```powershell
-uv run python rag_client.py
+```
+RAG_project/
+├── data/                       # Co so van ban quy che va database don
+│   ├── QC_Dao_Tao_2021_v1.docx # Quy che 2021 (cu, het hieu luc)
+│   ├── QC_Dao_Tao_2024_v2.docx # Quy che 2024 (hien hanh)
+│   ├── QC_Hoan_Thi_2024.docx   # Quy dinh hoan thi 2024
+│   ├── QC_Cap_Giay_To_2024.docx# Quy trinh cap bang diem, giay xac nhan
+│   └── student_requests.json   # Database ho so don hoc vu
+├── logs/                       # Log cac phien chay va bao cao danh gia
+│   ├── run_*.jsonl             # Log trace va token usage thuc te
+│   └── eval_report.json        # Ket qua benchmark 12 cau test
+├── prompts/
+│   └── system_agent.txt        # System Prompt tach biet khoi code
+├── src/
+│   ├── chunking/               # Recursive Chunker
+│   ├── evaluation/             # Faithfulness Evaluator (LLM-as-a-judge)
+│   ├── loaders/                # Document Loaders (docx, pdf, txt)
+│   ├── retrieval/              # VectorStore (BM25 + Dense)
+│   └── models.py               # Dataclass schemas
+├── tests/
+│   ├── testset.jsonl           # Tap 12 cau hoi kiem thu (co no_answer)
+│   └── evaluate_testset.py     # Script benchmark danh gia
+├── Makefile                    # Lenh chay nhanh (setup, demo, eval)
+├── rag_client.py               # ReAct Terminal Client
+├── rag_server.py               # MCP Knowledge & Action Server
+└── ai-usage.md                 # Bao cao su dung tro ly AI
 ```
 
-### Các lệnh tiện ích trong phiên chat:
-- **Nhập câu hỏi**: Chat tự nhiên để hỏi đáp về nội dung tài liệu.
-- **`/docs`**: Xem danh mục toàn bộ tài liệu đang có trong hệ thống.
-- **`/sync`**: Quét và nạp ngay tài liệu mới vừa thả vào `data/` mà không cần khởi động lại.
-- **`/eval`**: Thẩm định độ trung thực (Faithfulness) của câu trả lời vừa nhận.
-- **`/clear`**: Làm mới lịch sử trò chuyện.
-- **`exit`**: Thoát chương trình.
+---
+
+## 3. Huong dan cai dat va chay nhanh (1 lenh)
+
+### Cai dat
+```bash
+make setup
+# Hoac: uv pip install -e .
+```
+
+### Chay Demo Terminal Assistant
+```bash
+make demo
+# Hoac: uv run python rag_client.py
+```
+
+Cac lenh tien ich trong terminal:
+- `/docs` : Xem danh muc cac van ban quy che trong co so du lieu.
+- `/sync` : Quet va dong bo ngay cac file docx/pdf moi them vao `data/`.
+- `/eval` : Tham dinh do trung thuc (Faithfulness) cua cau vua tra loi.
+- `/clear`: Lam moi lich su hoi thoai.
+- `exit`  : Thoat chuong trinh.
+
+### Chay Danh gia Benchmark (Week 5)
+```bash
+make eval
+# Hoac: uv run python tests/evaluate_testset.py
+```
+Ket qua danh gia tong the va tung cau test se duoc hien thi tren terminal va xuat ra `logs/eval_report.json`.
