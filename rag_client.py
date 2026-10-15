@@ -76,7 +76,7 @@ def call_groq_with_retry(
                 messages=messages,
                 tools=tools,
                 tool_choice=tool_choice,
-                max_tokens=1500,
+                max_tokens=750,
                 timeout=timeout,
             )
             usage_meta = {
@@ -89,8 +89,11 @@ def call_groq_with_retry(
             last_err = e
             print(f"[Canh bao] Groq API gap su co (Thu lan {attempt}/{max_retries}): {e}")
             if attempt < max_retries:
-                time.sleep(delay)
-                delay *= 2
+                if "rate_limit" in str(e).lower() or "429" in str(e):
+                    time.sleep(10.0)
+                else:
+                    time.sleep(delay)
+                    delay *= 2
 
     raise RuntimeError(f"Goi Groq API that bai sau {max_retries} lan thu: {last_err}")
 
@@ -110,7 +113,7 @@ async def run_agent_loop(
     """
     accumulated_context = []
     trajectory = []
-    total_tokens = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "api_calls": 0}
+    total_tokens = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "api_calls": 0, "max_prompt": 0}
 
     for step in range(MAX_STEPS):
         # Strict Grounding: Bat buoc goi tool o buoc dau tien de tra cuu hoac xu ly
@@ -132,6 +135,7 @@ async def run_agent_loop(
         total_tokens["completion_tokens"] += usage["completion_tokens"]
         total_tokens["total_tokens"] += usage["total_tokens"]
         total_tokens["api_calls"] += 1
+        total_tokens["max_prompt"] = max(total_tokens["max_prompt"], usage.get("prompt_tokens", 0))
 
         response_message = response.choices[0].message
 
@@ -147,12 +151,12 @@ async def run_agent_loop(
                     tool_args = {}
 
                 print(f"\n[Hanh dong - Buoc {step + 1}] Goi cong cu: '{tool_name}'")
-                if tool_name in ["search_regulations", "search_documents"]:
+                if tool_name in ["search_regulations", "search_documents", "search_ctxh_rules"]:
                     print(f"    -> Tu khoa: \"{tool_args.get('query')}\"")
-                elif tool_name == "submit_academic_request":
-                    print(f"    -> [GHI DU LIEU] MSSV: {tool_args.get('mssv')} | Loai: {tool_args.get('request_type')}")
-                elif tool_name == "get_request_status":
-                    print(f"    -> [KIEM CHUNG] Ma don can verify: {tool_args.get('request_id')}")
+                elif tool_name in ["submit_academic_request", "register_ctxh_activity"]:
+                    print(f"    -> [GHI DU LIEU] MSSV: {tool_args.get('mssv')} | Hoat dong: {tool_args.get('activity_code', tool_args.get('request_type', ''))}")
+                elif tool_name in ["get_request_status", "get_ctxh_status"]:
+                    print(f"    -> [KIEM CHUNG] MSSV/Ma: {tool_args.get('mssv', tool_args.get('request_id', ''))}")
 
                 # Goi Tool tren MCP Server qua stdio an toan (khong crash)
                 try:

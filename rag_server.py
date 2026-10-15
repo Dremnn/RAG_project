@@ -20,7 +20,7 @@ if str(_HERE) not in sys.path:
 from src.loaders import DocumentLoaderFactory, SUPPORTED_EXTENSIONS
 from src.chunking import RecursiveChunker
 from src.retrieval import VectorStore, EmbeddingGenerator
-from src.models import StudentRequest
+from src.models import StudentCTXHRecord, CTXHRegistration
 
 load_dotenv()
 
@@ -29,7 +29,7 @@ mcp = MCPServer("rag-knowledge-server")
 
 DATA_DIR = _HERE / "data"
 INDEX_PATH = DATA_DIR / "index.json"
-REQUESTS_DB_PATH = DATA_DIR / "student_requests.json"
+CTXH_DB_PATH = DATA_DIR / "student_ctxh.json"
 
 # Global Store
 STORE = VectorStore()
@@ -84,7 +84,6 @@ def sync_knowledge_base() -> dict:
             else:
                 added_files.append(fname)
 
-            # Load and chunk this file only
             docs = DocumentLoaderFactory.load_file(fpath)
             chunks = chunker.split_documents(docs)
 
@@ -119,25 +118,24 @@ def _ensure_index_loaded() -> None:
         except Exception:
             STORE = VectorStore()
 
-    # Sync any new or modified files in data/
     sync_knowledge_base()
 
 
-# Database helper functions for student requests
-def _load_student_requests() -> list[dict]:
-    if not REQUESTS_DB_PATH.exists():
+# Database helper functions for CTXH records
+def _load_student_ctxh() -> list[dict]:
+    if not CTXH_DB_PATH.exists():
         return []
     try:
-        with open(REQUESTS_DB_PATH, "r", encoding="utf-8") as f:
+        with open(CTXH_DB_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return []
 
 
-def _save_student_requests(requests_data: list[dict]) -> None:
-    REQUESTS_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(REQUESTS_DB_PATH, "w", encoding="utf-8") as f:
-        json.dump(requests_data, f, ensure_ascii=False, indent=2)
+def _save_student_ctxh(data: list[dict]) -> None:
+    CTXH_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(CTXH_DB_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 # Initialize and sync store on startup
@@ -149,15 +147,15 @@ _ensure_index_loaded()
 # ==========================================
 
 @mcp.tool()
-def search_regulations(query: str, top_k: int = 4, mode: str = "hybrid") -> str:
-    """Tra cuu van ban quy che hoc vu bang Hybrid Search (BM25 + Dense Vector).
-    Tra ve cac doan trich quy che lien quan nhat kem theo nguon file_name, Chunk ID va do tuong dong.
-    Bat buoc goi cong cu nay khi can tra cuu quy che, dieu kien hoan thi, rut mon, bao luu hoac le phi."""
+def search_ctxh_rules(query: str, top_k: int = 4, mode: str = "hybrid") -> str:
+    """Tra cuu van ban quy dinh Cong tac xa hoi (CTXH) bang Hybrid Search (BM25 + Dense Vector).
+    Tra ve cac dieu khoan, ma hoat dong (6 chu so), thang diem, cach quy doi ngay CTXH, va dieu kien tot nghiep.
+    Bat buoc goi cong cu nay khi tra cuu ma hoat dong, quy dinh ngay CTXH hoac tieu chuan mien giam."""
     top_k = max(1, min(top_k, 8))
     results = STORE.search(query=query, top_k=top_k, mode=mode)
 
     if not results:
-        return "Khong tim thay quy dinh phu hop trong co so du lieu quy che."
+        return "Khong tim thay quy dinh phu hop trong co so du lieu CTXH."
 
     formatted_passages = []
     for rank, (chunk, score) in enumerate(results, 1):
@@ -179,17 +177,16 @@ def search_regulations(query: str, top_k: int = 4, mode: str = "hybrid") -> str:
 
 # Alias for backward compatibility if needed
 @mcp.tool()
-def search_documents(query: str, top_k: int = 4) -> str:
-    """Tra cuu tai lieu tong hop. Tuong duong voi search_regulations."""
-    return search_regulations(query=query, top_k=top_k, mode="hybrid")
+def search_regulations(query: str, top_k: int = 4) -> str:
+    """Tra cuu quy dinh CTXH. Tuong duong voi search_ctxh_rules."""
+    return search_ctxh_rules(query=query, top_k=top_k, mode="hybrid")
 
 
 @mcp.tool()
 def list_indexed_documents() -> str:
-    """Liet ke toan bo cac van ban quy che va tai lieu hien co trong he thong.
-    Bao gom ma doc_id, ten file, dinh dang va so luong chunks."""
+    """Liet ke toan bo cac van ban quy dinh ve CTXH hien co trong he thong."""
     if not STORE.chunks:
-        return "Co so du lieu tai lieu hien dang trong."
+        return "Co so du lieu tai lieu CTXH hien dang trong."
 
     doc_summary: dict[str, dict] = {}
     for chunk in STORE.chunks.values():
@@ -204,7 +201,7 @@ def list_indexed_documents() -> str:
             }
         doc_summary[doc_id]["chunk_count"] += 1
 
-    lines = ["Danh muc van ban quy che hien co:"]
+    lines = ["Danh muc van ban quy che CTXH hien co:"]
     for doc_id, info in doc_summary.items():
         pages_info = f", So trang: {info['total_pages']}" if info["total_pages"] else ""
         lines.append(
@@ -216,8 +213,7 @@ def list_indexed_documents() -> str:
 
 @mcp.tool()
 def get_document_full(doc_id: str) -> str:
-    """Trich xuat toan van mot van ban theo ma doc_id.
-    Su dung khi can doc toan bo dieu khoan chi tiet cua mot quy che."""
+    """Trich xuat toan van mot van ban quy dinh CTXH theo ma doc_id."""
     matched_chunks = sorted(
         [c for c in STORE.chunks.values() if c.doc_id == doc_id],
         key=lambda c: c.chunk_index,
@@ -237,6 +233,79 @@ def get_document_full(doc_id: str) -> str:
 
 
 @mcp.tool()
+def register_ctxh_activity(
+    mssv: str,
+    activity_code: str,
+    activity_name: str = "",
+    points: int = 5,
+    converted_days: float = 0.5,
+    note: str = "",
+) -> str:
+    """[WRITE TOOL - SIDE EFFECT] Dang ky hoat dong CTXH va ghi nhan vao ho so sinh vien trong he thong du lieu.
+    Cap nhat so ngay tich luy thuc te cua sinh vien.
+    Bat buoc goi tiep cong cu get_ctxh_status ngay sau khi goi tool nay de verify trang thai ho so.
+    If the student does not exist, a new record is created with default values.
+    """
+    data = _load_student_ctxh()
+    student = None
+    for s in data:
+        if s.get("mssv") == mssv:
+            student = s
+            break
+    if not student:
+        # Auto-create a new student record with minimal info
+        student = {
+            "mssv": mssv,
+            "student_name": "Unknown",
+            "faculty": "",
+            "course_year": "2022",
+            "required_days": 4.0,
+            "accumulated_days": 0.0,
+            "registered_activities": [],
+        }
+        data.append(student)
+    now_str = datetime.now().strftime("%Y%m%d")
+    short_id = uuid.uuid4().hex[:4].upper()
+    reg_id = f"REG-CTXH-{now_str}-{short_id}"
+    code_names = {
+        "001202": "Truc tiep hien mau tinh nguyen (01 lan)",
+        "001201": "To chuc hoat dong hien mau tinh nguyen",
+        "001101": "Mua he xanh - Suot chien dich tai tinh (01 thang)",
+        "001104": "Mua he xanh - Doi hinh chuyen 02 tuan",
+        "001105": "Mua he xanh - Doi hinh chuyen 01 tuan",
+        "001301": "Xuan tinh nguyen (04 ngay)",
+        "001401": "Dem hoi trang ram (04 ngay)",
+        "001501": "Tiep suc mua thi - Cap thanh (01 thang)",
+        "001502": "Tiep suc mua thi - Cap truong (02 tuan)",
+        "002101": "Ngay chu nhat xanh (01 buoi)",
+        "002102": "Ngay chu nhat xanh (01 ngay)",
+    }
+    if not activity_name:
+        activity_name = code_names.get(activity_code, f"Hoat dong CTXH ma {activity_code}")
+    new_reg = {
+        "reg_id": reg_id,
+        "activity_code": activity_code,
+        "activity_name": activity_name,
+        "points": points,
+        "converted_days": converted_days,
+        "status": "CONFIRMED",
+        "registration_date": datetime.now().strftime("%Y-%m-%d"),
+        "note": note or "Dang ky thanh cong qua Tro ly CTXH",
+    }
+    student.setdefault("registered_activities", []).append(new_reg)
+    student["accumulated_days"] = round(student.get("accumulated_days", 0.0) + converted_days, 2)
+    _save_student_ctxh(data)
+    return (
+        f"Dang ky hoat dong thanh cong! Ma dang ky: {reg_id}. "
+        f"Sinh vien: {student.get('student_name', 'Unknown')} (MSSV: {mssv}). "
+        f"Hoat dong: {activity_name} (Ma: {activity_code}) | Diem: {points} | Ngay quy doi: +{converted_days}. "
+        f"Tong ngay tich luy moi: {student['accumulated_days']}/{student.get('required_days', 4.0)} ngay. "
+        f"Hay goi ngay get_ctxh_status('{mssv}') de kiem tra xac thuc."
+    )
+
+
+# Alias for compatibility with general prompt
+@mcp.tool()
 def submit_academic_request(
     mssv: str,
     student_name: str,
@@ -247,91 +316,78 @@ def submit_academic_request(
     reason: str = "",
     attachment: str = "",
 ) -> str:
-    """[WRITE TOOL - SIDE EFFECT] Tao va luu ho so don hoc vu cho sinh vien vao he thong du lieu.
-    Cac loai don hop le: HOAN_THI, BAO_LUU, RUT_MON, CAP_BANG_DIEM, CAP_GIAY_XAC_NHAN.
-    Bat buoc goi tiep cong cu get_request_status ngay sau khi goi tool nay de verify trang thai."""
-    requests_data = _load_student_requests()
-
-    now_str = datetime.now().strftime("%Y%m%d-%H%M%S")
-    short_id = uuid.uuid4().hex[:4].upper()
-    req_id = f"REQ-{now_str}-{short_id}"
-
-    if not submission_date:
-        submission_date = datetime.now().strftime("%Y-%m-%d")
-
-    req_obj = StudentRequest(
-        request_id=req_id,
+    """[WRITE TOOL - ALIAS] Ho tro dang ky hoat dong CTXH qua interface chung."""
+    return register_ctxh_activity(
         mssv=mssv,
-        student_name=student_name,
-        request_type=request_type.upper(),
-        course_name=course_name,
-        exam_date=exam_date,
-        submission_date=submission_date,
-        reason=reason,
-        attachment=attachment,
-        status="PENDING",
-        note="Don da duoc tiep nhan tren he thong va dang cho phe duyet.",
-    )
-
-    requests_data.append(req_obj.to_dict())
-    _save_student_requests(requests_data)
-
-    return (
-        f"Tao ho so thanh cong! Ma ho so: {req_id}. "
-        f"Sinh vien: {student_name} (MSSV: {mssv}), Loai don: {request_type}. "
-        f"Trang thai: PENDING. Hay goi ngay get_request_status('{req_id}') de kiem tra xac thuc."
+        activity_code="001202",
+        activity_name=f"Dang ky CTXH: {request_type}",
+        points=5,
+        converted_days=0.5,
+        note=f"{reason} (Minh chung: {attachment})",
     )
 
 
 @mcp.tool()
-def get_request_status(request_id: str) -> str:
-    """[VERIFY READ TOOL] Kiem tra va xac thuc trang thai ho so don hoc vu that trong he thong du lieu.
-    Tra ve thong tin chi tiet cua don gom: Ma don, MSSV, Sinh vien, Loai don, Trang thai va Ghi chu tham dinh."""
-    requests_data = _load_student_requests()
-    for req in requests_data:
-        if req.get("request_id") == request_id:
-            return (
-                f"[XAC THUC HO SO THANH CONG]\n"
-                f"- Ma don: {req.get('request_id')}\n"
-                f"- MSSV: {req.get('mssv')} | Sinh vien: {req.get('student_name')}\n"
-                f"- Loai don: {req.get('request_type')}\n"
-                f"- Mon hoc: {req.get('course_name', 'N/A')}\n"
-                f"- Ngay thi: {req.get('exam_date', 'N/A')} | Ngay nop: {req.get('submission_date', 'N/A')}\n"
-                f"- Ly do: {req.get('reason', 'N/A')}\n"
-                f"- Minh chung: {req.get('attachment', 'N/A')}\n"
-                f"- Trang thai: {req.get('status')}\n"
-                f"- Ghi chu: {req.get('note', '')}\n"
-                f"- Thoi gian ghi nhan: {req.get('created_at', 'N/A')}"
-            )
+def get_ctxh_status(mssv: str) -> str:
+    """[VERIFY READ TOOL] Kiem tra va xac thuc ho so CTXH thuc te cua sinh vien tu he thong du lieu.
+    Tra ve thong tin: MSSV, Ho ten, Khoa, So ngay tich luy, So ngay quy dinh tot nghiep, Tien do va Danh sach hoat dong da tham gia."""
+    data = _load_student_ctxh()
+    student = None
+    for s in data:
+        if s.get("mssv") == mssv:
+            student = s
+            break
 
-    return f"Loi xac thuc: Khong tim thay ho so nao voi ma '{request_id}' trong he thong."
+    if not student:
+        return f"Loi xac thuc: Khong tim thay ho so sinh vien co MSSV '{mssv}' trong he thong."
 
+    acc = student.get("accumulated_days", 0.0)
+    req = student.get("required_days", 4.0)
+    diff = round(req - acc, 2)
+    progress_status = "DA DU DIEU KIEN TOT NGHIEP" if acc >= req else f"CON THIEU {diff} NGAY DE DU DIEU KIEN TOT NGHIEP"
 
-@mcp.tool()
-def list_student_requests(mssv: str) -> str:
-    """Tra cuu toan bo lich su cac don thu tuc hoc vu cua mot sinh vien dua vao MSSV."""
-    requests_data = _load_student_requests()
-    matched = [r for r in requests_data if r.get("mssv") == mssv]
-
-    if not matched:
-        return f"Khong tim thay lich su don nao cho sinh vien co MSSV '{mssv}'."
-
-    lines = [f"Lich su ho so hoc vu cua MSSV {mssv}:"]
-    for r in matched:
-        lines.append(
-            f"  - [{r.get('request_id')}] Loai: {r.get('request_type')} | "
-            f"Trang thai: {r.get('status')} | Ngay nop: {r.get('submission_date')} | "
-            f"Ghi chu: {r.get('note')}"
+    activities = student.get("registered_activities", [])
+    act_lines = []
+    for a in activities:
+        act_lines.append(
+            f"  - [{a.get('reg_id')}] Ma: {a.get('activity_code')} | "
+            f"Ten: {a.get('activity_name')} | Ngay quy doi: {a.get('converted_days')} ngay | "
+            f"Trang thai: {a.get('status')}"
         )
 
-    return "\n".join(lines)
+    acts_text = "\n".join(act_lines) if act_lines else "  (Chua co hoat dong nao)"
+
+    return (
+        f"[XAC THUC HO SO CTXH THANH CONG]\n"
+        f"- MSSV: {student.get('mssv')} | Sinh vien: {student.get('student_name')}\n"
+        f"- Khoa: {student.get('faculty', 'N/A')} | Khoa hoc: {student.get('course_year', 'N/A')}\n"
+        f"- So ngay tich luy hien tai: {acc} ngay\n"
+        f"- So ngay toi thieu de tot nghiep: {req} ngay\n"
+        f"- Danh gia tien do: {progress_status}\n"
+        f"- Danh sach hoat dong da ghi nhan:\n{acts_text}"
+    )
+
+
+# Alias for verify tool
+@mcp.tool()
+def get_request_status(request_id: str) -> str:
+    """[VERIFY READ TOOL - ALIAS] Kiem tra trang thai ho so theo MSSV hoac ma dang ky."""
+    # If passed MSSV directly
+    data = _load_student_ctxh()
+    for s in data:
+        if s.get("mssv") == request_id:
+            return get_ctxh_status(request_id)
+        for act in s.get("registered_activities", []):
+            if act.get("reg_id") == request_id:
+                return get_ctxh_status(s.get("mssv"))
+    return f"Loi xac thuc: Khong tim thay ma ho so hoac sinh vien voi ma '{request_id}'."
 
 
 @mcp.tool()
 def sync_documents() -> str:
-    """Dong bo hoa va quet lai thu muc data/ de cap nhat cac file quy che moi hoac sua doi."""
+    """Dong bo hoa va quet lai thu muc data/ de cap nhat cac file quy dinh CTXH moi."""
     report = sync_knowledge_base()
-    lines = ["Bao cao dong bo co so tri thuc quy che:"]
+    lines = ["Bao cao dong bo co so tri thuc CTXH:"]
     if report["added"]:
         lines.append(f"  - Tep moi them vao: {', '.join(report['added'])}")
     if report["updated"]:

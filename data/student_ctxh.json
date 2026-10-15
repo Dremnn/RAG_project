@@ -1,0 +1,92 @@
+[
+  {
+    "mssv": "22110001",
+    "student_name": "Tran Van An",
+    "faculty": "Cong nghe Thong tin",
+    "course_year": "2022",
+    "required_days": 4.0,
+    "accumulated_days": 2.5,
+    "registered_activities": [
+      {
+        "reg_id": "REG-CTXH-20240901-001",
+        "activity_code": "001202",
+        "activity_name": "Truc tiep hien mau tinh nguyen (01 lan)",
+        "points": 5,
+        "converted_days": 0.5,
+        "status": "CONFIRMED",
+        "registration_date": "2024-09-01",
+        "note": "Da xac nhan hoan thanh"
+      },
+      {
+        "reg_id": "REG-CTXH-20240915-002",
+        "activity_code": "001104",
+        "activity_name": "Mua he xanh - Tham gia doi hinh chuyen ngan ngay (02 tuan)",
+        "points": 20,
+        "converted_days": 2.0,
+        "status": "CONFIRMED",
+        "registration_date": "2024-09-15",
+        "note": "Da xac nhan hoan thanh"
+      }
+    ]
+  },
+  {
+    "mssv": "22110002",
+    "student_name": "Le Thi Binh",
+    "faculty": "Co khi",
+    "course_year": "2022",
+    "required_days": 4.0,
+    "accumulated_days": 3.5,
+    "registered_activities": [
+      {
+        "reg_id": "REG-CTXH-20240920-003",
+        "activity_code": "001301",
+        "activity_name": "Xuan tinh nguyen (04 ngay)",
+        "points": 15,
+        "converted_days": 1.5,
+        "status": "CONFIRMED",
+        "registration_date": "2024-09-20",
+        "note": "Da xac nhan hoan thanh"
+      },
+      {
+        "reg_id": "REG-CTXH-20241001-004",
+        "activity_code": "001104",
+        "activity_name": "Mua he xanh - Doi hinh chuyen 02 tuan",
+        "points": 20,
+        "converted_days": 2.0,
+        "status": "CONFIRMED",
+        "registration_date": "2024-10-01",
+        "note": "Da xac nhan hoan thanh"
+      }
+    ]
+  },
+  {
+    "mssv": "22110003",
+    "student_name": "Nguyen Van Cuong",
+    "faculty": "Dien - Dien tu",
+    "course_year": "2022",
+    "required_days": 4.0,
+    "accumulated_days": 1.5,
+    "registered_activities": [
+      {
+        "reg_id": "REG-CTXH-20240905-005",
+        "activity_code": "002102",
+        "activity_name": "Tham gia ngay chu nhat xanh (01 ngay)",
+        "points": 10,
+        "converted_days": 1.0,
+        "status": "CONFIRMED",
+        "registration_date": "2024-09-05",
+        "note": "Da xac nhan hoan thanh"
+      },
+      {
+        "reg_id": "REG-CTXH-20261015-FC66",
+        "activity_code": "001202",
+        "activity_name": "Trực tiếp hiến máu tình nguyện (1 lần)",
+        "points": 5,
+        "converted_days": 0.5,
+        "status": "CONFIRMED",
+        "registration_date": "2026-10-15",
+        "note": "Sinh viên Nguyễn Văn Cường - Khoa Điện - Điện tử"
+      }
+    ]
+  }
+]

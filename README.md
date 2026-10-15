@@ -1,60 +1,61 @@
-# Tro ly Quy che & Thu tuc Sinh vien (Student Academic Regulations Assistant)
+# Trợ lý Công tác Xã hội (CTXH Assistant) — Đề tài T5 (HCMUTE)
 
-Du an cuoi ky mon AI Programming / AIPR. He thong tro ly AI ho tro giai dap quy che hoc vu, phan tich bien doi so sanh cac phien ban quy dinh (2021 vs 2024), va truc tiep tiep nhan, xac thuc cac don thu tuc hoc vu cua sinh vien thong qua Model Context Protocol (MCP).
-
----
-
-## 1. Tinh nang noi bat (Dap ung yeu cau Giang vien)
-
-1. **Tang (a) Tra cuu (Grounding & Calibration):**
-   - Su dung Hybrid Search ket hop Vector Search (`jina-embeddings-v3`) va BM25 keyword matching.
-   - Luon trich dan nguon van ban va Chunk ID thuc te (`[Nguon: ... | Chunk ID: ...]`).
-   - Co kha nang **Calibration (tu choi dung)** voi cac cau hoi ngoai pham vi hoac thieu du lieu quy che (`no_answer`).
-
-2. **Tang (b) Bien doi (Synthesis & Reasoning):**
-   - Khong copy nguyen van 1 chunk.
-   - So sanh doi chieu mau thuan va su thay doi giua cac phien ban quy che: Ban cu 2021 (het hieu luc) vs Ban hien hanh 2024.
-   - Tinh toan thoi han nop don (ngay lam viec), dieu kien tin chi va diem ren luyen de duoc bao luu/rut mon.
-
-3. **Tang (c) Hanh dong (Agent Side Effect + Verification):**
-   - Cap cong cu bat buoc: `submit_academic_request` (Write Tool - tao don that vao database JSON) -> goi ngay `get_request_status` (Verify Read Tool - kiem tra trang thai that trong he thong).
-
-4. **Kien truc Ky thuat Chuan muc:**
-   - **Custom ReAct Agent Loop**: Tu viet tay bang Python thuan, `MAX_STEPS = 6`, parse tool an toan, khong dung LangChain hay CrewAI.
-   - **MCP Server doc lap**: Chay qua `stdio`, expose danh muc cong cu de Client discover dong qua `session.list_tools()`.
-   - **Typing chat che**: Toan bo models va schemas deu duoc dinh nghia bang `@dataclass` trong `src/models.py`.
-   - **Evaluation (Week 5)**: Testset 12 cau trong `tests/testset.jsonl`, do ti le tu choi dung (Calibration) va do trung thuc (Faithfulness - LLM as a judge), luu ket qua vao `logs/eval_report.json` va ghi log thuc thi vao `logs/run_*.jsonl`.
+Dự án cuối kỳ môn AI Programming / AIPR. Hệ thống Trợ lý AI hỗ trợ giải đáp quy định Công tác xã hội (CTXH), tra cứu mã hoạt động 6 chữ số, tính toán quy đổi điểm thành ngày CTXH, thẩm định tiến độ tốt nghiệp, và trực tiếp ghi nhận/đăng ký hoạt động cho sinh viên thông qua Model Context Protocol (MCP).
 
 ---
 
-## 2. Cau truc thu muc
+## 1. Tính năng nổi bật (Đáp ứng trọn vẹn 3 tầng bắt buộc)
+
+1. **Tầng (a) Tra cứu (Grounding & Calibration):**
+   - Sử dụng **Hybrid Search** kết hợp Dense Vector Search (`jina-embeddings-v3`) và BM25 keyword retrieval.
+   - Luôn trích dẫn nguồn văn bản và Chunk ID thực tế (`[Nguồn: CTXH.md | Chunk ID: ...]`).
+   - Có cơ chế **Calibration (từ chối đúng)** với các câu hỏi ngoài phạm vi CTXH hoặc câu hỏi từ trường khác (`no_answer`).
+
+2. **Tầng (b) Biến đổi (Synthesis & Calculation):**
+   - Không copy nguyên văn 1 chunk mà tổng hợp, suy luận logic.
+   - **Tra mã & Quy đổi ngày CTXH**: Mã hóa 6 chữ số (001101, 001202, 002101...), công thức chia 10 và làm tròn theo quy định.
+   - **So sánh chính sách theo khóa**: So sánh yêu cầu ngày CTXH tối thiểu giữa khóa 2012 (3 ngày) và từ khóa 2013 trở đi (4 ngày).
+   - **Tính toán tiến độ tốt nghiệp**: Đối chiếu số ngày đã tích lũy với chuẩn tối thiểu.
+   - **Nhận diện thiếu dữ liệu**: Yêu cầu người dùng bổ sung MSSV khi thiếu thông tin đăng ký.
+
+3. **Tầng (c) Hành động (Side Effect + Verify):**
+   - Cặp công cụ bắt buộc: `register_ctxh_activity` (Write Tool — ghi nhận hoạt động và cộng ngày vào CSDL `student_ctxh.json`) → gọi ngay `get_ctxh_status` (Verify Read Tool — đọc lại CSDL thực tế để kiểm chứng trạng thái).
+
+4. **Kiến trúc Kỹ thuật:**
+   - **Custom ReAct Agent Loop**: Tự viết tay bằng Python thuần, `MAX_STEPS = 6`, parse tool an toàn, kiểm soát vòng lặp.
+   - **MCP Server độc lập**: Giao tiếp qua `stdio`, expose công cụ để Client discover động qua `session.list_tools()`.
+   - **Typing chặt chẽ**: Toàn bộ model & schema được định nghĩa bằng `@dataclass` trong `src/models.py`.
+   - **Evaluation (Week 5)**: Testset 12 câu trong `tests/testset.jsonl` (gồm 4 câu `no_answer`), đo tỷ lệ từ chối đúng (Calibration), độ trung thực (Faithfulness) và keyword recall, xuất báo cáo JSON & CSV chi tiết.
+
+---
+
+## 2. Cấu trúc thư mục
 
 ```
 RAG_project/
-├── data/                       # Co so van ban quy che va database don
-│   ├── QC_Dao_Tao_2021_v1.docx # Quy che 2021 (cu, het hieu luc)
-│   ├── QC_Dao_Tao_2024_v2.docx # Quy che 2024 (hien hanh)
-│   ├── QC_Hoan_Thi_2024.docx   # Quy dinh hoan thi 2024
-│   ├── QC_Cap_Giay_To_2024.docx# Quy trinh cap bang diem, giay xac nhan
-│   └── student_requests.json   # Database ho so don hoc vu
-├── logs/                       # Log cac phien chay va bao cao danh gia
-│   ├── run_*.jsonl             # Log trace va token usage thuc te
-│   └── eval_report.json        # Ket qua benchmark 12 cau test
+├── data/                       # Cơ sở văn bản quy định và database sinh viên
+│   ├── CTXH.md                 # Quy định Công tác xã hội toàn văn (HCMUTE)
+│   ├── student_ctxh.json       # Cơ sở dữ liệu hồ sơ CTXH của sinh viên
+│   └── index.json              # Vector index lưu trữ chunk và metadata
+├── logs/                       # Log các phiên chạy và báo cáo đánh giá
+│   ├── run_*.jsonl             # Log trace và token usage thực tế
+│   ├── eval_report.json        # Báo cáo đánh giá chi tiết định dạng JSON
+│   └── eval_report.csv         # Bảng tổng hợp chi tiết từng câu kiểm thử định dạng CSV
 ├── prompts/
-│   └── system_agent.txt        # System Prompt tach biet khoi code
+│   └── system_agent.txt        # System Prompt 3 tầng tách biệt khỏi code
 ├── src/
 │   ├── chunking/               # Recursive Chunker
 │   ├── evaluation/             # Faithfulness Evaluator (LLM-as-a-judge)
-│   ├── loaders/                # Document Loaders (docx, pdf, txt)
-│   ├── retrieval/              # VectorStore (BM25 + Dense)
+│   ├── loaders/                # Document Loaders (docx, pdf, txt, md)
+│   ├── retrieval/              # VectorStore (BM25 + Dense Jina v3)
 │   └── models.py               # Dataclass schemas
 ├── tests/
-│   ├── testset.jsonl           # Tap 12 cau hoi kiem thu (co no_answer)
-│   └── evaluate_testset.py     # Script benchmark danh gia
-├── Makefile                    # Lenh chay nhanh (setup, demo, eval)
+│   ├── testset.jsonl           # Tập 12 câu hỏi kiểm thử (co 4 câu no_answer)
+│   └── evaluate_testset.py     # Script benchmark đánh giá
+├── Makefile                    # Lệnh chạy nhanh (setup, demo, eval)
 ├── rag_client.py               # ReAct Terminal Client
 ├── rag_server.py               # MCP Knowledge & Action Server
-└── ai-usage.md                 # Bao cao su dung tro ly AI
+└── ai-usage.md                 # Báo cáo sử dụng trợ lý AI
 ```
 
 ---

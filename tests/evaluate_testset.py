@@ -136,6 +136,14 @@ async def evaluate_all():
             else:
                 print("    -> [CALIBRATION] Canh bao: Khong tu choi cau hoi ngoai pham vi!")
 
+        # Kiem tra do phu tu khoa (Keyword Recall)
+        exp_kws = tc.get("expected_keywords", [])
+        matched_kws = [kw for kw in exp_kws if kw.lower() in answer.lower()]
+        kw_recall = round(len(matched_kws) / len(exp_kws), 2) if exp_kws else 1.0
+
+        # Kiem tra trich dan nguon (Grounding Citation)
+        has_citation = ("[nguồn:" in answer.lower() or "[nguon:" in answer.lower()) and "chunk id:" in answer.lower()
+
         # Danh gia Faithfulness bang LLM-as-a-judge
         f_score = 1.0
         if context.strip() and not is_no_ans:
@@ -147,32 +155,53 @@ async def evaluate_all():
             faithfulness_scores.append(f_score)
             print(f"    -> [FAITHFULNESS] Diem trung thuc: {f_score:.2f}")
 
+        calls = usage.get("api_calls", 1)
+        p_tokens = usage.get("prompt_tokens", 0)
+        c_tokens = usage.get("completion_tokens", 0)
+        m_prompt = usage.get("max_prompt", p_tokens)
+        tot_tok = usage.get("total_tokens", p_tokens + c_tokens)
+
+        print(f"    -> [USAGE] Calls: {calls} | Prompt: {p_tokens} | Completion: {c_tokens} | Max Prompt: {m_prompt} | Total: {tot_tok}")
+        print(f"    -> [DANH GIA] Tu khoa match: {len(matched_kws)}/{len(exp_kws)} ({kw_recall*100:.0f}%) | Trich dan hop le: {has_citation}")
+
         results.append({
             "id": qid,
             "category": cat,
             "query": query,
             "is_no_answer": is_no_ans,
             "is_refused": is_refused,
+            "keyword_recall": kw_recall,
+            "has_citation": has_citation,
             "faithfulness_score": f_score,
             "duration_seconds": round(duration, 2),
-            "tokens": usage,
+            "usage": {
+                "calls": calls,
+                "prompt_tokens": p_tokens,
+                "completion_tokens": c_tokens,
+                "max_prompt": m_prompt,
+                "total_tokens": tot_tok,
+            },
             "answer_preview": answer[:150],
         })
 
-        # Nghỉ ngắn giữa các câu để tránh rate limit Groq
-        time.sleep(1.0)
+        # Nghỉ giữa các câu để tránh rate limit Groq free tier
+        time.sleep(3.0)
 
     # Tinh toan tong the
     refusal_rate = (no_answer_refused_correctly / no_answer_total * 100) if no_answer_total > 0 else 0
     avg_faithfulness = (sum(faithfulness_scores) / len(faithfulness_scores)) if faithfulness_scores else 1.0
     avg_tokens = (total_prompt_tokens + total_completion_tokens) / len(testcases)
+    avg_kw_recall = sum(r["keyword_recall"] for r in results) / len(results) if results else 1.0
 
     summary = {
         "total_testcases": len(testcases),
         "no_answer_testcases": no_answer_total,
         "refusal_rate_percent": round(refusal_rate, 2),
         "average_faithfulness": round(avg_faithfulness, 2),
+        "average_keyword_recall": round(avg_kw_recall, 2),
         "average_tokens_per_query": round(avg_tokens, 1),
+        "total_prompt_tokens": total_prompt_tokens,
+        "total_completion_tokens": total_completion_tokens,
         "details": results,
     }
 
@@ -180,14 +209,39 @@ async def evaluate_all():
     with open(EVAL_RESULTS_FILE, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
+    # Xuat file CSV chi tiet tung cau (+1 diem cong theo Muc 3 tai lieu 02)
+    csv_file = _ROOT / "logs" / "eval_report.csv"
+    try:
+        import csv
+        with open(csv_file, "w", encoding="utf-8-sig", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "id", "category", "query", "is_no_answer", "is_refused", 
+                "keyword_recall", "has_citation", "faithfulness_score", 
+                "duration_seconds", "calls", "prompt_tokens", "completion_tokens", 
+                "max_prompt", "total_tokens", "answer_preview"
+            ])
+            for r in results:
+                u = r["usage"]
+                writer.writerow([
+                    r["id"], r["category"], r["query"], r["is_no_answer"], r["is_refused"],
+                    r["keyword_recall"], r["has_citation"], r["faithfulness_score"],
+                    r["duration_seconds"], u["calls"], u["prompt_tokens"], u["completion_tokens"],
+                    u["max_prompt"], u["total_tokens"], r["answer_preview"].replace("\n", " ")
+                ])
+        print(f"- File CSV chi tiet: {csv_file}")
+    except Exception as e:
+        print(f"[Canh bao] Khong the ghi file CSV: {e}")
+
     print("\n" + "=" * 65)
     print("[TONG KET EVALUATION (WEEK 5)]")
     print(f"- Tong so cau test: {len(testcases)}")
     print(f"- So cau hoi ngoai pham vi (no_answer): {no_answer_total}")
     print(f"- Ty le tu choi dung (Calibration / Refusal Rate): {refusal_rate:.1f}%")
     print(f"- Diem trung thuc trung binh (Faithfulness): {avg_faithfulness:.2f}/1.0")
+    print(f"- Do phu tu khoa trung binh (Keyword Recall): {avg_kw_recall*100:.1f}%")
     print(f"- Luong token trung binh / cau: {avg_tokens:.1f} tokens")
-    print(f"- File ket qua chi tiet: {EVAL_RESULTS_FILE}")
+    print(f"- File ket qua chi tiet (JSON): {EVAL_RESULTS_FILE}")
     print("=" * 65)
 
 

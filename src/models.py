@@ -56,59 +56,63 @@ class DocumentChunk:
 
 
 # ==========================================
-# DOMAIN MODELS & TOOL SCHEMAS (Week 1 & Week 6)
+# DOMAIN MODELS & TOOL SCHEMAS FOR CTXH (T5)
 # ==========================================
 
 @dataclass
-class StudentRequest:
+class CTXHRegistration:
     """
-    Data model representing a student procedure request in the database.
+    Data model representing a CTXH activity registration.
     """
-    request_id: str
-    mssv: str
-    student_name: str
-    request_type: str  # HOAN_THI, BAO_LUU, RUT_MON, CAP_BANG_DIEM, CAP_GIAY_XAC_NHAN
-    course_name: str = ""
-    exam_date: str = ""
-    submission_date: str = ""
-    reason: str = ""
-    attachment: str = ""
-    status: Literal["PENDING", "APPROVED", "REJECTED"] = "PENDING"
+    reg_id: str
+    activity_code: str
+    activity_name: str
+    points: int
+    converted_days: float
+    status: Literal["CONFIRMED", "PENDING", "REJECTED"] = "CONFIRMED"
+    registration_date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
     note: str = ""
-    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 @dataclass
-class SearchRegulationsInput:
+class StudentCTXHRecord:
     """
-    Input schema for searching academic regulations.
+    Data model representing student CTXH profile and accumulated days.
     """
+    mssv: str
+    student_name: str
+    faculty: str = ""
+    course_year: str = "2022"
+    required_days: float = 4.0
+    accumulated_days: float = 0.0
+    registered_activities: list[dict[str, Any]] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SearchCTXHRulesInput:
+    """Input schema for searching CTXH regulations and activity codes."""
     query: str
     top_k: int = 4
     mode: Literal["hybrid", "vector", "bm25"] = "hybrid"
 
 
 @dataclass
-class SubmitRequestInput:
-    """
-    Input schema for submitting an academic procedure request (Write Tool / Side Effect).
-    """
+class RegisterCTXHInput:
+    """Input schema for registering a student to a CTXH activity (Write Tool)."""
     mssv: str
-    student_name: str
-    request_type: str
-    course_name: str = ""
-    exam_date: str = ""
-    submission_date: str = ""
-    reason: str = ""
-    attachment: str = ""
+    activity_code: str
+    points: Optional[int] = None
+    converted_days: Optional[float] = None
+    note: str = ""
 
 
 @dataclass
-class GetRequestStatusInput:
-    """
-    Input schema for verifying an existing request status (Verify Tool).
-    """
-    request_id: str
+class GetCTXHStatusInput:
+    """Input schema for verifying student CTXH profile and graduation progress (Verify Tool)."""
+    mssv: str
