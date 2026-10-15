@@ -42,20 +42,26 @@ async def main():
                 print(f"    Description: {t.description[:80]}...")
             print("-" * 65)
 
-            # 2. Call tool: list_indexed_documents
-            print("\nCalling Tool: 'list_indexed_documents':")
-            doc_list = await session.call_tool("list_indexed_documents", arguments={})
-            print(doc_list.content[0].text)
+            # 2. Call tool: check_student_exists
+            print("\nCalling Tool: 'check_student_exists' (mssv='22110001'):")
+            stu_check = await session.call_tool("check_student_exists", arguments={"mssv": "22110001"})
+            print(stu_check.content[0].text)
             print("-" * 65)
 
-            # 3. Call tool: search_documents
-            query = "Quy định làm việc từ xa và phụ cấp"
-            print(f"\nCalling Tool: 'search_documents' (query: '{query}'):")
+            # 3. Call tool: check_graduation_eligibility
+            print("\nCalling Tool: 'check_graduation_eligibility' (mssv='22110001'):")
+            grad_check = await session.call_tool("check_graduation_eligibility", arguments={"mssv": "22110001"})
+            print(grad_check.content[0].text)
+            print("-" * 65)
+
+            # 4. Call tool: search_ctxh_rules
+            query = "Trực tiếp hiến máu tình nguyện"
+            print(f"\nCalling Tool: 'search_ctxh_rules' (query: '{query}'):")
             search_res = await session.call_tool(
-                "search_documents",
+                "search_ctxh_rules",
                 arguments={"query": query, "top_k": 2},
             )
-            print(search_res.content[0].text)
+            print(search_res.content[0].text[:300] + "...")
             print("=" * 65)
             print("[OK] MCP SERVER VERIFICATION PASSED!")
 

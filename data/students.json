@@ -1,0 +1,57 @@
+[
+  {
+    "mssv": "22110001",
+    "student_name": "Trần Văn An",
+    "faculty": "Công nghệ Thông tin",
+    "course_year": "2022",
+    "program_type": "Đại học chính quy (>= 4 năm)",
+    "training_years": 4.0,
+    "required_ctxh_days": 4.0,
+    "email": "22110001@student.hcmute.edu.vn",
+    "status": "Đang học"
+  },
+  {
+    "mssv": "22110002",
+    "student_name": "Lê Thị Bình",
+    "faculty": "Cơ khí",
+    "course_year": "2022",
+    "program_type": "Đại học chính quy (>= 4 năm)",
+    "training_years": 4.0,
+    "required_ctxh_days": 4.0,
+    "email": "22110002@student.hcmute.edu.vn",
+    "status": "Đang học"
+  },
+  {
+    "mssv": "22110003",
+    "student_name": "Nguyễn Văn Cường",
+    "faculty": "Điện - Điện tử",
+    "course_year": "2022",
+    "program_type": "Đại học chính quy (>= 4 năm)",
+    "training_years": 4.0,
+    "required_ctxh_days": 4.0,
+    "email": "22110003@student.hcmute.edu.vn",
+    "status": "Đang học"
+  },
+  {
+    "mssv": "22110004",
+    "student_name": "Phạm Thị Dung",
+    "faculty": "Kinh tế",
+    "course_year": "2022",
+    "program_type": "Đại học chính quy (>= 4 năm)",
+    "training_years": 4.0,
+    "required_ctxh_days": 4.0,
+    "email": "22110004@student.hcmute.edu.vn",
+    "status": "Đang học"
+  },
+  {
+    "mssv": "23110005",
+    "student_name": "Hoàng Minh Đức",
+    "faculty": "Công nghệ May & Thời trang",
+    "course_year": "2023",
+    "program_type": "Cao đẳng / Liên thông (< 4 năm)",
+    "training_years": 3.0,
+    "required_ctxh_days": 2.0,
+    "email": "23110005@student.hcmute.edu.vn",
+    "status": "Đang học"
+  }
+]

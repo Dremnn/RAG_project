@@ -116,3 +116,34 @@ class RegisterCTXHInput:
 class GetCTXHStatusInput:
     """Input schema for verifying student CTXH profile and graduation progress (Verify Tool)."""
     mssv: str
+
+
+@dataclass
+class CheckStudentExistsInput:
+    """Input schema for checking if a student exists in the university database."""
+    mssv: str
+
+
+@dataclass
+class CheckGraduationEligibilityInput:
+    """Input schema for checking whether a student meets the minimum CTXH days for graduation."""
+    mssv: str
+
+
+@dataclass
+class StudentProfile:
+    """
+    Data model representing master student information in students.json.
+    """
+    mssv: str
+    student_name: str
+    faculty: str
+    course_year: str
+    program_type: str = "Đại học chính quy (>= 4 năm)"
+    training_years: float = 4.0
+    required_ctxh_days: float = 4.0
+    email: str = ""
+    status: str = "Đang học"
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

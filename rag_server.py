@@ -30,6 +30,7 @@ mcp = MCPServer("rag-knowledge-server")
 DATA_DIR = _HERE / "data"
 INDEX_PATH = DATA_DIR / "index.json"
 CTXH_DB_PATH = DATA_DIR / "student_ctxh.json"
+STUDENTS_DB_PATH = DATA_DIR / "students.json"
 
 # Global Store
 STORE = VectorStore()
@@ -138,6 +139,16 @@ def _save_student_ctxh(data: list[dict]) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def _load_students() -> list[dict]:
+    if not STUDENTS_DB_PATH.exists():
+        return []
+    try:
+        with open(STUDENTS_DB_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
 # Initialize and sync store on startup
 _ensure_index_loaded()
 
@@ -233,6 +244,74 @@ def get_document_full(doc_id: str) -> str:
 
 
 @mcp.tool()
+def check_student_exists(mssv: str) -> str:
+    """[READ TOOL] Kiem tra thong tin sinh vien co ton tai trong he thong co so du lieu cua truong hay khong.
+    Tra ve Ho ten, Khoa, Khoa hoc, He dao tao, va so ngay CTXH tieu chuan de tot nghiep.
+    Nen goi cong cu nay de xac dinh danh tinh sinh vien truoc khi dang ky hoat dong."""
+    students = _load_students()
+    for s in students:
+        if s.get("mssv") == mssv:
+            return (
+                f"[TIM THAY SINH VIEN]\n"
+                f"- MSSV: {s.get('mssv')}\n"
+                f"- Ho ten: {s.get('student_name')}\n"
+                f"- Khoa: {s.get('faculty')}\n"
+                f"- Khoa hoc: {s.get('course_year')}\n"
+                f"- He dao tao: {s.get('program_type')} ({s.get('training_years')} nam)\n"
+                f"- So ngay CTXH yeu cau de tot nghiep: {s.get('required_ctxh_days')} ngay\n"
+                f"- Tinh trang hoc tap: {s.get('status', 'Dang hoc')}"
+            )
+    return f"Loi: Khong tim thay sinh vien co MSSV '{mssv}' trong co so du lieu sinh vien cua truong HCMUTE."
+
+
+@mcp.tool()
+def check_graduation_eligibility(mssv: str) -> str:
+    """[SYNTHESIS/CALCULATION TOOL] Tham dinh va tinh toan tien do tich luy ngay CTXH so voi chuan tot nghiep.
+    Doi chieu giua ho so sinh vien (students.json) va so ngay da tich luy thuc te (student_ctxh.json).
+    Tra ve so ngay da co, so ngay con thieu, va ket luan sinh vien da du dieu kien tot nghiep hay chua."""
+    students = _load_students()
+    student_master = next((s for s in students if s.get("mssv") == mssv), None)
+
+    ctxh_data = _load_student_ctxh()
+    student_ctxh = next((s for s in ctxh_data if s.get("mssv") == mssv), None)
+
+    if not student_master and not student_ctxh:
+        return f"Loi: Khong tim thay thong tin sinh vien co MSSV '{mssv}' trong he thong de kiem tra dieu kien tot nghiep."
+
+    name = student_master.get("student_name") if student_master else student_ctxh.get("student_name", "N/A")
+    faculty = student_master.get("faculty") if student_master else student_ctxh.get("faculty", "N/A")
+    req_days = student_master.get("required_ctxh_days", 4.0) if student_master else student_ctxh.get("required_days", 4.0)
+    acc_days = student_ctxh.get("accumulated_days", 0.0) if student_ctxh else 0.0
+
+    activities = student_ctxh.get("registered_activities", []) if student_ctxh else []
+    total_points = sum(a.get("points", 0) for a in activities)
+    req_points_est = int(req_days * 10)
+
+    diff = round(req_days - acc_days, 2)
+    diff_points = max(0, req_points_est - total_points)
+
+    if diff <= 0:
+        status_text = "DA DU DIEU KIEN TOT NGHIEP CTXH"
+        detail_msg = f"Sinh vien da hoan tat {acc_days}/{req_days} ngay CTXH (Tong diem tich luy: {total_points} diem)."
+    else:
+        status_text = f"CHUA DU DIEU KIEN TOT NGHIEP (CON THIEU {diff} NGAY)"
+        detail_msg = (
+            f"Sinh vien hien co {total_points} diem CTXH, quy doi duoc {acc_days}/{req_days} ngay CTXH. "
+            f"Can tich luy them it nhat {diff} ngay nua (tuong duong khoang {diff_points} diem hoat dong)."
+        )
+
+    return (
+        f"[KET QUA THAM DINH DIEU KIEN TOT NGHIEP CTXH]\n"
+        f"- MSSV: {mssv} | Ho ten: {name} | Khoa: {faculty}\n"
+        f"- Tong diem CTXH da tich luy: {total_points} diem\n"
+        f"- So ngay da quy doi thuc te: {acc_days} ngay (Cong thuc: Tong diem / 10 theo quy dinh)\n"
+        f"- So ngay tieu chuan can tich luy: {req_days} ngay (uoc tinh khoang {req_points_est} diem)\n"
+        f"- Danh gia tien do: {status_text}\n"
+        f"- Chi tiet: {detail_msg}"
+    )
+
+
+@mcp.tool()
 def register_ctxh_activity(
     mssv: str,
     activity_code: str,
@@ -253,13 +332,15 @@ def register_ctxh_activity(
             student = s
             break
     if not student:
-        # Auto-create a new student record with minimal info
+        # Lay thong tin tu danh sach sinh vien goc neu co
+        students_master = _load_students()
+        m_info = next((m for m in students_master if m.get("mssv") == mssv), None)
         student = {
             "mssv": mssv,
-            "student_name": "Unknown",
-            "faculty": "",
-            "course_year": "2022",
-            "required_days": 4.0,
+            "student_name": m_info.get("student_name", "Unknown") if m_info else "Unknown",
+            "faculty": m_info.get("faculty", "") if m_info else "",
+            "course_year": m_info.get("course_year", "2022") if m_info else "2022",
+            "required_days": m_info.get("required_ctxh_days", 4.0) if m_info else 4.0,
             "accumulated_days": 0.0,
             "registered_activities": [],
         }
@@ -347,11 +428,15 @@ def get_ctxh_status(mssv: str) -> str:
     progress_status = "DA DU DIEU KIEN TOT NGHIEP" if acc >= req else f"CON THIEU {diff} NGAY DE DU DIEU KIEN TOT NGHIEP"
 
     activities = student.get("registered_activities", [])
+    total_points = sum(a.get("points", 0) for a in activities)
+
     act_lines = []
     for a in activities:
         act_lines.append(
             f"  - [{a.get('reg_id')}] Ma: {a.get('activity_code')} | "
-            f"Ten: {a.get('activity_name')} | Ngay quy doi: {a.get('converted_days')} ngay | "
+            f"Ten: {a.get('activity_name')} | "
+            f"Diem: {a.get('points', 0)} diem | "
+            f"Ngay quy doi: {a.get('converted_days')} ngay | "
             f"Trang thai: {a.get('status')}"
         )
 
@@ -361,7 +446,8 @@ def get_ctxh_status(mssv: str) -> str:
         f"[XAC THUC HO SO CTXH THANH CONG]\n"
         f"- MSSV: {student.get('mssv')} | Sinh vien: {student.get('student_name')}\n"
         f"- Khoa: {student.get('faculty', 'N/A')} | Khoa hoc: {student.get('course_year', 'N/A')}\n"
-        f"- So ngay tich luy hien tai: {acc} ngay\n"
+        f"- Tong diem CTXH tich luy: {total_points} diem\n"
+        f"- So ngay tich luy hien tai: {acc} ngay (Quy doi tu tong diem chia 10)\n"
         f"- So ngay toi thieu de tot nghiep: {req} ngay\n"
         f"- Danh gia tien do: {progress_status}\n"
         f"- Danh sach hoat dong da ghi nhan:\n{acts_text}"

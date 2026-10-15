@@ -153,6 +153,8 @@ async def run_agent_loop(
                 print(f"\n[Hanh dong - Buoc {step + 1}] Goi cong cu: '{tool_name}'")
                 if tool_name in ["search_regulations", "search_documents", "search_ctxh_rules"]:
                     print(f"    -> Tu khoa: \"{tool_args.get('query')}\"")
+                elif tool_name in ["check_student_exists", "check_graduation_eligibility"]:
+                    print(f"    -> [THAM DINH HO SO] MSSV: {tool_args.get('mssv')}")
                 elif tool_name in ["submit_academic_request", "register_ctxh_activity"]:
                     print(f"    -> [GHI DU LIEU] MSSV: {tool_args.get('mssv')} | Hoat dong: {tool_args.get('activity_code', tool_args.get('request_type', ''))}")
                 elif tool_name in ["get_request_status", "get_ctxh_status"]:
