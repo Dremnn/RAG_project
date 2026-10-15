@@ -5,7 +5,7 @@
     "faculty": "Cong nghe Thong tin",
     "course_year": "2022",
     "required_days": 4.0,
-    "accumulated_days": 2.5,
+    "accumulated_days": 3.5,
     "registered_activities": [
       {
         "reg_id": "REG-CTXH-20240901-001",
@@ -26,6 +26,26 @@
         "status": "CONFIRMED",
         "registration_date": "2024-09-15",
         "note": "Da xac nhan hoan thanh"
+      },
+      {
+        "reg_id": "REG-CTXH-20261016-67B8",
+        "activity_code": "001202",
+        "activity_name": "Trực tiếp hiến máu tình nguyện (1 lần)",
+        "points": 5,
+        "converted_days": 0.5,
+        "status": "CONFIRMED",
+        "registration_date": "2026-10-16",
+        "note": "Đăng ký trực tiếp hiến máu tình nguyện"
+      },
+      {
+        "reg_id": "REG-CTXH-20261016-060E",
+        "activity_code": "002202",
+        "activity_name": "Tham gia hoạt động dọn dẹp vệ sinh, làm sạch địa bàn (dọn dẹp sân Hoa)",
+        "points": 5,
+        "converted_days": 0.5,
+        "status": "CONFIRMED",
+        "registration_date": "2026-10-16",
+        "note": "Đăng ký 01 buổi dọn dẹp sân Hoa"
       }
     ]
   },
@@ -35,7 +55,7 @@
     "faculty": "Co khi",
     "course_year": "2022",
     "required_days": 4.0,
-    "accumulated_days": 3.5,
+    "accumulated_days": 4.0,
     "registered_activities": [
       {
         "reg_id": "REG-CTXH-20240920-003",
@@ -56,6 +76,16 @@
         "status": "CONFIRMED",
         "registration_date": "2024-10-01",
         "note": "Da xac nhan hoan thanh"
+      },
+      {
+        "reg_id": "REG-CTXH-20261016-2CC8",
+        "activity_code": "001202",
+        "activity_name": "Trực tiếp hiến máu tình nguyện (01 lần)",
+        "points": 5,
+        "converted_days": 0.5,
+        "status": "CONFIRMED",
+        "registration_date": "2026-10-16",
+        "note": "Dang ky thanh cong qua Tro ly CTXH"
       }
     ]
   },
