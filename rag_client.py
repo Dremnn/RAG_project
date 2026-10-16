@@ -158,6 +158,8 @@ async def run_agent_loop(
                 print(f"\n[Hanh dong - Buoc {step + 1}] Goi cong cu: '{tool_name}'")
                 if tool_name in ["search_regulations", "search_documents", "search_ctxh_rules"]:
                     print(f"    -> Tu khoa: \"{tool_args.get('query')}\"")
+                    if tool_args.get("year"):
+                        print(f"    -> Nam (year): {tool_args.get('year')}")
                 elif tool_name in ["check_student_exists", "check_graduation_eligibility"]:
                     print(f"    -> [THAM DINH HO SO] MSSV: {tool_args.get('mssv')}")
                 elif tool_name in ["submit_academic_request", "register_ctxh_activity"]:

@@ -182,7 +182,7 @@ _ensure_index_loaded()
 @mcp.tool()
 def search_ctxh_rules(
     query: str,
-    top_k: int = 4,
+    top_k: int = 3,
     mode: str = "hybrid",
     year: Optional[str] = None,
 ) -> str:
@@ -192,11 +192,11 @@ def search_ctxh_rules(
 
     Args:
         query: Tu khoa, ma hoat dong (001101, 001202...), hoac cau hoi can tra cuu quy dinh CTXH.
-        top_k: So luong trich doan can lay (mac dinh 4, toi da 8).
+        top_k: So luong trich doan can lay (mac dinh 3, toi da 6).
         mode: Che do tim kiem ('hybrid', 'vector', 'bm25').
         year: Nam ban hanh quy dinh cu the (vi du '2023', '2024', '2025'). Neu de trong, he thong tu dong uu tien ban moi nhat.
     """
-    top_k = max(1, min(top_k, 8))
+    top_k = max(1, min(top_k, 6))
     results = STORE.search(query=query, top_k=top_k, mode=mode, year=year)
 
     if not results:
