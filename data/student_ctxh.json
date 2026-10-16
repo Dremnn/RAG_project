@@ -95,7 +95,7 @@
     "faculty": "Dien - Dien tu",
     "course_year": "2022",
     "required_days": 4.0,
-    "accumulated_days": 2.0,
+    "accumulated_days": 2.5,
     "registered_activities": [
       {
         "reg_id": "REG-CTXH-20240905-005",
@@ -126,6 +126,16 @@
         "status": "CONFIRMED",
         "registration_date": "2026-10-15",
         "note": "Nguyễn Văn Cường – Khoa Điện - Điện tử"
+      },
+      {
+        "reg_id": "REG-CTXH-20261016-F84F",
+        "activity_code": "001202",
+        "activity_name": "Trực tiếp hiến máu tình nguyện (01 lần)",
+        "points": 5,
+        "converted_days": 0.5,
+        "status": "CONFIRMED",
+        "registration_date": "2026-10-16",
+        "note": "Hiến máu tình nguyện trực tiếp 1 lần"
       }
     ]
   }
