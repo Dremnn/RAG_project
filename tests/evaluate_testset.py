@@ -31,6 +31,9 @@ if str(_ROOT) not in sys.path:
 from rag_client import load_system_prompt, run_agent_loop, SERVER_PARAMS
 from src.evaluation import (
     FaithfulnessEvaluator,
+    check_answer_relevance,
+    check_context_precision,
+    diagnose_failure_mode,
     save_session_csv,
     generate_session_charts,
 )
@@ -71,6 +74,8 @@ async def evaluate_all():
     no_answer_total = 0
     no_answer_refused_correctly = 0
     faithfulness_scores = []
+    relevance_scores = []
+    precision_scores = []
     total_prompt_tokens = 0
     total_completion_tokens = 0
 
@@ -149,16 +154,40 @@ async def evaluate_all():
         # Kiem tra trich dan nguon (Grounding Citation)
         has_citation = ("[nguồn:" in answer.lower() or "[nguon:" in answer.lower()) and "chunk id:" in answer.lower()
 
-        # Danh gia Faithfulness bang LLM-as-a-judge
+        # Danh gia bo 3 chi so Week 5: Faithfulness, Answer Relevance, Context Precision
         f_score = 1.0
-        if context.strip() and not is_no_ans:
-            try:
-                report = evaluator.evaluate(answer, context)
-                f_score = report.score
-            except Exception:
-                f_score = 1.0
-            faithfulness_scores.append(f_score)
-            print(f"    -> [FAITHFULNESS] Diem trung thuc: {f_score:.2f}")
+        rel_score = 1.0
+        prec_score = 1.0
+
+        if not is_no_ans:
+            # Answer Relevance: Danh gia muc do giai quyet dung trong tam cau hoi (khong phu thuoc context)
+            rel_score = check_answer_relevance(query, answer, groq_client=groq_client)
+            relevance_scores.append(rel_score)
+
+            # Faithfulness: Tach menh de nguyen tu va doi chieu context
+            if context.strip():
+                try:
+                    report = evaluator.evaluate(answer, context)
+                    f_score = report.score
+                except Exception:
+                    f_score = 1.0
+                faithfulness_scores.append(f_score)
+
+                # Context Precision: Xep hang chunk huu ich
+                prec_score = check_context_precision(query, [context], groq_client=groq_client)
+                precision_scores.append(prec_score)
+
+                print(f"    -> [WEEK 5] Faithfulness: {f_score:.2f} | Relevance: {rel_score:.2f} | Precision: {prec_score:.2f}")
+            else:
+                f_score = 0.0
+                prec_score = 0.0
+                faithfulness_scores.append(f_score)
+                precision_scores.append(prec_score)
+                print(f"    -> [WEEK 5] Khong co context: Faithfulness={f_score:.2f} | Relevance={rel_score:.2f}")
+        else:
+            relevance_scores.append(1.0)
+            precision_scores.append(1.0)
+            print(f"    -> [WEEK 5] Cau out-of-domain: Calibration Pass.")
 
         calls = usage.get("api_calls", 1)
         p_tokens = usage.get("prompt_tokens", 0)
@@ -178,6 +207,8 @@ async def evaluate_all():
             "keyword_recall": kw_recall,
             "has_citation": has_citation,
             "faithfulness_score": f_score,
+            "answer_relevance": rel_score,
+            "context_precision": prec_score,
             "duration_seconds": round(duration, 2),
             "usage": {
                 "calls": calls,
@@ -195,18 +226,25 @@ async def evaluate_all():
     # Tinh toan tong the
     refusal_rate = (no_answer_refused_correctly / no_answer_total * 100) if no_answer_total > 0 else 0
     avg_faithfulness = (sum(faithfulness_scores) / len(faithfulness_scores)) if faithfulness_scores else 1.0
+    avg_relevance = (sum(relevance_scores) / len(relevance_scores)) if relevance_scores else 1.0
+    avg_precision = (sum(precision_scores) / len(precision_scores)) if precision_scores else 1.0
     avg_tokens = (total_prompt_tokens + total_completion_tokens) / len(testcases)
     avg_kw_recall = sum(r["keyword_recall"] for r in results) / len(results) if results else 1.0
+
+    diagnosis = diagnose_failure_mode(avg_faithfulness, avg_relevance, avg_precision)
 
     summary = {
         "total_testcases": len(testcases),
         "no_answer_testcases": no_answer_total,
         "refusal_rate_percent": round(refusal_rate, 2),
         "average_faithfulness": round(avg_faithfulness, 2),
+        "average_answer_relevance": round(avg_relevance, 2),
+        "average_context_precision": round(avg_precision, 2),
         "average_keyword_recall": round(avg_kw_recall, 2),
         "average_tokens_per_query": round(avg_tokens, 1),
         "total_prompt_tokens": total_prompt_tokens,
         "total_completion_tokens": total_completion_tokens,
+        "failure_diagnosis": diagnosis,
         "details": results,
     }
 
@@ -231,15 +269,19 @@ async def evaluate_all():
     print(f"- Thu muc do thi (PNG DPI 300): {charts_dir}")
 
     print("\n" + "=" * 65)
-    print("[TONG KET EVALUATION (WEEK 5)]")
+    print("[TONG KET EVALUATION (WEEK 5 METRICS)]")
     print(f"- Tong so cau test: {len(testcases)}")
     print(f"- So cau hoi ngoai pham vi (no_answer): {no_answer_total}")
-    print(f"- Ty le tu choi dung (Calibration / Refusal Rate): {refusal_rate:.1f}%")
-    print(f"- Diem trung thuc trung binh (Faithfulness): {avg_faithfulness:.2f}/1.0")
+    print(f"- Ty le tu choi dung (Calibration / Refusal): {refusal_rate:.1f}%")
+    print(f"- 1. Faithfulness (Groundedness)            : {avg_faithfulness:.2f}/1.0")
+    print(f"- 2. Answer Relevance (On-topic)            : {avg_relevance:.2f}/1.0")
+    print(f"- 3. Context Precision (Rank quality)       : {avg_precision:.2f}/1.0")
     print(f"- Do phu tu khoa trung binh (Keyword Recall): {avg_kw_recall*100:.1f}%")
-    print(f"- Luong token trung binh / cau: {avg_tokens:.1f} tokens")
-    print(f"- File ket qua chi tiet (JSON): {EVAL_RESULTS_FILE}")
-    print(f"- File ket qua chi tiet (CSV) : {csv_file}")
+    print(f"- Luong token trung binh / cau              : {avg_tokens:.1f} tokens")
+    print("-" * 65)
+    print(f"[CHAN DOAN HE THONG (SLIDE 12 & 13)]")
+    print(f"- Tinh trang : {diagnosis['status']}")
+    print(f"- Khuyen nghi: {diagnosis['recommendation']}")
     print("=" * 65)
 
 

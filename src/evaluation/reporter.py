@@ -23,6 +23,7 @@ def save_session_csv(records: list[dict[str, Any]], output_file: str | Path) -> 
     headers = [
         "id", "category", "query", "is_no_answer", "is_refused",
         "keyword_recall", "has_citation", "faithfulness_score",
+        "answer_relevance", "context_precision",
         "duration_seconds", "calls", "prompt_tokens", "completion_tokens",
         "max_prompt", "total_tokens", "answer_preview"
     ]
@@ -50,6 +51,8 @@ def save_session_csv(records: list[dict[str, Any]], output_file: str | Path) -> 
                 r.get("keyword_recall", 1.0),
                 r.get("has_citation", False),
                 r.get("faithfulness_score", 1.0),
+                r.get("answer_relevance", 1.0),
+                r.get("context_precision", 1.0),
                 r.get("duration_seconds", 0.0),
                 calls,
                 p_tok,
@@ -123,20 +126,36 @@ def generate_session_charts(
     except Exception as e:
         sys.stderr.write(f"[Warning] Loi khi ve bieu do Token: {e}\n")
 
-    # 2. Do thi Chat luong (neu co it nhat mot chi so danh gia)
-    has_eval_metrics = any("faithfulness_score" in r or "keyword_recall" in r for r in records)
+    # 2. Do thi Chat luong Week 5 (Faithfulness, Answer Relevance, Context Precision)
+    has_eval_metrics = any(
+        "faithfulness_score" in r or "keyword_recall" in r or "answer_relevance" in r
+        for r in records
+    )
     if has_eval_metrics:
         try:
-            faith = [float(r.get("faithfulness_score", 1.0)) * 100 for r in records]
-            recall = [float(r.get("keyword_recall", 1.0)) * 100 for r in records]
-            width = 0.35
+            has_rel = any("answer_relevance" in r for r in records)
+            has_prec = any("context_precision" in r for r in records)
 
-            fig, ax = plt.subplots(figsize=(max(8, len(ids) * 0.7), 5), dpi=300)
-            ax.bar(x - width/2, faith, width, label="Faithfulness (%)", color="#059669", alpha=0.9)
-            ax.bar(x + width/2, recall, width, label="Keyword Recall (%)", color="#0284c7", alpha=0.9)
+            fig, ax = plt.subplots(figsize=(max(8, len(ids) * 0.75), 5), dpi=300)
+
+            if has_rel or has_prec:
+                width = 0.22
+                faith = [float(r.get("faithfulness_score", 1.0)) * 100 for r in records]
+                relev = [float(r.get("answer_relevance", 1.0)) * 100 for r in records]
+                prec = [float(r.get("context_precision", 1.0)) * 100 for r in records]
+
+                ax.bar(x - width, faith, width, label="Faithfulness (Grounded)", color="#059669", alpha=0.9)
+                ax.bar(x, relev, width, label="Answer Relevance", color="#2563eb", alpha=0.9)
+                ax.bar(x + width, prec, width, label="Context Precision", color="#d97706", alpha=0.9)
+            else:
+                width = 0.35
+                faith = [float(r.get("faithfulness_score", 1.0)) * 100 for r in records]
+                recall = [float(r.get("keyword_recall", 1.0)) * 100 for r in records]
+                ax.bar(x - width/2, faith, width, label="Faithfulness (%)", color="#059669", alpha=0.9)
+                ax.bar(x + width/2, recall, width, label="Keyword Recall (%)", color="#0284c7", alpha=0.9)
+
             ax.axhline(80, color="#ef4444", linestyle=":", linewidth=1.5, label="Ngưỡng tin cậy (80%)")
-
-            ax.set_title(f"CHỈ SỐ CHẤT LƯỢNG RAG - {session_title.upper()}", fontsize=12, fontweight="bold", pad=12)
+            ax.set_title(f"CHỈ SỐ CHẤT LƯỢNG RAG (WEEK 5 METRICS) - {session_title.upper()}", fontsize=12, fontweight="bold", pad=12)
             ax.set_xlabel("Mã câu hỏi / Lượt tương tác", fontsize=10, labelpad=6)
             ax.set_ylabel("Tỷ lệ (%)", fontsize=10, labelpad=6)
             ax.set_xticks(x)
@@ -193,18 +212,30 @@ def generate_session_charts(
             avg_recall = (sum(float(r.get("keyword_recall", 1.0)) for r in records) / total_cases) if total_cases else 1.0
             avg_tok = (sum(totals) / total_cases) if total_cases else 0
 
-            info = (
-                f"4. TỔNG HỢP {session_title.upper()}\n"
-                "────────────────────────────────────────────\n"
-                f"• Tổng số lượt truy vấn: {total_cases} câu\n"
-                f"• Tỷ lệ từ chối đúng   : {ref_pct:.1f}%\n"
-                f"• Độ trung thực (Faith): {avg_faith:.2f} / 1.00\n"
-                f"• Độ phủ từ khóa        : {avg_recall*100:.1f}%\n"
-                f"• Token trung bình      : {avg_tok:,.1f} tok/câu\n"
-                "────────────────────────────────────────────\n"
-                "Trạng thái: HOÀN TẤT PHIÊN LÀM VIỆC"
-            )
-            ax4.text(0.05, 0.5, info, fontsize=9.5, family="monospace",
+            has_rel = any("answer_relevance" in r for r in records)
+            has_prec = any("context_precision" in r for r in records)
+            avg_rel = (sum(float(r.get("answer_relevance", 1.0)) for r in records) / total_cases) if total_cases else 1.0
+            avg_prec = (sum(float(r.get("context_precision", 1.0)) for r in records) / total_cases) if total_cases else 1.0
+
+            lines_info = [
+                f"4. TỔNG HỢP {session_title.upper()}",
+                "────────────────────────────────────────────",
+                f"• Tổng số lượt truy vấn: {total_cases} câu",
+                f"• Tỷ lệ từ chối đúng   : {ref_pct:.1f}%",
+                f"• Faithfulness (Ground): {avg_faith:.2f} / 1.00",
+            ]
+            if has_rel:
+                lines_info.append(f"• Answer Relevance     : {avg_rel:.2f} / 1.00")
+            if has_prec:
+                lines_info.append(f"• Context Precision    : {avg_prec:.2f} / 1.00")
+            lines_info.extend([
+                f"• Độ phủ từ khóa        : {avg_recall*100:.1f}%",
+                f"• Token trung bình      : {avg_tok:,.1f} tok/câu",
+                "────────────────────────────────────────────",
+                "Trạng thái: HOÀN TẤT ĐÁNH GIÁ (WEEK 5)"
+            ])
+            info = "\n".join(lines_info)
+            ax4.text(0.05, 0.5, info, fontsize=8.8, family="monospace",
                      verticalalignment="center", bbox=dict(boxstyle="round,pad=1", facecolor="#f8fafc", edgecolor="#cbd5e1"))
 
             plt.suptitle(f"BẢNG TỔNG HỢP {session_title.upper()}", fontsize=13, fontweight="bold")
