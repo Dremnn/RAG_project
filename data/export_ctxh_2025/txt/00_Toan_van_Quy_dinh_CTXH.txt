@@ -1,0 +1,128 @@
+QUY ĐỊNH TỔ CHỨC THỰC HIỆN CHƯƠNG TRÌNH CÔNG TÁC XÃ HỘI ĐỐI VỚI SINH VIÊN HỆ CHÍNH QUY (PHIÊN BẢN 2025)
+
+I. QUY ĐỊNH CHUNG
+
+1. Căn cứ để xây dựng & thực hiện Chương trình công tác xã hội.
+
+- Quyết định của Thủ tướng Chính phủ về Chương trình Chuyển đổi số Quốc gia và Chiến lược phát triển Trí tuệ nhân tạo (AI) đến năm 2030;
+- Luật Giáo dục Đại học và các quy định hiện hành về chuẩn kiểm định chất lượng giáo dục quốc tế (AUN-QA, ABET);
+- Đề án Đô thị đại học thông minh và Trách nhiệm xã hội số (Digital Social Responsibility) của Nhà trường giai đoạn 2025 - 2035;
+- Quyết định triển khai Hệ sinh thái số SmartCampus AI & Student SuperApp 2025.
+
+2. Phạm vi điều chỉnh & đối tượng áp dụng
+
+- Văn bản này quy định quy chuẩn toàn diện về tổ chức, đánh giá, ghi nhận và quy đổi ngày CTXH trên nền tảng SmartCampus AI cho sinh viên;
+- Áp dụng đối với toàn thể sinh viên hệ chính quy trúng tuyển từ khóa 2025 trở đi;
+- Sinh viên các khóa trước năm 2025 tiếp tục thực hiện theo quy định của khóa tương ứng hoặc có thể đăng ký chuyển đổi tương đương theo hướng dẫn của Phòng HSSV.
+
+3. Mục đích
+
+- Đẩy mạnh phong trào "AI vì cộng đồng" (AI for Social Good), sử dụng công nghệ cao để giải quyết các bài toán thiết thực của xã hội;
+- Phát triển toàn diện năng lực công dân toàn cầu: Thấu cảm, trách nhiệm cộng đồng, khả năng thích ứng công nghệ và đạo đức phụng sự;
+- Cấp Chứng chỉ Phụng sự Cộng đồng số hóa có gắn mã định danh Blockchain (Digital Blockchain Credential) kèm bảng điểm tốt nghiệp.
+
+4. Yêu cầu tích lũy ngày CTXH (Chuẩn phân luồng 2025)
+
+Sinh viên khóa 2025 phải tích lũy số ngày CTXH tối thiểu theo từng hệ đào tạo:
+- Chương trình chuẩn (Đại trà) $\ge$ 4 năm: Tối thiểu 06 ngày CTXH;
+- Chương trình Chất lượng cao / Tiên tiến / Tài năng: Tối thiểu 08 ngày CTXH (bao gồm ít nhất 02 ngày thuộc dự án tình nguyện quốc tế hoặc dự án công nghệ vì cộng đồng);
+- Chương trình đào tạo dưới 4 năm / Cao đẳng liên thông: Tối thiểu 04 ngày CTXH;
+- Điều kiện tốt nghiệp: Tích lũy đủ 100% số ngày quy định chậm nhất trước ngày xét công nhận tốt nghiệp 30 ngày;
+- Miễn giảm đặc biệt: Sinh viên khuyết tật nặng hoặc bệnh hiểm nghèo được Hội đồng xét miễn toàn bộ hoặc giao các nhiệm vụ hỗ trợ học thuật online phù hợp.
+
+=== II. NỘI DUNG CÔNG TÁC XÃ HỘI, MÃ HÓA & QUY ĐỔI NGÀY CTXH ===
+
+=== 1. Danh mục các lĩnh vực CTXH năm 2025: ===
+
+a. Chiến dịch tình nguyện thanh niên: Mùa hè xanh, Xuân tình nguyện, Tiếp sức mùa thi quốc tế (ký hiệu 001);
+b. Hoạt động công ích thông minh, hỗ trợ chuyển đổi xanh khuôn viên đại học (ký hiệu 002);
+c. Hoạt động môi trường sinh thái, bảo tồn đa dạng sinh học và thích ứng biến đổi khí hậu (ký hiệu 003);
+d. Hoạt động thiện nguyện, chăm sóc người già neo đơn, trẻ em khuyết tật và thương bệnh binh (ký hiệu 004);
+e. Giáo dục khai phóng, dạy học STEAM tình nguyện cho học sinh vùng sâu vùng xa (ký hiệu 005);
+f. Đảm nhiệm chức danh ban cán sự, thủ lĩnh đoàn thể, ban điều hành dự án xã hội (ký hiệu 006);
+g. Chuyển đổi số quốc gia, hỗ trợ thủ tục công dân số và an ninh mạng cộng đồng (ký hiệu 007);
+h. Dự án Trung hòa Carbon (Net-Zero Campus) và kinh tế tuần hoàn (ký hiệu 008);
+i. Trí tuệ nhân tạo (AI) và Công nghệ phục vụ cộng đồng (ký hiệu 009 - Đột phá mới năm 2025);
+j. Tình nguyện quốc tế, giao lưu văn hóa và cứu trợ nhân đạo xuyên biên giới (ký hiệu 010).
+
+=== Lưu ý: ===
+
+✓ Hoạt động phải được xác thực qua SmartCampus AI SuperApp bằng cơ chế FaceID & GPS Geofencing.
+✓ Tuyệt đối cấm các hành vi gian lận công nghệ (Fake GPS, can thiệp camera điểm danh).
+✓ Không chấp nhận tính ngày CTXH cho các hoạt động mang tính chất thương mại hoặc đã nhận thù lao.
+
+=== 2. Bảng mã hóa, thang điểm & quy đổi ngày CTXH năm 2025 ===
+
+Lĩnh vực CTXH | Mã | Nội dung & định lượng | Thang điểm | Quy đổi ngày CTXH
+------------------------------------------------------------------------------------------------------
+Mùa hè xanh | 001101 | Tham gia trọn chiến dịch Mùa hè xanh tại địa bàn khó khăn (01 tháng) | 36→72 | 3→6
+ | 001102 | Tham gia chiến dịch tình nguyện quốc tế tại Lào/Campuchia (03 tuần) | 48→72 | 4→6
+Hiến máu cứu người | 001201 | Trực tiếp hiến máu toàn phần hoặc hiến tiểu cầu (01 lần) | 12 | 1,0
+ | 001202 | Đội trưởng tình nguyện viên trạm hiến máu lưu động (01 đợt) | 12→24 | 1→2
+Xuân tình nguyện số | 001301 | Tổ chức Tết ấm cho bệnh nhi và người vô gia cư (01 tuần) | 18→30 | 1,5→2,5
+Tiếp sức mùa thi thông minh | 001501 | Trực tiếp hỗ trợ thí sinh và điều phối trật tự thi cử (01 tuần) | 18→24 | 1,5→2
+Đại sứ văn hóa & Hướng nghiệp | 001601 | Tham gia chuỗi tư vấn nghề nghiệp OpenCampus cho THPT (01 đợt) | 12→24 | 1→2
+Hỗ trợ cứu trợ thiên tai | 001801 | Đội phản ứng nhanh cứu trợ vùng chịu thiên tai, lũ quét (01 đợt) | 24→36 | 2→3
+Khuôn viên thông minh | 002101 | Trực vận hành trạm thu gom rác tự động, xe điện sinh viên (01 tuần) | 12→18 | 1→1,5
+Phục hồi rừng sinh thái | 003101 | Tham gia dự án trồng 10.000 cây xanh bản địa (03 ngày) | 18→24 | 1,5→2
+Chăm sóc đối tượng yếu thế | 004101 | Phụng dưỡng Mẹ Việt Nam Anh hùng, cựu chiến binh (01 đợt) | 12→24 | 1→2
+Dạy học STEAM tình nguyện | 005101 | Giảng dạy lập trình, khoa học vui cho trẻ em vùng cao (01 tuần) | 24→36 | 2→3
+Thủ lĩnh sinh viên tiêu biểu | 006101 | Cán bộ Đoàn - Hội cấp trường xếp loại hoàn thành xuất sắc (01 năm) | 36→60 | 3→5
+ | 006102 | Ban cán sự lớp, chi hội trưởng hoàn thành xuất sắc (01 năm) | 18→30 | 1,5→2,5
+Ứng dụng AI vì cộng đồng | 009101 | Xây dựng ứng dụng AI hỗ trợ người khiếm thị / người khiếm thính (01 dự án) | 36→60 | 3→5
+ | 009102 | Huấn luyện mô hình AI phát hiện điểm nóng ô nhiễm môi trường (01 dự án) | 24→48 | 2→4
+ | 009103 | Đào tạo phổ cập kỹ năng ứng dụng AI có đạo đức cho học sinh (01 tuần) | 24→36 | 2→3
+Dự án Tình nguyện quốc tế | 010101 | Tham gia dự án giao lưu phụng sự cộng đồng Đông Nam Á (02 tuần) | 36→60 | 3→5
+
+b. Chế tài kỷ luật và trừ ngày CTXH (Quy định 2025):
+
+- SV đã đăng ký nhưng vắng mặt không lý do hoặc báo hủy muộn dưới 12h: Bị trừ 2,0 ngày CTXH và đồng thời bị hạ 1 bậc Điểm rèn luyện của học kỳ đó.
+- SV can thiệp gian lận công nghệ (Fake GPS, tài khoản mượn): Hủy bỏ toàn bộ ngày CTXH tích lũy từ trước, đình chỉ học tập 01 học kỳ và ghi vào hồ sơ kỷ luật sinh viên.
+
+c. Công thức quy đổi điểm xét tốt nghiệp (Chuẩn 2025):
+Lấy tổng điểm CTXH tích lũy chia cho 12 (Thang quy đổi chuẩn quốc tế):
+- Số lẻ dưới 6: Làm tròn xuống;
+- Tròn 6 điểm: Quy đổi thành 0,5 ngày CTXH;
+- Trên 6 điểm: Làm tròn thành 12 điểm, quy đổi thành 01 ngày CTXH trọn vẹn.
+
+=== III. QUY TRÌNH QUẢN TRỊ TỰ ĐỘNG TRÊN SMARTCAMPUS AI ===
+
+Quy trình vận hành tự động hóa không giấy tờ (100% Paperless):
+
+1. Bước 1: Khởi tạo hoạt động trên AI Dashboard:
+   Các đơn vị nhập thông tin hoạt động; AI tự động kiểm tra xung đột lịch học, định mức kinh phí và tự động phê duyệt trong 04 giờ.
+
+2. Bước 2: Phân bổ và Đăng ký thông minh:
+   Hệ thống gợi ý hoạt động phù hợp với sở trường, chuyên ngành và quỹ thời gian trống của từng sinh viên qua App.
+
+3. Bước 3: Check-in/Check-out tự động:
+   Sinh viên điểm danh bằng nhận diện khuôn mặt FaceID tại trạm thông minh hoặc trên App có tích hợp định vị Geofencing bán kính 50m.
+
+4. Bước 4: Đánh giá tức thì (Real-time Evaluation):
+   Ban tổ chức đánh giá thái độ và chất lượng công việc trên ứng dụng di động ngay khi kết thúc hoạt động.
+
+5. Bước 5: Đồng bộ dữ liệu trong 48 giờ:
+   Kết quả điểm số được đồng bộ và cập nhật tự động vào tài khoản sinh viên trong vòng 48 giờ (Nhanh nhất so với các phiên bản trước).
+
+6. Bước 6: Khiếu nại tự động qua AI Chatbot:
+   Sinh viên khiếu nại qua ứng dụng trong vòng 03 ngày. Trợ lý AI và Ban tổ chức phản hồi, xử lý dứt điểm trong vòng 48 giờ.
+
+7. Bước 7: Chứng thực Blockchain và Lưu trữ:
+   Hệ thống tự động phát hành huy hiệu điện tử (Digital Badge) và ghi nhận vào sổ cái Blockchain của Nhà trường phục vụ trích xuất hồ sơ xin việc và xét tốt nghiệp.
+
+=== IV. TRÁCH NHIỆM CỦA CÁC ĐƠN VỊ ===
+
+1. Trung tâm Đổi mới Sáng tạo & Chuyển đổi số: Bảo đảm hạ tầng máy chủ, hệ sinh thái SmartCampus AI và tính toàn vẹn dữ liệu điểm danh.
+2. Phòng Công tác HSSV: Giám sát chung, liên kết với Hội đồng Tốt nghiệp để tự động hóa khâu thẩm định hồ sơ ra trường.
+3. Đoàn Thanh niên – Hội SV: Tổ chức các chiến dịch mũi nhọn mang thương hiệu trường, thúc đẩy các dự án STEAM và AI vì cộng đồng.
+4. Các Khoa, Viện chuyên môn: Gắn kết các đồ án môn học, đề tài nghiên cứu ứng dụng với hoạt động giải quyết bài toán xã hội.
+5. Sinh viên: Chủ động tích lũy đủ 06 - 08 ngày CTXH theo chuẩn chương trình đang theo học để đủ điều kiện xét tốt nghiệp đúng hạn.
+
+=== V. KINH PHÍ VÀ QUỸ ĐẦU TƯ TÁC ĐỘNG XÃ HỘI ===
+
+1. Cơ cấu nguồn kinh phí năm 2025:
+   - Quỹ Trách nhiệm Xã hội số của Nhà trường;
+   - Quỹ Tài trợ Đổi mới Sáng tạo Tác động Xã hội (Social Impact Funds);
+   - Nguồn liên kết, tài trợ từ các tập đoàn công nghệ và tổ chức phi chính phủ quốc tế.
+2. Quy chế giải ngân:
+   Toàn bộ quy trình đề xuất, duyệt chi và quyết toán thực hiện tự động qua Cổng Kế toán điện tử SmartFinance 2025.

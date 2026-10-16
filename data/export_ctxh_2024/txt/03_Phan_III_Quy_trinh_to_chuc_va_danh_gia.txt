@@ -1,0 +1,29 @@
+=== QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
+
+=== III. QUY TRÌNH TỔ CHỨC & ĐÁNH GIÁ CÔNG TÁC XÃ HỘI ===
+
+Toàn bộ quy trình được thực hiện trên hệ sinh thái UniPortal 2024:
+
+1. Bước 1: Đăng ký kế hoạch hoạt động:
+   Các đơn vị nộp tờ trình điện tử trên UniPortal trước ngày 15 hàng tháng để Phòng HSSV phê duyệt hạn mức điểm.
+
+2. Bước 2: Mở cổng đăng ký:
+   Hệ thống tự động thông báo notification đến ứng dụng sinh viên trước ngày diễn ra hoạt động ít nhất 05 ngày.
+
+3. Bước 3: Điểm danh thời gian thực (Real-time Check-in):
+   Sử dụng định danh sinh viên qua mã QR động (Dynamic QR Code) trên UniPortal kết hợp định vị GPS tại điểm diễn ra hoạt động.
+
+4. Bước 4: Đánh giá & Cho điểm trực tuyến:
+   Trưởng đơn vị chấm điểm trực tiếp trên phân hệ Quản lý tình nguyện của UniPortal.
+
+5. Bước 5: Thẩm định hồ sơ:
+   Phòng HSSV kiểm duyệt ngẫu nhiên biên bản điện tử và hình ảnh minh chứng.
+
+6. Bước 6: Công bố kết quả:
+   Kết quả được công bố trên trang cá nhân của SV trong vòng 05 ngày làm việc kể từ ngày kết thúc hoạt động (Chuẩn mới 2024).
+
+7. Bước 7: Khiếu nại trực tuyến:
+   Thời hạn khiếu nại là 05 ngày qua cổng thông tin. Đơn vị phản hồi giải quyết bằng văn bản điện tử trong vòng 03 ngày làm việc.
+
+8. Bước 8: Khóa sổ & Xuất chứng nhận điện tử:
+   Hệ thống UniPortal tự động đồng bộ kết quả vào Bảng điểm rèn luyện số và Hồ sơ tốt nghiệp sau 10 ngày.

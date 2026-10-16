@@ -1,0 +1,56 @@
+=== QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
+
+=== II. NỘI DUNG CÔNG TÁC XÃ HỘI, MÃ HÓA & QUY ĐỔI NGÀY CTXH ===
+
+=== 1. Danh mục các lĩnh vực CTXH năm 2025: ===
+
+a. Chiến dịch tình nguyện thanh niên: Mùa hè xanh, Xuân tình nguyện, Tiếp sức mùa thi quốc tế (ký hiệu 001);
+b. Hoạt động công ích thông minh, hỗ trợ chuyển đổi xanh khuôn viên đại học (ký hiệu 002);
+c. Hoạt động môi trường sinh thái, bảo tồn đa dạng sinh học và thích ứng biến đổi khí hậu (ký hiệu 003);
+d. Hoạt động thiện nguyện, chăm sóc người già neo đơn, trẻ em khuyết tật và thương bệnh binh (ký hiệu 004);
+e. Giáo dục khai phóng, dạy học STEAM tình nguyện cho học sinh vùng sâu vùng xa (ký hiệu 005);
+f. Đảm nhiệm chức danh ban cán sự, thủ lĩnh đoàn thể, ban điều hành dự án xã hội (ký hiệu 006);
+g. Chuyển đổi số quốc gia, hỗ trợ thủ tục công dân số và an ninh mạng cộng đồng (ký hiệu 007);
+h. Dự án Trung hòa Carbon (Net-Zero Campus) và kinh tế tuần hoàn (ký hiệu 008);
+i. Trí tuệ nhân tạo (AI) và Công nghệ phục vụ cộng đồng (ký hiệu 009 - Đột phá mới năm 2025);
+j. Tình nguyện quốc tế, giao lưu văn hóa và cứu trợ nhân đạo xuyên biên giới (ký hiệu 010).
+
+=== Lưu ý: ===
+
+✓ Hoạt động phải được xác thực qua SmartCampus AI SuperApp bằng cơ chế FaceID & GPS Geofencing.
+✓ Tuyệt đối cấm các hành vi gian lận công nghệ (Fake GPS, can thiệp camera điểm danh).
+✓ Không chấp nhận tính ngày CTXH cho các hoạt động mang tính chất thương mại hoặc đã nhận thù lao.
+
+=== 2. Bảng mã hóa, thang điểm & quy đổi ngày CTXH năm 2025 ===
+
+Lĩnh vực CTXH | Mã | Nội dung & định lượng | Thang điểm | Quy đổi ngày CTXH
+------------------------------------------------------------------------------------------------------
+Mùa hè xanh | 001101 | Tham gia trọn chiến dịch Mùa hè xanh tại địa bàn khó khăn (01 tháng) | 36→72 | 3→6
+ | 001102 | Tham gia chiến dịch tình nguyện quốc tế tại Lào/Campuchia (03 tuần) | 48→72 | 4→6
+Hiến máu cứu người | 001201 | Trực tiếp hiến máu toàn phần hoặc hiến tiểu cầu (01 lần) | 12 | 1,0
+ | 001202 | Đội trưởng tình nguyện viên trạm hiến máu lưu động (01 đợt) | 12→24 | 1→2
+Xuân tình nguyện số | 001301 | Tổ chức Tết ấm cho bệnh nhi và người vô gia cư (01 tuần) | 18→30 | 1,5→2,5
+Tiếp sức mùa thi thông minh | 001501 | Trực tiếp hỗ trợ thí sinh và điều phối trật tự thi cử (01 tuần) | 18→24 | 1,5→2
+Đại sứ văn hóa & Hướng nghiệp | 001601 | Tham gia chuỗi tư vấn nghề nghiệp OpenCampus cho THPT (01 đợt) | 12→24 | 1→2
+Hỗ trợ cứu trợ thiên tai | 001801 | Đội phản ứng nhanh cứu trợ vùng chịu thiên tai, lũ quét (01 đợt) | 24→36 | 2→3
+Khuôn viên thông minh | 002101 | Trực vận hành trạm thu gom rác tự động, xe điện sinh viên (01 tuần) | 12→18 | 1→1,5
+Phục hồi rừng sinh thái | 003101 | Tham gia dự án trồng 10.000 cây xanh bản địa (03 ngày) | 18→24 | 1,5→2
+Chăm sóc đối tượng yếu thế | 004101 | Phụng dưỡng Mẹ Việt Nam Anh hùng, cựu chiến binh (01 đợt) | 12→24 | 1→2
+Dạy học STEAM tình nguyện | 005101 | Giảng dạy lập trình, khoa học vui cho trẻ em vùng cao (01 tuần) | 24→36 | 2→3
+Thủ lĩnh sinh viên tiêu biểu | 006101 | Cán bộ Đoàn - Hội cấp trường xếp loại hoàn thành xuất sắc (01 năm) | 36→60 | 3→5
+ | 006102 | Ban cán sự lớp, chi hội trưởng hoàn thành xuất sắc (01 năm) | 18→30 | 1,5→2,5
+Ứng dụng AI vì cộng đồng | 009101 | Xây dựng ứng dụng AI hỗ trợ người khiếm thị / người khiếm thính (01 dự án) | 36→60 | 3→5
+ | 009102 | Huấn luyện mô hình AI phát hiện điểm nóng ô nhiễm môi trường (01 dự án) | 24→48 | 2→4
+ | 009103 | Đào tạo phổ cập kỹ năng ứng dụng AI có đạo đức cho học sinh (01 tuần) | 24→36 | 2→3
+Dự án Tình nguyện quốc tế | 010101 | Tham gia dự án giao lưu phụng sự cộng đồng Đông Nam Á (02 tuần) | 36→60 | 3→5
+
+b. Chế tài kỷ luật và trừ ngày CTXH (Quy định 2025):
+
+- SV đã đăng ký nhưng vắng mặt không lý do hoặc báo hủy muộn dưới 12h: Bị trừ 2,0 ngày CTXH và đồng thời bị hạ 1 bậc Điểm rèn luyện của học kỳ đó.
+- SV can thiệp gian lận công nghệ (Fake GPS, tài khoản mượn): Hủy bỏ toàn bộ ngày CTXH tích lũy từ trước, đình chỉ học tập 01 học kỳ và ghi vào hồ sơ kỷ luật sinh viên.
+
+c. Công thức quy đổi điểm xét tốt nghiệp (Chuẩn 2025):
+Lấy tổng điểm CTXH tích lũy chia cho 12 (Thang quy đổi chuẩn quốc tế):
+- Số lẻ dưới 6: Làm tròn xuống;
+- Tròn 6 điểm: Quy đổi thành 0,5 ngày CTXH;
+- Trên 6 điểm: Làm tròn thành 12 điểm, quy đổi thành 01 ngày CTXH trọn vẹn.

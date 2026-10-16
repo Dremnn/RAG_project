@@ -1,0 +1,26 @@
+=== QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
+
+=== III. QUY TRÌNH TỔ CHỨC & ĐÁNH GIÁ CÔNG TÁC XÃ HỘI ===
+
+Quy trình vận hành tự động hóa không giấy tờ (100% Paperless):
+
+1. Bước 1: Khởi tạo hoạt động trên AI Dashboard:
+   Các đơn vị nhập thông tin hoạt động; AI tự động kiểm tra xung đột lịch học, định mức kinh phí và tự động phê duyệt trong 04 giờ.
+
+2. Bước 2: Phân bổ và Đăng ký thông minh:
+   Hệ thống gợi ý hoạt động phù hợp với sở trường, chuyên ngành và quỹ thời gian trống của từng sinh viên qua App.
+
+3. Bước 3: Check-in/Check-out tự động:
+   Sinh viên điểm danh bằng nhận diện khuôn mặt FaceID tại trạm thông minh hoặc trên App có tích hợp định vị Geofencing bán kính 50m.
+
+4. Bước 4: Đánh giá tức thì (Real-time Evaluation):
+   Ban tổ chức đánh giá thái độ và chất lượng công việc trên ứng dụng di động ngay khi kết thúc hoạt động.
+
+5. Bước 5: Đồng bộ dữ liệu trong 48 giờ:
+   Kết quả điểm số được đồng bộ và cập nhật tự động vào tài khoản sinh viên trong vòng 48 giờ (Nhanh nhất so với các phiên bản trước).
+
+6. Bước 6: Khiếu nại tự động qua AI Chatbot:
+   Sinh viên khiếu nại qua ứng dụng trong vòng 03 ngày. Trợ lý AI và Ban tổ chức phản hồi, xử lý dứt điểm trong vòng 48 giờ.
+
+7. Bước 7: Chứng thực Blockchain và Lưu trữ:
+   Hệ thống tự động phát hành huy hiệu điện tử (Digital Badge) và ghi nhận vào sổ cái Blockchain của Nhà trường phục vụ trích xuất hồ sơ xin việc và xét tốt nghiệp.

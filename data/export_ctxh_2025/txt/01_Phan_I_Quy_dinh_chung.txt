@@ -1,0 +1,31 @@
+=== QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
+
+=== I. QUY ĐỊNH CHUNG ===
+
+1. Căn cứ để xây dựng & thực hiện Chương trình công tác xã hội.
+
+- Quyết định của Thủ tướng Chính phủ về Chương trình Chuyển đổi số Quốc gia và Chiến lược phát triển Trí tuệ nhân tạo (AI) đến năm 2030;
+- Luật Giáo dục Đại học và các quy định hiện hành về chuẩn kiểm định chất lượng giáo dục quốc tế (AUN-QA, ABET);
+- Đề án Đô thị đại học thông minh và Trách nhiệm xã hội số (Digital Social Responsibility) của Nhà trường giai đoạn 2025 - 2035;
+- Quyết định triển khai Hệ sinh thái số SmartCampus AI & Student SuperApp 2025.
+
+2. Phạm vi điều chỉnh & đối tượng áp dụng
+
+- Văn bản này quy định quy chuẩn toàn diện về tổ chức, đánh giá, ghi nhận và quy đổi ngày CTXH trên nền tảng SmartCampus AI cho sinh viên;
+- Áp dụng đối với toàn thể sinh viên hệ chính quy trúng tuyển từ khóa 2025 trở đi;
+- Sinh viên các khóa trước năm 2025 tiếp tục thực hiện theo quy định của khóa tương ứng hoặc có thể đăng ký chuyển đổi tương đương theo hướng dẫn của Phòng HSSV.
+
+3. Mục đích
+
+- Đẩy mạnh phong trào "AI vì cộng đồng" (AI for Social Good), sử dụng công nghệ cao để giải quyết các bài toán thiết thực của xã hội;
+- Phát triển toàn diện năng lực công dân toàn cầu: Thấu cảm, trách nhiệm cộng đồng, khả năng thích ứng công nghệ và đạo đức phụng sự;
+- Cấp Chứng chỉ Phụng sự Cộng đồng số hóa có gắn mã định danh Blockchain (Digital Blockchain Credential) kèm bảng điểm tốt nghiệp.
+
+4. Yêu cầu tích lũy ngày CTXH (Chuẩn phân luồng 2025)
+
+Sinh viên khóa 2025 phải tích lũy số ngày CTXH tối thiểu theo từng hệ đào tạo:
+- Chương trình chuẩn (Đại trà) $\ge$ 4 năm: Tối thiểu 06 ngày CTXH;
+- Chương trình Chất lượng cao / Tiên tiến / Tài năng: Tối thiểu 08 ngày CTXH (bao gồm ít nhất 02 ngày thuộc dự án tình nguyện quốc tế hoặc dự án công nghệ vì cộng đồng);
+- Chương trình đào tạo dưới 4 năm / Cao đẳng liên thông: Tối thiểu 04 ngày CTXH;
+- Điều kiện tốt nghiệp: Tích lũy đủ 100% số ngày quy định chậm nhất trước ngày xét công nhận tốt nghiệp 30 ngày;
+- Miễn giảm đặc biệt: Sinh viên khuyết tật nặng hoặc bệnh hiểm nghèo được Hội đồng xét miễn toàn bộ hoặc giao các nhiệm vụ hỗ trợ học thuật online phù hợp.

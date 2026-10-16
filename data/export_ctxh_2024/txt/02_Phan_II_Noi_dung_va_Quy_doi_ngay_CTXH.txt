@@ -1,0 +1,60 @@
+=== QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
+
+=== II. NỘI DUNG CÔNG TÁC XÃ HỘI, MÃ HÓA & QUY ĐỔI NGÀY CTXH ===
+
+=== 1. Danh mục các nội dung CTXH: ===
+
+a. Hoạt động tình nguyện chiến dịch: Mùa hè xanh, Xuân tình nguyện, Tiếp sức mùa thi, Đêm hội trăng rằm (ký hiệu 001);
+b. Hoạt động công ích tại khuôn viên Nhà trường và cộng đồng đô thị văn minh (ký hiệu 002);
+c. Hoạt động bảo vệ môi trường, trồng cây gây rừng, giảm thiểu rác thải nhựa (ký hiệu 003);
+d. Hoạt động an sinh xã hội, đền ơn đáp nghĩa, chăm lo gia đình chính sách (ký hiệu 004);
+e. Hoạt động phổ cập tri thức, giáo dục kỹ năng cho thanh thiếu nhi khó khăn (ký hiệu 005);
+f. Cán bộ Đoàn - Hội, Ban cán sự lớp, Chủ nhiệm CLB đội nhóm được tín nhiệm (ký hiệu 006);
+g. Phong trào Chuyển đổi số và hướng dẫn dịch vụ công trực tuyến (ký hiệu 007);
+h. Dự án Đại học Xanh & Phát triển bền vững Net-Zero (ký hiệu 008 - Mới bổ sung năm 2024);
+i. Các chương trình hợp tác tình nguyện quốc tế được Nhà trường phê duyệt.
+
+=== Lưu ý quan trọng: ===
+
+✓ Mọi hoạt động phải được đăng ký và phê duyệt trước trên hệ thống UniPortal 2024.
+✓ Hoạt động tự phát không thông qua phê duyệt của Đoàn - Hội hoặc Phòng HSSV không được công nhận.
+✓ Các hoạt động có nhận lương/thù lao không thuộc phạm vi tính ngày CTXH.
+
+=== 2. Bảng mã hóa, thang điểm & quy đổi ngày CTXH năm 2024 ===
+
+Lĩnh vực CTXH | Mã | Nội dung & định lượng | Thang điểm | Quy đổi ngày CTXH
+------------------------------------------------------------------------------------------------------
+Mùa hè xanh | 001101 | Tham gia trọn vẹn chiến dịch địa bàn vùng sâu (01 tháng) | 30→60 | 3→6
+ | 001102 | Tham gia chiến dịch tại địa bàn trọng điểm thành phố (01 tháng) | 30→50 | 3→5
+ | 001103 | Đội hình chuyên nghiệp kỹ thuật, chuyển giao công nghệ (02 tuần) | 25→40 | 2,5→4
+Hiến máu tình nguyện | 001201 | Trực tiếp hiến máu tình nguyện (01 lần hiến máu nhân đạo) | 10 | 1,0
+ | 001202 | Tổ chức & vận động điểm hiến máu nhân đạo thành công (01 ngày) | 10→15 | 1→1,5
+Xuân tình nguyện | 001301 | Tham gia suốt chiến dịch Xuân ấm áp (05 ngày) | 15→25 | 1,5→2,5
+Tiếp sức mùa thi | 001501 | Điều phối giao thông, hỗ trợ thí sinh thi tốt nghiệp THPT (01 tuần) | 15→25 | 1,5→2,5
+Đại học Mở / Hướng nghiệp | 001601 | Đại sứ tư vấn tuyển sinh và giới thiệu trường tại các tỉnh (01 đợt) | 10→20 | 1→2
+Tiếp sức tân sinh viên | 001701 | Đội hình hỗ trợ tìm trọ, nhập học tân sinh viên khóa 2024 (01 tuần) | 15→20 | 1,5→2
+Cứu trợ khẩn cấp | 001801 | Trực tiếp tham gia cứu trợ bão lũ, thiên tai (01 đợt) | 20→30 | 2→3
+Hoạt động Đại học Xanh | 002101 | Ngày hội trồng cây, chăm sóc mảng xanh học đường (01 buổi) | 6 | 0,6
+ | 002102 | Tình nguyện viên điều phối xe đạp công cộng & trạm sạc điện (01 tuần) | 12→18 | 1,2→1,8
+Bảo vệ bờ biển & Rừng ngập mặn | 003101 | Chiến dịch làm sạch bờ biển, phục hồi rừng ngập mặn (03 ngày) | 15→20 | 1,5→2
+Tuyên truyền phân loại rác | 003201 | Tập huấn phân loại rác tại nguồn cho 50 hộ dân (01 đợt) | 10→15 | 1→1,5
+Đền ơn đáp nghĩa | 004101 | Chăm sóc cựu thanh niên xung phong, Bà mẹ VNAH (01 đợt) | 10→15 | 1→1,5
+Xóa mù chữ số cho người già | 005101 | Phổ cập kỹ năng lướt web an toàn, phòng chống lừa đảo mạng (01 tuần) | 15→25 | 1,5→2,5
+Lãnh đạo phong trào SV | 006101 | Cán bộ Đoàn - Hội cấp trường hoàn thành xuất sắc (01 năm học) | 30→50 | 3→5
+ | 006102 | Cán bộ Đoàn - Hội cấp khoa hoàn thành xuất sắc (01 năm học) | 20→35 | 2→3,5
+ | 006103 | Ban cán sự lớp, chi hội trưởng hoàn thành tốt (01 năm học) | 15→25 | 1,5→2,5
+Hỗ trợ dịch vụ công trực tuyến | 007101 | Trực hỗ trợ công dân nộp hồ sơ trực tuyến tại bộ phận 1 cửa (01 tuần) | 20→30 | 2→3
+Dự án Phát triển bền vững Net-Zero | 008101 | Tham gia dự án kiểm toán rác thải, đo lường dấu chân carbon trường học (01 tuần) | 20→35 | 2→3,5
+ | 008102 | Sáng lập / điều hành dự án tái chế vật liệu, tuần hoàn rác học đường (01 học kỳ) | 30→50 | 3→5
+
+b. Quy định xử lý kỷ luật và trừ ngày CTXH (Áp dụng 2024):
+
+- SV đăng ký nhưng vắng mặt không lý do hoặc hủy đăng ký muộn dưới 24h: Bị trừ 1,5 ngày CTXH và khóa chức năng đăng ký trên UniPortal trong 01 học kỳ kế tiếp.
+- SV gian lận điểm danh, nhờ người điểm danh hộ hoặc giả mạo chữ ký xác nhận: Bị hủy bỏ toàn bộ số ngày CTXH đã tích lũy trong năm học và kỷ luật cảnh cáo toàn trường.
+
+c. Công thức quy đổi điểm xét tốt nghiệp (Năm 2024):
+Tổng điểm CTXH tích lũy được chuyển đổi sang ngày CTXH như sau:
+- Tổng điểm chia cho 10:
+  + Dưới 5 điểm dư: Làm tròn xuống;
+  + Từ 5,0 điểm đến dưới 8,0 điểm: Quy đổi thành 0,5 ngày CTXH;
+  + Từ 8,0 điểm trở lên: Quy đổi làm tròn thành 1,0 ngày CTXH.
