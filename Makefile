@@ -6,13 +6,14 @@
 setup:
 	@echo [SETUP] Installing dependencies with uv...
 	uv pip install -e .
+	uv pip install matplotlib
 
 demo:
 	@echo [DEMO] Launching Terminal Assistant with ReAct Agent Loop...
 	uv run python rag_client.py
 
 eval:
-	@echo [EVAL] Running 12-testcase benchmark (Calibration + Faithfulness)...
+	@echo [EVAL] Running 12-testcase benchmark, CSV log & charts generation...
 	uv run python tests/evaluate_testset.py
 
 clean:

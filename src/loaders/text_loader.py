@@ -3,6 +3,9 @@ from src.loaders.base import BaseLoader
 from src.models import Document
 
 
+from src.loaders.metadata import extract_metadata, strip_metadata_header
+
+
 class TextLoader(BaseLoader):
     """
     Loader for Plain Text (.txt) and Markdown (.md) files.
@@ -22,16 +25,23 @@ class TextLoader(BaseLoader):
             with open(self.file_path, "r", encoding="latin-1") as f:
                 content = f.read()
 
-        doc_id = f"DOC_{self.file_path.stem}"
+        meta = extract_metadata(self.file_path, content=content)
+        cleaned_content = strip_metadata_header(content)
+
+        metadata = {
+            "file_name": self.file_path.name,
+            "extension": self.file_path.suffix.lower(),
+            "file_size_bytes": self.file_path.stat().st_size,
+        }
+        for k, v in meta.items():
+            if k != "cleaned_content":
+                metadata[k] = v
+
         doc = Document(
-            content=content.strip(),
-            doc_id=doc_id,
-            title=self.file_path.stem,
+            content=cleaned_content,
+            doc_id=meta.get("doc_id", self.file_path.stem),
+            title=meta.get("title", self.file_path.stem),
             source=str(self.file_path.resolve()),
-            metadata={
-                "file_name": self.file_path.name,
-                "extension": self.file_path.suffix.lower(),
-                "file_size_bytes": self.file_path.stat().st_size,
-            },
+            metadata=metadata,
         )
         return [doc]

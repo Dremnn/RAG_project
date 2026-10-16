@@ -29,7 +29,11 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from rag_client import load_system_prompt, run_agent_loop, SERVER_PARAMS
-from src.evaluation.faithfulness import FaithfulnessEvaluator
+from src.evaluation import (
+    FaithfulnessEvaluator,
+    save_session_csv,
+    generate_session_charts,
+)
 
 load_dotenv()
 
@@ -211,27 +215,19 @@ async def evaluate_all():
 
     # Xuat file CSV chi tiet tung cau (+1 diem cong theo Muc 3 tai lieu 02)
     csv_file = _ROOT / "logs" / "eval_report.csv"
-    try:
-        import csv
-        with open(csv_file, "w", encoding="utf-8-sig", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                "id", "category", "query", "is_no_answer", "is_refused", 
-                "keyword_recall", "has_citation", "faithfulness_score", 
-                "duration_seconds", "calls", "prompt_tokens", "completion_tokens", 
-                "max_prompt", "total_tokens", "answer_preview"
-            ])
-            for r in results:
-                u = r["usage"]
-                writer.writerow([
-                    r["id"], r["category"], r["query"], r["is_no_answer"], r["is_refused"],
-                    r["keyword_recall"], r["has_citation"], r["faithfulness_score"],
-                    r["duration_seconds"], u["calls"], u["prompt_tokens"], u["completion_tokens"],
-                    u["max_prompt"], u["total_tokens"], r["answer_preview"].replace("\n", " ")
-                ])
-        print(f"- File CSV chi tiet: {csv_file}")
-    except Exception as e:
-        print(f"[Canh bao] Khong the ghi file CSV: {e}")
+    save_session_csv(results, csv_file)
+    print(f"- File CSV chi tiet: {csv_file}")
+
+    # Tu dong sinh do thi PNG (DPI 300) de chen vao bao cao docx (+1 diem cong)
+    charts_dir = _ROOT / "logs" / "charts"
+    generate_session_charts(
+        records=results,
+        output_dir=charts_dir,
+        prefix="",
+        session_title="ĐÁNH GIÁ CHẤT LƯỢNG RAG (WEEK 5 EVAL)",
+        summary=summary,
+    )
+    print(f"- Thu muc do thi (PNG DPI 300): {charts_dir}")
 
     print("\n" + "=" * 65)
     print("[TONG KET EVALUATION (WEEK 5)]")
@@ -242,6 +238,7 @@ async def evaluate_all():
     print(f"- Do phu tu khoa trung binh (Keyword Recall): {avg_kw_recall*100:.1f}%")
     print(f"- Luong token trung binh / cau: {avg_tokens:.1f} tokens")
     print(f"- File ket qua chi tiet (JSON): {EVAL_RESULTS_FILE}")
+    print(f"- File ket qua chi tiet (CSV) : {csv_file}")
     print("=" * 65)
 
 

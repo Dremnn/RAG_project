@@ -100,6 +100,7 @@ class SearchCTXHRulesInput:
     query: str
     top_k: int = 4
     mode: Literal["hybrid", "vector", "bm25"] = "hybrid"
+    year: Optional[str] = None
 
 
 @dataclass

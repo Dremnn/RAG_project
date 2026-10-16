@@ -19,6 +19,9 @@ SUPPORTED_EXTENSIONS = {
 }
 
 
+from src.loaders.metadata import extract_metadata, strip_metadata_header
+
+
 class DocumentLoaderFactory:
     """
     Factory to auto-detect file types and load documents.
@@ -41,7 +44,27 @@ class DocumentLoaderFactory:
     @classmethod
     def load_file(cls, file_path: str | Path, **kwargs) -> list[Document]:
         loader = cls.get_loader(file_path, **kwargs)
-        return loader.load()
+        docs = loader.load()
+        meta = extract_metadata(file_path)
+
+        for doc in docs:
+            # Cat header khoi content neu chua cat
+            doc.content = strip_metadata_header(doc.content)
+
+            # Dong bo toan bo metadata tu extract_metadata
+            for k, v in meta.items():
+                if k != "cleaned_content":
+                    doc.metadata[k] = v
+
+            if meta.get("doc_id"):
+                if "_p" in doc.doc_id and doc.metadata.get("page_number"):
+                    doc.doc_id = f"{meta['doc_id']}_p{doc.metadata['page_number']}"
+                else:
+                    doc.doc_id = meta["doc_id"]
+            if meta.get("title"):
+                doc.title = meta["title"]
+
+        return docs
 
     @classmethod
     def load_directory(
@@ -61,11 +84,16 @@ class DocumentLoaderFactory:
         pattern = "**/*" if recursive else "*"
 
         for file_path in folder.glob(pattern):
-            if file_path.is_file() and file_path.suffix.lower() in SUPPORTED_EXTENSIONS:
+            if (
+                file_path.is_file()
+                and not file_path.name.startswith("~")
+                and not file_path.name.startswith(".")
+                and file_path.suffix.lower() in SUPPORTED_EXTENSIONS
+            ):
                 try:
                     loaded = cls.load_file(file_path, **kwargs)
                     documents.extend(loaded)
                 except Exception as e:
-                    print(f"[Warning] Failed to load {file_path.name}: {e}", file=sys.stderr)
+                    sys.stderr.write(f"[Warning] Failed to load {file_path.name}: {e}\n")
 
         return documents
