@@ -13,7 +13,7 @@ demo:
 	uv run python rag_client.py
 
 eval:
-	@echo [EVAL] Running 12-testcase benchmark, CSV log & charts generation...
+	@echo [EVAL] Running 12-testcase benchmark, CSV log and charts generation...
 	uv run python tests/evaluate_testset.py
 
 clean:
