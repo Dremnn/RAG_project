@@ -1,9 +1,11 @@
+import sys
 from pathlib import Path
 from typing import Optional
 from src.loaders.base import BaseLoader
 from src.loaders.text_loader import TextLoader
 from src.loaders.pdf_loader import PDFLoader
 from src.loaders.docx_loader import DocxLoader
+from src.loaders.excel_loader import ExcelLoader
 from src.models import Document
 
 
@@ -12,6 +14,8 @@ SUPPORTED_EXTENSIONS = {
     ".md": TextLoader,
     ".pdf": PDFLoader,
     ".docx": DocxLoader,
+    ".xlsx": ExcelLoader,
+    ".xlsm": ExcelLoader,
 }
 
 
@@ -62,6 +66,6 @@ class DocumentLoaderFactory:
                     loaded = cls.load_file(file_path, **kwargs)
                     documents.extend(loaded)
                 except Exception as e:
-                    print(f"[Warning] Failed to load {file_path.name}: {e}")
+                    print(f"[Warning] Failed to load {file_path.name}: {e}", file=sys.stderr)
 
         return documents

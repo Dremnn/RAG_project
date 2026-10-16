@@ -22,7 +22,7 @@ from src.loaders import DocumentLoaderFactory, PDFLoader, DocxLoader, TextLoader
 def main():
     data_dir = CURRENT_DIR / "data"
     print("=" * 60)
-    print("TESTING RAG DOCUMENT LOADERS (PDF, Word DOCX, TXT)")
+    print("TESTING RAG DOCUMENT LOADERS (PDF, Word DOCX, TXT,Excel)")
     print("=" * 60)
 
     # 1. Load all documents in data/
