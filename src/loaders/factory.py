@@ -5,6 +5,7 @@ from src.loaders.base import BaseLoader
 from src.loaders.text_loader import TextLoader
 from src.loaders.pdf_loader import PDFLoader
 from src.loaders.docx_loader import DocxLoader
+from src.loaders.excel_loader import ExcelLoader
 from src.models import Document
 
 
@@ -13,6 +14,8 @@ SUPPORTED_EXTENSIONS = {
     ".md": TextLoader,
     ".pdf": PDFLoader,
     ".docx": DocxLoader,
+    ".xlsx": ExcelLoader,
+    ".xlsm": ExcelLoader,
 }
 
 

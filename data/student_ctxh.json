@@ -1,5 +1,13 @@
 [
   {
+<<<<<<< HEAD
+    "mssv": "24119031",
+    "student_name": "Tô Ngọc Bích",
+    "faculty": "Công nghệ May & Thời trang",
+    "course_year": "2024",
+    "required_days": 2.0,
+    "accumulated_days": 2.0,
+=======
     "mssv": "22110001",
     "student_name": "Tran Van An",
     "faculty": "Cong nghe Thong tin",
@@ -96,14 +104,19 @@
     "course_year": "2022",
     "required_days": 4.0,
     "accumulated_days": 2.5,
+>>>>>>> 52197ea83c1c894d58b05edd759ff7d7b6087af1
     "registered_activities": [
       {
-        "reg_id": "REG-CTXH-20240905-005",
-        "activity_code": "002102",
-        "activity_name": "Tham gia ngay chu nhat xanh (01 ngay)",
-        "points": 10,
-        "converted_days": 1.0,
+        "reg_id": "REG-CTXH-20261016-204E",
+        "activity_code": "001101",
+        "activity_name": "Mùa hè xanh",
+        "points": 20,
+        "converted_days": 2.0,
         "status": "CONFIRMED",
+<<<<<<< HEAD
+        "registration_date": "2026-10-16",
+        "note": "Sinh viên đăng ký đi 2 ngày"
+=======
         "registration_date": "2024-09-05",
         "note": "Da xac nhan hoan thanh"
       },
@@ -136,6 +149,7 @@
         "status": "CONFIRMED",
         "registration_date": "2026-10-16",
         "note": "Hiến máu tình nguyện trực tiếp 1 lần"
+>>>>>>> 52197ea83c1c894d58b05edd759ff7d7b6087af1
       }
     ]
   }

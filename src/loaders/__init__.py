@@ -9,6 +9,7 @@ __all__ = [
     "BaseLoader",
     "TextLoader",
     "PDFLoader",
+    "ExcelLoader",
     "DocxLoader",
     "DocumentLoaderFactory",
     "SUPPORTED_EXTENSIONS",
