@@ -28,7 +28,7 @@ load_dotenv()
 HERE = Path(__file__).resolve().parent
 MODEL = "qwen/qwen3.8-27b"
 MAX_STEPS = 6
-LOGS_DIR = HERE / "logs"
+LOGS_DIR = HERE / "logs" / "app"
 PROMPT_PATH = HERE / "prompts" / "system_agent.txt"
 
 # Prefer virtualenv python if available, fallback to sys.executable
@@ -289,7 +289,8 @@ async def main():
                     if not user_input:
                         continue
 
-                    if user_input.lower() in ["exit", "quit", ":q"]:
+                    exit_cmds = {"exit", "quit", ":q", "q", "thoat", "thoát", "ẽit", "exi", "eit", "exxit", "exti", "out", "/exit", "/quit"}
+                    if user_input.lower() in exit_cmds:
                         print("\nDa ket thuc phien lam viec. Chuc ban hoc tap tot!")
                         break
 

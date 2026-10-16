@@ -60,12 +60,12 @@ class TestDocumentMetadata(unittest.TestCase):
 
     def test_loader_factory_cuts_header(self):
         """Kiểm tra loader factory tự động gọi extract_metadata và cắt header khỏi content."""
-        docs = DocumentLoaderFactory.load_file("data/CTXH.md")
+        docs = DocumentLoaderFactory.load_file("data/QD_Khen_Thuong_2023.txt")
         self.assertGreater(len(docs), 0)
         doc = docs[0]
         self.assertEqual(doc.metadata.get("metadata_source"), "header")
         self.assertEqual(doc.metadata.get("version"), "2023")
-        self.assertEqual(doc.doc_id, "CTXH")
+        self.assertEqual(doc.doc_id, "QD_Khen_Thuong")
         self.assertFalse(doc.content.startswith("---"))
 
 

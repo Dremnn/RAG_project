@@ -38,7 +38,8 @@ from src.evaluation import (
 load_dotenv()
 
 TESTSET_FILE = _ROOT / "tests" / "testset.jsonl"
-EVAL_RESULTS_FILE = _ROOT / "logs" / "eval_report.json"
+EVAL_DIR = _ROOT / "logs" / "eval"
+EVAL_RESULTS_FILE = EVAL_DIR / "eval_report.json"
 
 
 async def evaluate_all():
@@ -214,12 +215,12 @@ async def evaluate_all():
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
     # Xuat file CSV chi tiet tung cau (+1 diem cong theo Muc 3 tai lieu 02)
-    csv_file = _ROOT / "logs" / "eval_report.csv"
+    csv_file = EVAL_DIR / "eval_report.csv"
     save_session_csv(results, csv_file)
     print(f"- File CSV chi tiet: {csv_file}")
 
     # Tu dong sinh do thi PNG (DPI 300) de chen vao bao cao docx (+1 diem cong)
-    charts_dir = _ROOT / "logs" / "charts"
+    charts_dir = EVAL_DIR / "charts"
     generate_session_charts(
         records=results,
         output_dir=charts_dir,

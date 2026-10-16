@@ -35,18 +35,19 @@ Dự án cuối kỳ môn AI Programming / AIPR. Hệ thống Trợ lý AI hỗ 
 RAG_project/
 ├── data/                       # Cơ sở văn bản quy định và database sinh viên
 │   ├── CTXH.md                 # Quy định Công tác xã hội toàn văn (HCMUTE)
-│   ├── student_ctxh.json       # Cơ sở dữ liệu hồ sơ CTXH của sinh viên
+│   ├── activities.json         # Bảng tra cứu 55 hoạt động CTXH (bóc tách từ CTXH.md)
+│   ├── students.json           # Cơ sở dữ liệu thông tin sinh viên
 │   └── index.json              # Vector index lưu trữ chunk và metadata
-├── logs/                       # Log các phiên chạy và báo cáo đánh giá
-│   ├── run_*.jsonl             # Log trace và token usage thực tế
-│   ├── eval_report.json        # Báo cáo đánh giá chi tiết định dạng JSON
-│   ├── eval_report.csv         # Bảng tổng hợp chi tiết từng câu kiểm thử định dạng CSV
-│   └── charts/                 # Đồ thị đánh giá & Dashboard tương tác (+1 điểm cộng)
-│       ├── 01_token_usage.png
-│       ├── 02_latency_and_calls.png
-│       ├── 03_quality_metrics.png
-│       ├── 04_overall_dashboard.png
-│       └── eval_dashboard.html
+├── logs/                       # Quản lý tập trung toàn bộ log và báo cáo
+│   ├── eval/                   # Kết quả thẩm định benchmark (make eval)
+│   │   ├── eval_report.json    # Báo cáo đánh giá chi tiết định dạng JSON
+│   │   ├── eval_report.csv     # Bảng tổng hợp chi tiết từng câu kiểm thử định dạng CSV
+│   │   └── charts/             # 4 đồ thị DPI 300 (Token, Latency, Quality, Dashboard)
+│   └── app/                    # Log và báo cáo phiên chạy thực tế (make demo)
+│       ├── run_*.jsonl         # Log trace và token usage thực tế theo ngày
+│       └── sessions/           # Quản lý lịch sử các phiên tương tác
+│           ├── session_*.csv   # Log chi tiết từng câu trong phiên tương tác
+│           └── charts/         # Đồ thị phiên tương tác
 ├── prompts/
 │   └── system_agent.txt        # System Prompt 3 tầng tách biệt khỏi code
 ├── src/
@@ -128,6 +129,6 @@ make eval
 ```
 - **Lệnh duy nhất tự động thực thi toàn bộ:**
   1. Chạy 12 câu kiểm thử (đo Calibration, Faithfulness, Token USAGE).
-  2. Xuất báo cáo chi tiết JSON: `logs/eval_report.json`.
-  3. Xuất bảng tổng hợp CSV từng câu: `logs/eval_report.csv`.
-  4. Tự động vẽ và lưu 3 đồ thị DPI 300 vào `logs/charts/` (`01_token_usage.png`, `02_quality_metrics.png`, `03_overall_dashboard.png`) để chèn vào `report.docx`.
+  2. Xuất báo cáo chi tiết JSON: `logs/eval/eval_report.json`.
+  3. Xuất bảng tổng hợp CSV từng câu: `logs/eval/eval_report.csv`.
+  4. Tự động vẽ và lưu 4 đồ thị DPI 300 vào `logs/eval/charts/` (`01_token_usage.png`, `02_latency_and_calls.png`, `03_quality_metrics.png`, `04_overall_dashboard.png`) để chèn vào `report.docx`.
