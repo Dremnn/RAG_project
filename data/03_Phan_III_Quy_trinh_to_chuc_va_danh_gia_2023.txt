@@ -1,0 +1,36 @@
+---
+doc_id: 03_Phan_III_Quy_trinh_to_chuc_va_danh_gia
+title: Phần III - Quy trình tổ chức và đánh giá
+version: 2023
+owner: Phòng Công tác sinh viên
+---
+
+=== QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
+
+=== III. QUY TRÌNH TỔ CHỨC & ĐÁNH GIÁ CÔNG TÁC XÃ HỘI ===
+
+Quy trình năm 2023 được số hóa trên cổng PSC và ứng dụng MyPSC Mobile:
+
+1. Bước 1: Lập kế hoạch tổ chức hoạt động CTXH:
+   Công bố đầu mỗi học kỳ, bổ sung ngày 01 hàng tháng trên Cổng PSC & App MyPSC.
+
+2. Bước 2: SV đăng ký tham gia:
+   Đăng ký trực tuyến 100% qua App MyPSC hoặc Cổng thông tin PSC. Khi đủ chỉ tiêu, hệ thống tự động khóa đăng ký.
+
+3. Bước 3: Tổ chức thực hiện & điểm danh:
+   Điểm danh tại hoạt động bằng quét mã QR Code trên App MyPSC của sinh viên.
+
+4. Bước 4: In & xuất phiếu đánh giá:
+   Ban tổ chức xuất bảng tổng hợp trực tiếp từ phần mềm PSC.
+
+5. Bước 5: Chấm điểm hoạt động:
+   Đơn vị chủ trì hoàn tất nhập kết quả điểm số vào phần mềm PSC.
+
+6. Bước 6: Thời hạn công bố điểm:
+   Việc nhập & công bố kết quả đánh giá trên hệ thống PSC phải hoàn tất chậm nhất sau 01 tuần (07 ngày) kể từ khi hoạt động kết thúc (Rút ngắn so với quy định cũ là 02 tuần).
+
+7. Bước 7: Khiếu nại kết quả:
+   Sinh viên gửi khiếu nại online qua cổng PSC trong vòng 07 ngày (Quy định cũ là 10 ngày). Đơn vị giải quyết và phản hồi chậm nhất sau 05 ngày làm việc.
+
+8. Bước 8: Lưu trữ hồ sơ:
+   Chuyển bảng điểm gốc về Phòng Công tác HSSV chậm nhất sau 15 ngày kể từ ngày kết thúc hoạt động.

@@ -1,0 +1,8 @@
+---
+doc_id: QD_Khen_Thuong
+title: Quy định khen thưởng CTXH
+version: 2025
+owner: Phòng Công tác sinh viên
+---
+
+Sinh viên đạt danh hiệu Chiến sĩ thi đua cấp Trường được nhận mức thưởng là 1.500.000 đồng và cộng 3 ngày CTXH.

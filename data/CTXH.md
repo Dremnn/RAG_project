@@ -1,3 +1,10 @@
+---
+doc_id: CTXH
+title: Quy định CTXH
+version: 2023
+owner: Phòng Công tác sinh viên
+---
+
 **QUY ĐỊNH TỔ CHỨC THỰC HIỆN CHƯƠNG TRÌNH CÔNG TÁC XÃ HỘI ĐỐI VỚI SINH VIÊN HỆ CHÍNH QUY**
 
 **I. QUY ĐỊNH CHUNG**

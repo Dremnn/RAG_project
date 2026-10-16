@@ -4,6 +4,9 @@ from src.loaders.base import BaseLoader
 from src.models import Document
 
 
+from src.loaders.metadata import extract_metadata
+
+
 class PDFLoader(BaseLoader):
     """
     Loader for PDF (.pdf) documents using pypdf.
@@ -17,23 +20,29 @@ class PDFLoader(BaseLoader):
     def load(self) -> list[Document]:
         reader = PdfReader(str(self.file_path))
         total_pages = len(reader.pages)
+        meta = extract_metadata(self.file_path)
         docs: list[Document] = []
 
         if self.split_pages:
             for page_idx, page in enumerate(reader.pages):
                 text = page.extract_text() or ""
-                doc_id = f"DOC_{self.file_path.stem}_p{page_idx + 1}"
+                doc_id = f"{meta['doc_id']}_p{page_idx + 1}"
+                doc_meta = {
+                    "file_name": self.file_path.name,
+                    "extension": ".pdf",
+                    "page_number": page_idx + 1,
+                    "total_pages": total_pages,
+                }
+                for k, v in meta.items():
+                    if k != "cleaned_content":
+                        doc_meta[k] = v
+
                 doc = Document(
                     content=text.strip(),
                     doc_id=doc_id,
-                    title=f"{self.file_path.stem} (Page {page_idx + 1})",
+                    title=f"{meta['title']} (Page {page_idx + 1})",
                     source=str(self.file_path.resolve()),
-                    metadata={
-                        "file_name": self.file_path.name,
-                        "extension": ".pdf",
-                        "page_number": page_idx + 1,
-                        "total_pages": total_pages,
-                    },
+                    metadata=doc_meta,
                 )
                 docs.append(doc)
         else:
@@ -46,17 +55,21 @@ class PDFLoader(BaseLoader):
                     )
 
             full_content = "\n\n".join(full_text_parts)
-            doc_id = f"DOC_{self.file_path.stem}"
+            doc_meta = {
+                "file_name": self.file_path.name,
+                "extension": ".pdf",
+                "total_pages": total_pages,
+            }
+            for k, v in meta.items():
+                if k != "cleaned_content":
+                    doc_meta[k] = v
+
             doc = Document(
                 content=full_content,
-                doc_id=doc_id,
-                title=self.file_path.stem,
+                doc_id=meta["doc_id"],
+                title=meta["title"],
                 source=str(self.file_path.resolve()),
-                metadata={
-                    "file_name": self.file_path.name,
-                    "extension": ".pdf",
-                    "total_pages": total_pages,
-                },
+                metadata=doc_meta,
             )
             docs.append(doc)
 

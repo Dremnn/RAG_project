@@ -4,6 +4,9 @@ from src.loaders.base import BaseLoader
 from src.models import Document
 
 
+from src.loaders.metadata import extract_metadata, strip_metadata_header
+
+
 class DocxLoader(BaseLoader):
     """
     Loader for Microsoft Word (.docx) documents.
@@ -41,18 +44,24 @@ class DocxLoader(BaseLoader):
                 text_parts.append("\n".join(table_lines))
 
         full_content = "\n\n".join(text_parts)
-        doc_id = f"DOC_{self.file_path.stem}"
+        meta = extract_metadata(self.file_path, content=full_content)
+        cleaned_content = strip_metadata_header(full_content)
+
+        doc_metadata = {
+            "file_name": self.file_path.name,
+            "extension": ".docx",
+            "num_paragraphs": len(doc_obj.paragraphs),
+            "num_tables": table_count,
+        }
+        for k, v in meta.items():
+            if k != "cleaned_content":
+                doc_metadata[k] = v
 
         doc = Document(
-            content=full_content,
-            doc_id=doc_id,
-            title=self.file_path.stem,
+            content=cleaned_content,
+            doc_id=meta.get("doc_id", self.file_path.stem),
+            title=meta.get("title", self.file_path.stem),
             source=str(self.file_path.resolve()),
-            metadata={
-                "file_name": self.file_path.name,
-                "extension": ".docx",
-                "num_paragraphs": len(doc_obj.paragraphs),
-                "num_tables": table_count,
-            },
+            metadata=doc_metadata,
         )
         return [doc]
