@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from typing import Optional
 from src.loaders.base import BaseLoader
@@ -80,11 +81,16 @@ class DocumentLoaderFactory:
         pattern = "**/*" if recursive else "*"
 
         for file_path in folder.glob(pattern):
-            if file_path.is_file() and file_path.suffix.lower() in SUPPORTED_EXTENSIONS:
+            if (
+                file_path.is_file()
+                and not file_path.name.startswith("~")
+                and not file_path.name.startswith(".")
+                and file_path.suffix.lower() in SUPPORTED_EXTENSIONS
+            ):
                 try:
                     loaded = cls.load_file(file_path, **kwargs)
                     documents.extend(loaded)
                 except Exception as e:
-                    print(f"[Warning] Failed to load {file_path.name}: {e}")
+                    sys.stderr.write(f"[Warning] Failed to load {file_path.name}: {e}\n")
 
         return documents

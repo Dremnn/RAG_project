@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 from groq import Groq
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-from src.evaluation import FaithfulnessEvaluator
+from src.evaluation import FaithfulnessEvaluator, save_and_plot_session
 
 # Ensure UTF-8 output on Windows terminal
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -31,9 +31,14 @@ MAX_STEPS = 6
 LOGS_DIR = HERE / "logs"
 PROMPT_PATH = HERE / "prompts" / "system_agent.txt"
 
+# Prefer virtualenv python if available, fallback to sys.executable
+VENV_PYTHON = HERE.parent / ".venv" / "Scripts" / "python.exe"
+PYTHON_CMD = str(VENV_PYTHON) if VENV_PYTHON.exists() else sys.executable
+
 SERVER_PARAMS = StdioServerParameters(
-    command=sys.executable,
+    command=PYTHON_CMD,
     args=[str(HERE / "rag_server.py")],
+    env=dict(os.environ),
 )
 
 
@@ -256,78 +261,140 @@ async def main():
             print("[THANH CONG] Da ket noi MCP Server!")
             print(f"Cac cong cu duoc phep goi: {', '.join([t.name for t in mcp_tools])}")
             print("\nCac lenh tien ich nhanh:")
-            print("   - /docs : Xem danh muc cac van ban quy che hien hanh")
-            print("   - /sync : Quet va dong bo lai thu muc quy che data/")
-            print("   - /eval : Tham dinh do trung thuc (Faithfulness) cua cau vua tra loi")
-            print("   - /clear: Lam moi phien lam viec")
-            print("   - exit  : Thoat chuong trinh")
+            print("   - /docs  : Xem danh muc cac van ban quy che hien hanh")
+            print("   - /sync  : Quet va dong bo lai thu muc quy che data/")
+            print("   - /eval  : Tham dinh do trung thuc (Faithfulness) cua cau vua tra loi")
+            print("   - /chart : Xuat file CSV va ve bieu do phien lam viec ngay lap tuc")
+            print("   - /clear : Lam moi phien lam viec")
+            print("   - exit   : Thoat chuong trinh va tu dong luu bao cao phien")
             print("=" * 65)
 
+            session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+            session_records: list[dict] = []
             messages = [{"role": "system", "content": system_prompt}]
             evaluator = FaithfulnessEvaluator(groq_client=groq_client)
             last_answer = ""
             last_context = ""
 
-            while True:
-                try:
-                    user_input = input("\nSinh vien / Nguoi dung: ").strip()
-                except (EOFError, KeyboardInterrupt):
-                    print("\nTam biet ban!")
-                    break
+            try:
+                while True:
+                    try:
+                        user_input = input("\nSinh vien / Nguoi dung: ").strip()
+                    except (EOFError, KeyboardInterrupt):
+                        print("\nTam biet ban!")
+                        break
 
-                if not user_input:
-                    continue
-
-                if user_input.lower() in ["exit", "quit", ":q"]:
-                    print("\nDa ket thuc phien lam viec. Chuc ban hoc tap tot!")
-                    break
-
-                if user_input.lower() in ["/clear", "clear"]:
-                    messages = [{"role": "system", "content": system_prompt}]
-                    last_answer = ""
-                    last_context = ""
-                    print("[THANH CONG] Da lam moi phien hoi thoai.")
-                    continue
-
-                if user_input.lower() in ["/docs", "/list"]:
-                    print("\n[DANG XU LY] Dang tra cuu danh muc van ban quy che...")
-                    res = await session.call_tool("list_indexed_documents", arguments={})
-                    print(res.content[0].text)
-                    continue
-
-                if user_input.lower() in ["/sync", "/reload", "sync"]:
-                    print("\n[DANG XU LY] Dang dong bo lai thu muc data/...")
-                    res = await session.call_tool("sync_documents", arguments={})
-                    print(res.content[0].text)
-                    continue
-
-                if user_input.lower() in ["/eval", "eval"]:
-                    if not last_answer:
-                        print("[Canh bao] Chua co cau tra loi nao de tham dinh. Hay hoi mot cau truoc.")
+                    if not user_input:
                         continue
-                    print("\n[DANG XU LY] Dang danh gia do trung thuc (Faithfulness / LLM-as-a-judge)...")
-                    report = evaluator.evaluate(last_answer, last_context)
-                    print(report.format_terminal())
-                    continue
 
-                messages.append({"role": "user", "content": user_input})
-                print("\n[DANG XU LY] Tro ly AI dang phan tich quy che va suy luan...")
+                    if user_input.lower() in ["exit", "quit", ":q"]:
+                        print("\nDa ket thuc phien lam viec. Chuc ban hoc tap tot!")
+                        break
 
-                answer, context, usage = await run_agent_loop(
-                    session=session,
-                    groq_client=groq_client,
-                    groq_tools=groq_tools,
-                    messages=messages,
-                    user_query=user_input,
-                )
-                last_answer = answer
-                last_context = context
+                    if user_input.lower() in ["/clear", "clear"]:
+                        messages = [{"role": "system", "content": system_prompt}]
+                        last_answer = ""
+                        last_context = ""
+                        print("[THANH CONG] Da lam moi phien hoi thoai.")
+                        continue
 
-                print("\n" + "-" * 65)
-                print(f"KET QUA TRA LOI:\n{answer}")
-                print("-" * 65)
-                print(f"[Chi phi phien]: {usage['total_tokens']} tokens ({usage['api_calls']} luot goi API)")
-                print("Goi y: Go /eval de tham dinh xem cau tra loi tren co trung thuc voi quy che khong.")
+                    if user_input.lower() in ["/docs", "/list"]:
+                        print("\n[DANG XU LY] Dang tra cuu danh muc van ban quy che...")
+                        res = await session.call_tool("list_indexed_documents", arguments={})
+                        print(res.content[0].text)
+                        continue
+
+                    if user_input.lower() in ["/sync", "/reload", "sync"]:
+                        print("\n[DANG XU LY] Dang dong bo lai thu muc data/...")
+                        res = await session.call_tool("sync_documents", arguments={})
+                        print(res.content[0].text)
+                        continue
+
+                    if user_input.lower() in ["/chart", "/charts", "chart"]:
+                        if not session_records:
+                            print("[Canh bao] Chua co cau hoi nao trong phien de ve bieu do.")
+                            continue
+                        print("\n[DANG XU LY] Dang xuat CSV va ve do thi cho phien lam viec...")
+                        session_dir = LOGS_DIR / "sessions"
+                        report_out = save_and_plot_session(
+                            records=session_records,
+                            output_dir=session_dir,
+                            session_id=session_id,
+                            session_title=f"Phiên tương tác {session_id}",
+                        )
+                        print(f"  -> File CSV phien: {report_out['csv_path']}")
+                        for chart_path in report_out["charts"]:
+                            print(f"  -> Bieu do phien : {chart_path}")
+                        continue
+
+                    if user_input.lower() in ["/eval", "eval"]:
+                        if not last_answer:
+                            print("[Canh bao] Chua co cau tra loi nao de tham dinh. Hay hoi mot cau truoc.")
+                            continue
+                        print("\n[DANG XU LY] Dang danh gia do trung thuc (Faithfulness / LLM-as-a-judge)...")
+                        report = evaluator.evaluate(last_answer, last_context)
+                        print(report.format_terminal())
+                        # Cap nhat diem vao record gan nhat neu co
+                        if session_records:
+                            session_records[-1]["faithfulness_score"] = report.score
+                        continue
+
+                    messages.append({"role": "user", "content": user_input})
+                    print("\n[DANG XU LY] Tro ly AI dang phan tich quy che va suy luan...")
+
+                    start_time = time.time()
+                    answer, context, usage = await run_agent_loop(
+                        session=session,
+                        groq_client=groq_client,
+                        groq_tools=groq_tools,
+                        messages=messages,
+                        user_query=user_input,
+                    )
+                    duration = time.time() - start_time
+                    last_answer = answer
+                    last_context = context
+
+                    # Luu vao danh sach record cua phien
+                    has_cit = ("[nguồn:" in answer.lower() or "[nguon:" in answer.lower()) and "chunk id:" in answer.lower()
+                    session_records.append({
+                        "id": f"Q{len(session_records) + 1}",
+                        "category": "interactive",
+                        "query": user_input,
+                        "final_answer": answer,
+                        "answer_preview": answer[:150],
+                        "duration_seconds": round(duration, 2),
+                        "has_citation": has_cit,
+                        "faithfulness_score": 1.0,
+                        "keyword_recall": 1.0,
+                        "calls": usage.get("api_calls", 1),
+                        "prompt_tokens": usage.get("prompt_tokens", 0),
+                        "completion_tokens": usage.get("completion_tokens", 0),
+                        "max_prompt": usage.get("max_prompt", 0),
+                        "total_tokens": usage.get("total_tokens", 0),
+                    })
+
+                    print("\n" + "-" * 65)
+                    print(f"KET QUA TRA LOI:\n{answer}")
+                    print("-" * 65)
+                    print(f"[Chi phi phien]: {usage['total_tokens']} tokens ({usage['api_calls']} luot goi API)")
+                    print("Goi y: Go /eval de tham dinh trung thuc, go /chart de xuat bieu do phien.")
+
+            finally:
+                # Tu dong luu CSV va ve bieu do khi ket thuc phien neu co tuong tac
+                if session_records:
+                    print("\n" + "=" * 65)
+                    print("[BAO CAO PHIEN] Dang tu dong luu log CSV va ve bieu do phien...")
+                    session_dir = LOGS_DIR / "sessions"
+                    report_out = save_and_plot_session(
+                        records=session_records,
+                        output_dir=session_dir,
+                        session_id=session_id,
+                        session_title=f"Phiên tương tác {session_id}",
+                    )
+                    print(f"- Log CSV phien  : {report_out['csv_path']}")
+                    for chart_path in report_out["charts"]:
+                        print(f"- Bieu do phien : {chart_path}")
+                    print("=" * 65)
 
 
 if __name__ == "__main__":

@@ -40,7 +40,13 @@ RAG_project/
 ├── logs/                       # Log các phiên chạy và báo cáo đánh giá
 │   ├── run_*.jsonl             # Log trace và token usage thực tế
 │   ├── eval_report.json        # Báo cáo đánh giá chi tiết định dạng JSON
-│   └── eval_report.csv         # Bảng tổng hợp chi tiết từng câu kiểm thử định dạng CSV
+│   ├── eval_report.csv         # Bảng tổng hợp chi tiết từng câu kiểm thử định dạng CSV
+│   └── charts/                 # Đồ thị đánh giá & Dashboard tương tác (+1 điểm cộng)
+│       ├── 01_token_usage.png
+│       ├── 02_latency_and_calls.png
+│       ├── 03_quality_metrics.png
+│       ├── 04_overall_dashboard.png
+│       └── eval_dashboard.html
 ├── prompts/
 │   └── system_agent.txt        # System Prompt 3 tầng tách biệt khỏi code
 ├── src/
@@ -51,8 +57,10 @@ RAG_project/
 │   └── models.py               # Dataclass schemas
 ├── tests/
 │   ├── testset.jsonl           # Tập 12 câu hỏi kiểm thử (co 4 câu no_answer)
-│   └── evaluate_testset.py     # Script benchmark đánh giá
-├── Makefile                    # Lệnh chạy nhanh (setup, demo, eval)
+│   ├── evaluate_testset.py     # Script benchmark đánh giá
+│   ├── generate_charts.py      # Script tự động sinh đồ thị và dashboard
+│   └── test_metadata.py        # Kiểm thử tự động metadata và version filtering
+├── Makefile                    # Lệnh chạy nhanh (setup, demo, eval, charts)
 ├── rag_client.py               # ReAct Terminal Client
 ├── rag_server.py               # MCP Knowledge & Action Server
 └── ai-usage.md                 # Báo cáo sử dụng trợ lý AI
@@ -92,12 +100,12 @@ owner: Phòng Công tác sinh viên
 
 ---
 
-## 3. Huong dan cai dat va chay nhanh (1 lenh)
+## 4. Hướng dẫn cài đặt và chạy nhanh (1 lệnh)
 
-### Cai dat
+### Cài đặt
 ```bash
 make setup
-# Hoac: uv pip install -e .
+# Hoac: uv pip install -e . && uv pip install matplotlib
 ```
 
 ### Chay Demo Terminal Assistant
@@ -106,16 +114,20 @@ make demo
 # Hoac: uv run python rag_client.py
 ```
 
-Cac lenh tien ich trong terminal:
-- `/docs` : Xem danh muc cac van ban quy che trong co so du lieu.
-- `/sync` : Quet va dong bo ngay cac file docx/pdf moi them vao `data/`.
-- `/eval` : Tham dinh do trung thuc (Faithfulness) cua cau vua tra loi.
-- `/clear`: Lam moi lich su hoi thoai.
-- `exit`  : Thoat chuong trinh.
+Các lệnh tiện ích trong terminal:
+- `/docs` : Xem danh mục các văn bản quy chế trong cơ sở dữ liệu.
+- `/sync` : Quét và đồng bộ ngay các file docx/pdf mới thêm vào `data/`.
+- `/eval` : Thẩm định độ trung thực (Faithfulness) của câu vừa trả lời.
+- `/clear`: Làm mới lịch sử hội thoại.
+- `exit`  : Thoát chương trình.
 
-### Chay Danh gia Benchmark (Week 5)
+### Chạy Đánh giá Benchmark (Week 5)
 ```bash
 make eval
-# Hoac: uv run python tests/evaluate_testset.py
+# Hoặc: uv run python tests/evaluate_testset.py
 ```
-Ket qua danh gia tong the va tung cau test se duoc hien thi tren terminal va xuat ra `logs/eval_report.json`.
+- **Lệnh duy nhất tự động thực thi toàn bộ:**
+  1. Chạy 12 câu kiểm thử (đo Calibration, Faithfulness, Token USAGE).
+  2. Xuất báo cáo chi tiết JSON: `logs/eval_report.json`.
+  3. Xuất bảng tổng hợp CSV từng câu: `logs/eval_report.csv`.
+  4. Tự động vẽ và lưu 3 đồ thị DPI 300 vào `logs/charts/` (`01_token_usage.png`, `02_quality_metrics.png`, `03_overall_dashboard.png`) để chèn vào `report.docx`.

@@ -51,7 +51,12 @@ def sync_knowledge_base() -> dict:
     # 1. Discover all supported files currently on disk in data/
     current_files = {}
     for p in DATA_DIR.glob("*"):
-        if p.is_file() and p.suffix.lower() in SUPPORTED_EXTENSIONS:
+        if (
+            p.is_file()
+            and not p.name.startswith("~")
+            and not p.name.startswith(".")
+            and p.suffix.lower() in SUPPORTED_EXTENSIONS
+        ):
             current_files[p.name] = (p, p.stat().st_mtime)
 
     # Populate file_meta if missing from existing chunks
@@ -80,14 +85,18 @@ def sync_knowledge_base() -> dict:
         is_modified = not is_new and mtime > STORE.file_meta[fname]
 
         if is_new or is_modified:
+            try:
+                docs = DocumentLoaderFactory.load_file(fpath)
+                chunks = chunker.split_documents(docs)
+            except Exception as e:
+                sys.stderr.write(f"[Warning] Failed to load/chunk {fname}: {e}\n")
+                continue
+
             if is_modified:
                 STORE.remove_chunks_by_file(fname)
                 updated_files.append(fname)
             else:
                 added_files.append(fname)
-
-            docs = DocumentLoaderFactory.load_file(fpath)
-            chunks = chunker.split_documents(docs)
 
             if chunks:
                 embeddings = None
@@ -95,7 +104,7 @@ def sync_knowledge_base() -> dict:
                     try:
                         emb_gen = EmbeddingGenerator()
                     except Exception as e:
-                        print(f"[Warning] EmbeddingGenerator unavailable: {e}")
+                        sys.stderr.write(f"[Warning] EmbeddingGenerator unavailable: {e}\n")
                         emb_gen = None
 
                 if emb_gen is not None:
@@ -103,7 +112,7 @@ def sync_knowledge_base() -> dict:
                         texts = [c.content for c in chunks]
                         embeddings = emb_gen.embed_documents(texts, batch_size=16)
                     except Exception as e:
-                        print(f"[Warning] Failed to compute embeddings for {fname}: {e}")
+                        sys.stderr.write(f"[Warning] Failed to compute embeddings for {fname}: {e}\n")
                         embeddings = None
 
                 STORE.add_chunks(chunks, embeddings)

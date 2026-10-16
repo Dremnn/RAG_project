@@ -1,0 +1,4 @@
+﻿id,category,query,is_no_answer,is_refused,keyword_recall,has_citation,faithfulness_score,duration_seconds,calls,prompt_tokens,completion_tokens,max_prompt,total_tokens,answer_preview
+Q1,interactive,“Sinh viên học 4 năm cần bao nhiêu ngày CTXH?”,False,False,1.0,True,1.0,11.55,2,8102,402,4552,8504,"Theo quy định hiện hành (phiến bản 2025), ngưỡng số ngày CTXH đối với chương trình đào tạo **từ 4 năm trở lên** (đợt 4 năm) như sau:  - **Chương trình"
+Q2,interactive,“Hiến máu tình nguyện được quy đổi bao nhiêu ngày CTXH?”,False,False,1.0,False,1.0,57.76,1,4940,39,4940,4979,Loi ket noi LLM: Goi Groq API that bai sau 3 lan thu: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in orga
+Q3,interactive,Hiến máu có được tính ngày CTXH không,False,False,1.0,False,1.0,21.04,0,0,0,0,0,Loi ket noi LLM: Goi Groq API that bai sau 3 lan thu: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in orga

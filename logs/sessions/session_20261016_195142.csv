@@ -1,0 +1,3 @@
+﻿id,category,query,is_no_answer,is_refused,keyword_recall,has_citation,faithfulness_score,duration_seconds,calls,prompt_tokens,completion_tokens,max_prompt,total_tokens,answer_preview
+Q1,interactive,hien mau dc bao nhieu diem ren luyen,False,False,1.0,True,1.0,63.52,3,14099,539,5897,14638,"**Mùa hè xanh (năm 2025)** có 2 mã, kèm thang điểm rèn luyện / quy đổi ngày:  | Mã | Nội dung | Thang điểm | Quy đổi ngày CTXH | |----|----------|----"
+Q2,interactive,o cac nam truoc do thi hoat dong nay duoc bao nhieu diem,False,False,1.0,False,1.0,23.64,1,6309,53,6309,6362,Loi ket noi LLM: Goi Groq API that bai sau 3 lan thu: Error code: 413 - {'error': {'message': 'Request too large for model `qwen/qwen3.8-27b` in organ
