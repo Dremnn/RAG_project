@@ -9,6 +9,7 @@ Bao gồm 3 chỉ số cốt lõi:
 Kèm theo cơ chế Chẩn đoán lỗi (Failure Mode Diagnosis) và Hướng cải tiến (Evidence-based Improvement).
 """
 
+import time
 from dataclasses import dataclass, field
 from typing import Optional, Any
 import json
@@ -33,20 +34,23 @@ def _call_groq_judge(
     models_to_try = [preferred_model] + [m for m in FALLBACK_MODELS if m != preferred_model]
     last_err: Optional[Exception] = None
     for m in models_to_try:
-        try:
-            resp = client.chat.completions.create(
-                model=m,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=max_tokens,
-                timeout=timeout,
-            )
-            return resp.choices[0].message.content.strip()
-        except Exception as e:
-            last_err = e
-            if "rate_limit" in str(e).lower() or "429" in str(e):
-                continue
-            raise e
+        for attempt in range(2):
+            try:
+                resp = client.chat.completions.create(
+                    model=m,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    timeout=timeout,
+                )
+                return resp.choices[0].message.content.strip()
+            except Exception as e:
+                last_err = e
+                err_msg = str(e).lower()
+                if "rate_limit" in err_msg or "429" in err_msg or "413" in err_msg:
+                    time.sleep(2.5)
+                    continue
+                break
     if last_err is not None:
         raise last_err
     raise RuntimeError("Khong co model kha dung tren Groq")
@@ -66,6 +70,7 @@ class FaithfulnessReport:
     supported_claims: int
     unsupported_claims: int
     verdicts: list[ClaimVerdict] = field(default_factory=list)
+    error_message: Optional[str] = None
 
     @property
     def is_trustworthy(self) -> bool:
@@ -74,6 +79,16 @@ class FaithfulnessReport:
 
     def format_terminal(self) -> str:
         """Format a clean visual report for terminal display."""
+        if self.error_message:
+            return "\n".join([
+                "=" * 65,
+                "BÁO CÁO THẨM ĐỊNH ĐỘ TRUNG THỰC (WEEK 5 FAITHFULNESS)",
+                f"[CẢNH BÁO / LỖI KẾT NỐI] Không thể phân tích mệnh đề qua LLM Judge.",
+                f"Lý do: {self.error_message}",
+                "Gợi ý: Do hạn mức API Groq vừa chạm ngưỡng sau lượt trả lời trước, vui lòng đợi 3-5 giây rồi gõ lại /eval.",
+                "=" * 65,
+            ])
+
         percent = int(round(self.score * 100))
         badge = "[ĐỘ TIN CẬY CAO]" if self.is_trustworthy else "[CẢNH BÁO ẢO GIÁC]"
 
@@ -338,10 +353,10 @@ Bước 2 (Judge): Đối chiếu nghiêm ngặt từng mệnh đề nguyên t�
   - supported = false NẾU thông tin không có trong tài liệu, suy đoán ngoài, hoặc sai lệch số liệu.
 
 Ngữ cảnh gốc:
-\"\"\"{context[:3500]}\"\"\"
+\"\"\"{context[:2200]}\"\"\"
 
 Câu trả lời của trợ lý AI:
-\"\"\"{answer[:2000]}\"\"\"
+\"\"\"{answer[:1400]}\"\"\"
 
 Trả về DUY NHẤT một JSON format:
 {{
@@ -391,7 +406,8 @@ Trả về DUY NHẤT một JSON format:
                 total_claims=1,
                 supported_claims=1,
                 unsupported_claims=0,
-                verdicts=[ClaimVerdict(claim="Tổng thể câu trả lời", supported=True, reason=f"Đánh giá: {e}")],
+                verdicts=[],
+                error_message=str(e),
             )
 
         return FaithfulnessReport(
