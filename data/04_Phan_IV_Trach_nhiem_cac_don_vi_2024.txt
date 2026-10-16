@@ -1,3 +1,10 @@
+---
+doc_id: 04_Phan_IV_Trach_nhiem_cac_don_vi
+title: Phần IV - Trách nhiệm các đơn vị
+version: 2024
+owner: Phòng Công tác sinh viên
+---
+
 === QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
 
 === IV. TRÁCH NHIỆM CỦA CÁC ĐƠN VỊ ===

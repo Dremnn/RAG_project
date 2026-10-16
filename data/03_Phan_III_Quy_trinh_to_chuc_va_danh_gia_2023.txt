@@ -1,3 +1,10 @@
+---
+doc_id: 03_Phan_III_Quy_trinh_to_chuc_va_danh_gia
+title: Phần III - Quy trình tổ chức và đánh giá
+version: 2023
+owner: Phòng Công tác sinh viên
+---
+
 === QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
 
 === III. QUY TRÌNH TỔ CHỨC & ĐÁNH GIÁ CÔNG TÁC XÃ HỘI ===

@@ -57,6 +57,38 @@ RAG_project/
 ├── rag_server.py               # MCP Knowledge & Action Server
 └── ai-usage.md                 # Báo cáo sử dụng trợ lý AI
 ```
+---
+
+## 3. Quy ước Metadata và Đặt tên file tài liệu
+
+### 3.1. Block Metadata (Front-matter) ở đầu tài liệu (.md, .txt, .docx)
+Mỗi tài liệu mới đưa vào hệ thống được định nghĩa khối front-matter ở đầu file:
+```yaml
+---
+doc_id: A
+title: Quy định CTXH
+version: 2023
+owner: Phòng Công tác sinh viên
+---
+(nội dung văn bản bắt đầu từ đây)
+```
+- `doc_id`: Mã định danh chung cho mọi phiên bản của cùng một văn bản (ví dụ: `A_2021` và `A_2023` đều có `doc_id` là `A`).
+- `version`: Số năm hoặc ngày có hiệu lực của văn bản.
+- `owner`: Đơn vị ban hành/chủ quản (ví dụ: `Phòng Công tác sinh viên`).
+- Với tài liệu `.docx`: Khối block này được đặt ở dòng đầu tiên của tài liệu hoặc thông qua Document Properties (title, author).
+- Khối front-matter được tự động cắt khỏi nội dung trước khi chunking và embedding để tránh làm nhiễu kết quả tìm kiếm ngữ nghĩa.
+
+### 3.2. Quy ước đặt tên file mới và Fallback
+- Quy ước đặt tên file: `<doc_id>_<năm>.<đuôi>` (Ví dụ: `00_Toan_van_Quy_dinh_CTXH_2023.pdf`, `A_2023.pdf`).
+- **Thứ tự ưu tiên trích xuất metadata (`extract_metadata(path)`):**
+  1. **Header front-matter (`---` ... `---`)**: Đọc các trường `doc_id`, `title`, `version`, `owner`. Gán `metadata_source = "header"`.
+  2. **Regex theo tên file (`<doc_id>_<năm>.<đuôi>`)**: Dành cho PDF không thể chỉnh sửa trực tiếp hoặc file không có header. Gán `metadata_source = "filename"`.
+  3. **Fallback**: Không khớp regex thì `version = ""`, `doc_id` lấy tên file không đuôi. Gán `metadata_source = "none"`.
+
+### 3.3. Hiển thị nguồn và Lọc phiên bản
+- Kết quả tra cứu `search_ctxh_rules` luôn hiển thị theo chuẩn:
+  `[Nguồn: <tên_file> | Phiên bản: <năm> | Chunk ID: <chunk_id>]`
+- **Quy tắc phiên bản:** Đối với các chunk cùng `doc_id`, hệ thống tự động ưu tiên giữ lại phiên bản lớn nhất (mới nhất). Nếu người dùng yêu cầu tra cứu một năm cụ thể, hệ thống hỗ trợ tham số `year` tùy chọn trong `search_ctxh_rules(..., year="2023")` để lấy chính xác phiên bản được chỉ định.
 
 ---
 

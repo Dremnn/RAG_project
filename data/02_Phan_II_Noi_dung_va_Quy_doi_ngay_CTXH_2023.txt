@@ -1,3 +1,10 @@
+---
+doc_id: 02_Phan_II_Noi_dung_va_Quy_doi_ngay_CTXH
+title: Phần II - Nội dung và Quy đổi ngày CTXH
+version: 2023
+owner: Phòng Công tác sinh viên
+---
+
 === QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
 
 === II. NỘI DUNG CÔNG TÁC XÃ HỘI, MÃ HÓA & QUY ĐỔI NGÀY CTXH ===

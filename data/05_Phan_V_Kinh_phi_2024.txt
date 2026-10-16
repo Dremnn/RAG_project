@@ -1,3 +1,10 @@
+---
+doc_id: 05_Phan_V_Kinh_phi
+title: Phần V - Kinh phí
+version: 2024
+owner: Phòng Công tác sinh viên
+---
+
 === QUY ĐỊNH CÔNG TÁC XÃ HỘI SINH VIÊN ===
 
 === V. KINH PHÍ ===

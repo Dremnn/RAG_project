@@ -4,6 +4,7 @@ import json
 import uuid
 from pathlib import Path
 from datetime import datetime
+from typing import Optional, Any
 from dotenv import load_dotenv
 from mcp.server.mcpserver import MCPServer
 
@@ -89,10 +90,22 @@ def sync_knowledge_base() -> dict:
             chunks = chunker.split_documents(docs)
 
             if chunks:
+                embeddings = None
                 if emb_gen is None:
-                    emb_gen = EmbeddingGenerator()
-                texts = [c.content for c in chunks]
-                embeddings = emb_gen.embed_documents(texts, batch_size=16)
+                    try:
+                        emb_gen = EmbeddingGenerator()
+                    except Exception as e:
+                        print(f"[Warning] EmbeddingGenerator unavailable: {e}")
+                        emb_gen = None
+
+                if emb_gen is not None:
+                    try:
+                        texts = [c.content for c in chunks]
+                        embeddings = emb_gen.embed_documents(texts, batch_size=16)
+                    except Exception as e:
+                        print(f"[Warning] Failed to compute embeddings for {fname}: {e}")
+                        embeddings = None
+
                 STORE.add_chunks(chunks, embeddings)
 
             STORE.file_meta[fname] = mtime
@@ -158,26 +171,55 @@ _ensure_index_loaded()
 # ==========================================
 
 @mcp.tool()
-def search_ctxh_rules(query: str, top_k: int = 4, mode: str = "hybrid") -> str:
+def search_ctxh_rules(
+    query: str,
+    top_k: int = 4,
+    mode: str = "hybrid",
+    year: Optional[str] = None,
+) -> str:
     """Tra cuu van ban quy dinh Cong tac xa hoi (CTXH) bang Hybrid Search (BM25 + Dense Vector).
     Tra ve cac dieu khoan, ma hoat dong (6 chu so), thang diem, cach quy doi ngay CTXH, va dieu kien tot nghiep.
-    Bat buoc goi cong cu nay khi tra cuu ma hoat dong, quy dinh ngay CTXH hoac tieu chuan mien giam."""
+    Bat buoc goi cong cu nay khi tra cuu ma hoat dong, quy dinh ngay CTXH hoac tieu chuan mien giam.
+
+    Args:
+        query: Tu khoa, ma hoat dong (001101, 001202...), hoac cau hoi can tra cuu quy dinh CTXH.
+        top_k: So luong trich doan can lay (mac dinh 4, toi da 8).
+        mode: Che do tim kiem ('hybrid', 'vector', 'bm25').
+        year: Nam ban hanh quy dinh cu the (vi du '2023', '2024', '2025'). Neu de trong, he thong tu dong uu tien ban moi nhat.
+    """
     top_k = max(1, min(top_k, 8))
-    results = STORE.search(query=query, top_k=top_k, mode=mode)
+    results = STORE.search(query=query, top_k=top_k, mode=mode, year=year)
 
     if not results:
         return "Khong tim thay quy dinh phu hop trong co so du lieu CTXH."
+
+    # Loc lai lan nua: voi cac chunk cung doc_id, chi giu version lon nhat
+    if not year:
+        from src.retrieval.vector_store import parse_version_key
+        max_v_in_results: dict[str, tuple] = {}
+        for chunk, _ in results:
+            d_id = chunk.doc_id or (chunk.metadata or {}).get("doc_id", "")
+            vk = parse_version_key((chunk.metadata or {}).get("version"))
+            if d_id not in max_v_in_results or vk > max_v_in_results[d_id]:
+                max_v_in_results[d_id] = vk
+
+        results = [
+            (chunk, score) for chunk, score in results
+            if parse_version_key((chunk.metadata or {}).get("version")) == max_v_in_results.get(
+                chunk.doc_id or (chunk.metadata or {}).get("doc_id", "")
+            )
+        ]
 
     formatted_passages = []
     for rank, (chunk, score) in enumerate(results, 1):
         meta = chunk.metadata or {}
         file_name = meta.get("file_name", "unknown")
+        version = meta.get("version") or "Chưa xác định"
         page_str = f" | Trang {meta.get('page_number')}" if "page_number" in meta else ""
 
         passage = (
             f"--- [Trich doan {rank}] ---\n"
-            f"Nguon: {file_name}{page_str}\n"
-            f"Chunk ID: {chunk.chunk_id}\n"
+            f"[Nguồn: {file_name}{page_str} | Phiên bản: {version} | Chunk ID: {chunk.chunk_id}]\n"
             f"Do tuong dong: {score:.4f}\n"
             f"Noi dung:\n{chunk.content}"
         )
@@ -188,9 +230,9 @@ def search_ctxh_rules(query: str, top_k: int = 4, mode: str = "hybrid") -> str:
 
 # Alias for backward compatibility if needed
 @mcp.tool()
-def search_regulations(query: str, top_k: int = 4) -> str:
+def search_regulations(query: str, top_k: int = 4, year: Optional[str] = None) -> str:
     """Tra cuu quy dinh CTXH. Tuong duong voi search_ctxh_rules."""
-    return search_ctxh_rules(query=query, top_k=top_k, mode="hybrid")
+    return search_ctxh_rules(query=query, top_k=top_k, mode="hybrid", year=year)
 
 
 @mcp.tool()
@@ -199,24 +241,28 @@ def list_indexed_documents() -> str:
     if not STORE.chunks:
         return "Co so du lieu tai lieu CTXH hien dang trong."
 
-    doc_summary: dict[str, dict] = {}
+    file_summary: dict[str, dict] = {}
     for chunk in STORE.chunks.values():
         meta = chunk.metadata or {}
-        doc_id = chunk.doc_id
-        if doc_id not in doc_summary:
-            doc_summary[doc_id] = {
-                "file_name": meta.get("file_name", doc_id),
+        fname = meta.get("file_name", chunk.doc_id)
+        if fname not in file_summary:
+            file_summary[fname] = {
+                "doc_id": chunk.doc_id,
+                "version": meta.get("version", ""),
                 "extension": meta.get("extension", ""),
+                "metadata_source": meta.get("metadata_source", "none"),
                 "chunk_count": 0,
                 "total_pages": meta.get("total_pages"),
             }
-        doc_summary[doc_id]["chunk_count"] += 1
+        file_summary[fname]["chunk_count"] += 1
 
     lines = ["Danh muc van ban quy che CTXH hien co:"]
-    for doc_id, info in doc_summary.items():
+    for fname, info in file_summary.items():
+        ver_str = f", Phien ban: {info['version']}" if info['version'] else ""
+        source_str = f", Nguon metadata: {info['metadata_source']}"
         pages_info = f", So trang: {info['total_pages']}" if info["total_pages"] else ""
         lines.append(
-            f"  - [{doc_id}] {info['file_name']} (Dinh dang: {info['extension']}, Chunks: {info['chunk_count']}{pages_info})"
+            f"  - [{info['doc_id']}] {fname} (Dinh dang: {info['extension']}{ver_str}{source_str}, Chunks: {info['chunk_count']}{pages_info})"
         )
 
     return "\n".join(lines)

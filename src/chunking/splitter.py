@@ -92,7 +92,13 @@ class RecursiveChunker:
             if not text.strip():
                 continue
 
-            chunk_id = f"{doc.doc_id}_c{idx:03d}" if doc.doc_id else f"chunk_{idx:03d}"
+            version = doc.metadata.get("version")
+            if version and doc.doc_id:
+                chunk_id = f"{doc.doc_id}_{version}_c{idx:03d}"
+            elif doc.doc_id:
+                chunk_id = f"{doc.doc_id}_c{idx:03d}"
+            else:
+                chunk_id = f"chunk_{idx:03d}"
             
             # Merge document metadata with chunk-level metadata
             chunk_metadata = doc.metadata.copy()
@@ -145,7 +151,13 @@ class FixedSizeChunker:
             chunk_text = text[start:end].strip()
 
             if chunk_text:
-                chunk_id = f"{doc.doc_id}_c{idx:03d}" if doc.doc_id else f"chunk_{idx:03d}"
+                version = doc.metadata.get("version")
+                if version and doc.doc_id:
+                    chunk_id = f"{doc.doc_id}_{version}_c{idx:03d}"
+                elif doc.doc_id:
+                    chunk_id = f"{doc.doc_id}_c{idx:03d}"
+                else:
+                    chunk_id = f"chunk_{idx:03d}"
                 chunk_meta = doc.metadata.copy()
                 chunk_meta.update({
                     "source": doc.source,

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Literal
+from typing import Optional, Literal, Any
 import json
 import re
 import numpy as np
@@ -30,6 +30,23 @@ def normalize_scores(scores: list[float]) -> list[float]:
     if max_s == min_s:
         return [1.0 if max_s > 0 else 0.0] * len(scores)
     return [(s - min_s) / (max_s - min_s) for s in scores]
+
+
+def parse_version_key(v: Any) -> tuple:
+    """Helper to convert a version string/number into a sortable tuple."""
+    if v is None:
+        return (0, 0)
+    v_str = str(v).strip()
+    if not v_str:
+        return (0, 0)
+    parts = re.split(r"[.\-_]", v_str)
+    res = []
+    for p in parts:
+        if p.isdigit():
+            res.append(int(p))
+        else:
+            res.append(p)
+    return (1, tuple(res))
 
 
 @dataclass
@@ -95,6 +112,7 @@ class VectorStore:
             self.chunks[chunk.chunk_id] = chunk
         self._rebuild_indices()
 
+
     def search(
         self,
         query: str,
@@ -102,16 +120,45 @@ class VectorStore:
         mode: Literal["hybrid", "vector", "bm25"] = "hybrid",
         w_bm25: float = 0.3,
         w_vector: float = 0.7,
+        year: Optional[str | int] = None,
     ) -> list[tuple[DocumentChunk, float]]:
         """
         Search for top_k most relevant chunks using Hybrid, Vector, or BM25 mode.
+        Supports version filtering:
+        - If year is specified: only searches chunks matching that exact version/year.
+        - If year is not specified: keeps only chunks belonging to the highest version for each doc_id.
         Returns: list of (DocumentChunk, score) sorted descending by relevance.
         """
         if not self.chunks:
             return []
 
-        num_chunks = len(self._chunk_keys)
-        top_k = min(top_k, num_chunks)
+        # 0. Version / Year filtering
+        if year is not None and str(year).strip() and str(year).strip().lower() not in ("none", "null"):
+            target_year = str(year).strip()
+            valid_idx = [
+                i for i, cid in enumerate(self._chunk_keys)
+                if str(self.chunks[cid].metadata.get("version", "")).strip() == target_year
+            ]
+        else:
+            # Find maximum version per doc_id across all indexed chunks
+            max_versions: dict[str, tuple] = {}
+            for chunk in self.chunks.values():
+                d_id = chunk.doc_id or (chunk.metadata or {}).get("doc_id", "")
+                v_k = parse_version_key((chunk.metadata or {}).get("version"))
+                if d_id not in max_versions or v_k > max_versions[d_id]:
+                    max_versions[d_id] = v_k
+
+            valid_idx = [
+                i for i, cid in enumerate(self._chunk_keys)
+                if parse_version_key((self.chunks[cid].metadata or {}).get("version")) == max_versions.get(
+                    self.chunks[cid].doc_id or (self.chunks[cid].metadata or {}).get("doc_id", "")
+                )
+            ]
+
+        if not valid_idx:
+            return []
+
+        top_k = min(top_k, len(valid_idx))
 
         # 1. Pure BM25 Search
         if mode == "bm25":
@@ -119,42 +166,47 @@ class VectorStore:
                 return []
             tokens = self._tokenize(query)
             scores = list(self._bm25_index.get_scores(tokens))
-            ranked_idx = np.argsort(scores)[::-1][:top_k]
-            return [(self.chunks[self._chunk_keys[i]], float(scores[i])) for i in ranked_idx]
+            valid_scores = [scores[i] for i in valid_idx]
+            ranked_local = np.argsort(valid_scores)[::-1][:top_k]
+            return [
+                (self.chunks[self._chunk_keys[valid_idx[idx]]], float(valid_scores[idx]))
+                for idx in ranked_local
+            ]
 
         # 2. Pure Vector Search (Cosine Similarity)
         query_vec = self.embedding_gen.embed_query(query)
         raw_vector_scores = [
-            cosine_similarity(query_vec, emb) if emb else 0.0
-            for emb in self._embeddings
+            cosine_similarity(query_vec, self._embeddings[i]) if self._embeddings[i] else 0.0
+            for i in valid_idx
         ]
 
         if mode == "vector":
-            ranked_idx = np.argsort(raw_vector_scores)[::-1][:top_k]
+            ranked_local = np.argsort(raw_vector_scores)[::-1][:top_k]
             return [
-                (self.chunks[self._chunk_keys[i]], float(raw_vector_scores[i]))
-                for i in ranked_idx
+                (self.chunks[self._chunk_keys[valid_idx[idx]]], float(raw_vector_scores[idx]))
+                for idx in ranked_local
             ]
 
         # 3. Hybrid Search (BM25 + Cosine Fusion)
         tokens = self._tokenize(query)
-        raw_bm25_scores = (
+        all_bm25 = (
             list(self._bm25_index.get_scores(tokens))
             if self._bm25_index
-            else [0.0] * num_chunks
+            else [0.0] * len(self._chunk_keys)
         )
+        valid_bm25_scores = [all_bm25[i] for i in valid_idx]
 
-        norm_bm25 = normalize_scores(raw_bm25_scores)
+        norm_bm25 = normalize_scores(valid_bm25_scores)
         norm_vector = normalize_scores(raw_vector_scores)
 
         hybrid_scores = [
             w_bm25 * b + w_vector * v for b, v in zip(norm_bm25, norm_vector)
         ]
 
-        ranked_idx = np.argsort(hybrid_scores)[::-1][:top_k]
+        ranked_local = np.argsort(hybrid_scores)[::-1][:top_k]
         return [
-            (self.chunks[self._chunk_keys[i]], float(hybrid_scores[i]))
-            for i in ranked_idx
+            (self.chunks[self._chunk_keys[valid_idx[idx]]], float(hybrid_scores[idx]))
+            for idx in ranked_local
         ]
 
     def remove_chunks_by_file(self, file_name: str) -> int:
