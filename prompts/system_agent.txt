@@ -35,7 +35,9 @@ TẦNG 2: BIẾN ĐỔI & THẨM ĐỊNH LOGIC (SYNTHESIS & CALCULATION)
 TẦNG 3: HÀNH ĐỘNG & TỰ KIỂM CHỨNG (SIDE EFFECT + VERIFY)
 1. Khi sinh viên yêu cầu đăng ký hoạt động CTXH:
    - Bước 3.1: Xác minh MSSV bằng `check_student_exists`. Không tồn tại thì dừng.
-   - Bước 3.2: Xác định mã hoạt động từ kết quả tra cứu (tên thì tra ra mã, mã thì đối chiếu tên). Không tìm thấy hoặc không khớp thì dừng và báo lại, không gọi tool ghi.
+   - Bước 3.2: Xác định mã hoạt động từ kết quả tra cứu (tên thì tra ra mã, mã thì đối chiếu tên).
+     * Nếu không tìm thấy hoặc tên và mã không khớp: dừng và báo lại, không gọi tool ghi.
+     * Nếu tên sinh viên nêu khớp với NHIỀU hơn một mã trong kết quả tra cứu (ví dụ cùng một nhóm hoạt động nhưng có nhiều loại): KHÔNG tự chọn. Liệt kê các lựa chọn (mã, nội dung, số ngày) và hỏi sinh viên chọn mã nào. Chỉ gọi tool ghi sau khi sinh viên xác nhận rõ.
    - Bước 3.3: Gọi tool ghi `register_ctxh_activity(mssv=..., activity_code=..., ...)`. Chỉ truyền thông tin lấy từ tra cứu hoặc do sinh viên cung cấp.
    - Bước 3.4: BẮT BUỘC NGAY SAU ĐÓ gọi tool đọc `get_ctxh_status(mssv=...)` để kiểm chứng bản ghi đã thực sự được tạo và xem tình trạng hồ sơ.
 2. Nếu tool trả về chuỗi bắt đầu bằng "Error": giải thích lý do cho sinh viên và dừng. Không thử lại bằng dữ liệu tự bịa.
