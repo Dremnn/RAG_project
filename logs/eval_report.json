@@ -1,12 +1,12 @@
 {
   "total_testcases": 12,
   "no_answer_testcases": 4,
-  "refusal_rate_percent": 0.0,
-  "average_faithfulness": 0.68,
-  "average_keyword_recall": 0.46,
-  "average_tokens_per_query": 4025.1,
-  "total_prompt_tokens": 45414,
-  "total_completion_tokens": 2887,
+  "refusal_rate_percent": 100.0,
+  "average_faithfulness": 1.0,
+  "average_keyword_recall": 0.61,
+  "average_tokens_per_query": 9315.9,
+  "total_prompt_tokens": 108661,
+  "total_completion_tokens": 3130,
   "details": [
     {
       "id": "q1",
@@ -14,18 +14,18 @@
       "query": "Mã hoạt động 'Trực tiếp hiến máu tình nguyện 01 lần' là mã gì và được quy đổi thành bao nhiêu ngày CTXH?",
       "is_no_answer": false,
       "is_refused": false,
-      "keyword_recall": 1.0,
+      "keyword_recall": 0.67,
       "has_citation": true,
-      "faithfulness_score": 0.67,
-      "duration_seconds": 101.38,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 5.15,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 5920,
-        "completion_tokens": 450,
-        "max_prompt": 3327,
-        "total_tokens": 6370
+        "prompt_tokens": 7035,
+        "completion_tokens": 117,
+        "max_prompt": 3762,
+        "total_tokens": 7152
       },
-      "answer_preview": "Cảm ơn bạn đã đặt câu hỏi! Dựa trên văn bản quy định Công tác xã hội của trường, thông tin về hoạt động **Trực tiếp hiến máu tình nguyện (01 lần)** nh"
+      "answer_preview": "Hoạt động **\"Trực tiếp hiến máu tình nguyện (01 lần)\"** có thông tin như sau:\n\n- **Mã hoạt động:** 001202\n- **Điểm:** 5\n- **Quy đổi thành ngày CTXH:**"
     },
     {
       "id": "q2",
@@ -36,15 +36,15 @@
       "keyword_recall": 1.0,
       "has_citation": true,
       "faithfulness_score": 1.0,
-      "duration_seconds": 49.8,
+      "duration_seconds": 59.89,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 5926,
-        "completion_tokens": 251,
-        "max_prompt": 3329,
-        "total_tokens": 6177
+        "prompt_tokens": 7276,
+        "completion_tokens": 145,
+        "max_prompt": 3999,
+        "total_tokens": 7421
       },
-      "answer_preview": "Theo văn bản quy định Công tác xã hội hiện hành của Trường:\n\n**Sinh viên hệ chính quy, khóa đào tạo từ 4 năm trở lên phải tích lũy tối thiểu 04 ngày C"
+      "answer_preview": "Sinh viên hệ chính quy thuộc **khóa đào tạo từ 4 năm trở lên** phải tích lũy tối thiểu **04 ngày CTXH** để đủ điều kiện tốt nghiệp.\n\nLưu ý thêm: riêng"
     },
     {
       "id": "q3",
@@ -55,15 +55,15 @@
       "keyword_recall": 1.0,
       "has_citation": true,
       "faithfulness_score": 1.0,
-      "duration_seconds": 50.18,
+      "duration_seconds": 62.88,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 6022,
-        "completion_tokens": 336,
-        "max_prompt": 3424,
-        "total_tokens": 6358
+        "prompt_tokens": 7572,
+        "completion_tokens": 209,
+        "max_prompt": 4294,
+        "total_tokens": 7781
       },
-      "answer_preview": "Theo quy định Công tác xã hội (CTXH) hiện hành của trường, trường hợp sinh viên **đăng ký tham gia hoạt động CTXH nhưng không thực hiện nội dung đã đă"
+      "answer_preview": "Theo quy định hiện hành của trường, trường hợp sinh viên đăng ký tham gia hoạt động CTXH nhưng **không thực hiện nội dung đã đăng ký mà không có lý do"
     },
     {
       "id": "q4",
@@ -73,16 +73,16 @@
       "is_refused": false,
       "keyword_recall": 1.0,
       "has_citation": true,
-      "faithfulness_score": 0.67,
-      "duration_seconds": 53.36,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 118.75,
       "usage": {
-        "calls": 2,
-        "prompt_tokens": 6262,
-        "completion_tokens": 424,
-        "max_prompt": 3653,
-        "total_tokens": 6686
+        "calls": 3,
+        "prompt_tokens": 14205,
+        "completion_tokens": 502,
+        "max_prompt": 6181,
+        "total_tokens": 14707
       },
-      "answer_preview": "Dưới đây là so sánh yêu cầu tích lũy ngày Công tác Xã hội (CTXH) tối thiểu giữa khóa 2012 và các khóa từ 2013 trở đi (chương trình đào tạo từ 4 năm tr"
+      "answer_preview": "So sánh yêu cầu tích lũy ngày CTXH tối thiểu (đối với chương trình đào tạo **từ 4 năm trở lên**):\n\n| Khóa đào tạo | Số ngày CTXH tối thiểu (chương trì"
     },
     {
       "id": "q5",
@@ -90,18 +90,18 @@
       "query": "Sinh viên tham gia Mùa hè xanh suốt chiến dịch 01 tháng tại tỉnh được đánh giá 40 điểm, và trực tiếp hiến máu tình nguyện 1 lần được 5 điểm. Hỏi tổng cộng sinh viên này quy đổi được bao nhiêu ngày CTXH?",
       "is_no_answer": false,
       "is_refused": false,
-      "keyword_recall": 0.0,
-      "has_citation": false,
-      "faithfulness_score": 0.0,
-      "duration_seconds": 56.43,
+      "keyword_recall": 0.67,
+      "has_citation": true,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 64.67,
       "usage": {
-        "calls": 1,
-        "prompt_tokens": 2618,
-        "completion_tokens": 113,
-        "max_prompt": 2618,
-        "total_tokens": 2731
+        "calls": 2,
+        "prompt_tokens": 7885,
+        "completion_tokens": 379,
+        "max_prompt": 4587,
+        "total_tokens": 8264
       },
-      "answer_preview": "Loi ket noi LLM: Goi Groq API that bai sau 3 lan thu: Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organ"
+      "answer_preview": "**Tổng điểm** = 40 (Mùa hè xanh, mã 001101, thang tối đa 40) + 5 (Trực tiếp hiến máu, mã 001202) = **45 điểm**.\n\n**Công thức quy đổi chung** (tại thời"
     },
     {
       "id": "q6",
@@ -111,16 +111,16 @@
       "is_refused": false,
       "keyword_recall": 1.0,
       "has_citation": true,
-      "faithfulness_score": 0.67,
-      "duration_seconds": 22.4,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 59.38,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 5805,
-        "completion_tokens": 422,
-        "max_prompt": 3197,
-        "total_tokens": 6227
+        "prompt_tokens": 7285,
+        "completion_tokens": 261,
+        "max_prompt": 3997,
+        "total_tokens": 7546
       },
-      "answer_preview": "## Kết quả tính toán ngày CTXH\n\nTheo quy định tại **Điều khoản quy đổi điểm thành ngày CTXH trước khi xét tốt nghiệp**:\n> *\"Lấy tổng điểm hoạt động CT"
+      "answer_preview": "Theo quy định, trước khi xét tốt nghiệp, tổng điểm hoạt động CTXH được quy đổi thành ngày CTXH theo công thức:\n\n**Lấy tổng điểm đã tích lũy chia cho 1"
     },
     {
       "id": "q7",
@@ -130,16 +130,16 @@
       "is_refused": false,
       "keyword_recall": 0.5,
       "has_citation": true,
-      "faithfulness_score": 0.75,
-      "duration_seconds": 110.63,
+      "faithfulness_score": 1.0,
+      "duration_seconds": 182.09,
       "usage": {
-        "calls": 4,
-        "prompt_tokens": 12861,
-        "completion_tokens": 891,
-        "max_prompt": 3780,
-        "total_tokens": 13752
+        "calls": 5,
+        "prompt_tokens": 21536,
+        "completion_tokens": 770,
+        "max_prompt": 5259,
+        "total_tokens": 22306
       },
-      "answer_preview": "✅ **ĐĂNG KÝ CTXH THÀNH CÔNG** – Nguyễn Văn Cường (MSSV 22110003)\n\n**Thông tin hoạt động vừa ghi nhận:**\n| Hạng mục | Chi tiết |\n|---|---|\n| Tên hoạt đ"
+      "answer_preview": "Đã ghi nhận và kiểm chứng hoàn tất.\n\n## Kết quả đăng ký CTXH\n\n| Mục | Chi tiết |\n|---|---|\n| Sinh viên | Nguyễn Văn Cường (MSSV 22110003) |\n| Khoa / K"
     },
     {
       "id": "q8",
@@ -147,94 +147,94 @@
       "query": "Em muốn đăng ký ghi nhận hoạt động CTXH, em đã tham gia hiến máu tình nguyện 1 lần rồi ạ. Đăng ký giúp em với.",
       "is_no_answer": false,
       "is_refused": false,
-      "keyword_recall": 0.0,
-      "has_citation": false,
+      "keyword_recall": 0.5,
+      "has_citation": true,
       "faithfulness_score": 1.0,
-      "duration_seconds": 0.22,
+      "duration_seconds": 58.87,
       "usage": {
-        "calls": 1,
-        "prompt_tokens": 0,
-        "completion_tokens": 0,
-        "max_prompt": 0,
-        "total_tokens": 0
+        "calls": 2,
+        "prompt_tokens": 7081,
+        "completion_tokens": 263,
+        "max_prompt": 3807,
+        "total_tokens": 7344
       },
-      "answer_preview": "Loi he thong: unhandled errors in a TaskGroup (1 sub-exception)"
+      "answer_preview": "Cần em cung cấp thêm thông tin để đăng ký chính xác, ạ:\n\n1. **MSSV** (mã số sinh viên) của em là gì?\n2. Em tham gia dưới hình thức nào sau đây để em c"
     },
     {
       "id": "q9",
       "category": "no_answer",
       "query": "Quy định về điểm rèn luyện theo học kỳ để được xét học bổng khuyến khích tại trường HCMUTE là bao nhiêu điểm?",
       "is_no_answer": true,
-      "is_refused": false,
-      "keyword_recall": 0.0,
+      "is_refused": true,
+      "keyword_recall": 0.33,
       "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 0.19,
+      "duration_seconds": 56.39,
       "usage": {
-        "calls": 1,
-        "prompt_tokens": 0,
-        "completion_tokens": 0,
-        "max_prompt": 0,
-        "total_tokens": 0
+        "calls": 2,
+        "prompt_tokens": 7164,
+        "completion_tokens": 110,
+        "max_prompt": 3896,
+        "total_tokens": 7274
       },
-      "answer_preview": "Loi he thong: unhandled errors in a TaskGroup (1 sub-exception)"
+      "answer_preview": "Câu hỏi về điểm rèn luyện xét học bổng khuyến khích không thuộc phạm vi văn bản quy định Công tác xã hội của trường (kết quả tra cứu chỉ liên quan đến"
     },
     {
       "id": "q10",
       "category": "no_answer",
       "query": "Thủ tục xin cấp Visa du học Đức và chứng minh tài chính cho sinh viên trường Đại học Sư phạm Kỹ thuật TP.HCM như thế nào?",
       "is_no_answer": true,
-      "is_refused": false,
-      "keyword_recall": 0.0,
+      "is_refused": true,
+      "keyword_recall": 0.33,
       "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 0.2,
+      "duration_seconds": 59.18,
       "usage": {
-        "calls": 1,
-        "prompt_tokens": 0,
-        "completion_tokens": 0,
-        "max_prompt": 0,
-        "total_tokens": 0
+        "calls": 2,
+        "prompt_tokens": 7310,
+        "completion_tokens": 56,
+        "max_prompt": 4036,
+        "total_tokens": 7366
       },
-      "answer_preview": "Loi he thong: unhandled errors in a TaskGroup (1 sub-exception)"
+      "answer_preview": "Quy định này không có trong văn bản quy định Công tác xã hội hiện hành của trường."
     },
     {
       "id": "q11",
       "category": "no_answer",
       "query": "Lịch thi cuối kỳ môn Cơ sở dữ liệu học kỳ 2 năm 2024 của khoa Công nghệ Thông tin là ngày nào?",
       "is_no_answer": true,
-      "is_refused": false,
+      "is_refused": true,
       "keyword_recall": 0.0,
       "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 0.2,
+      "duration_seconds": 58.23,
       "usage": {
-        "calls": 1,
-        "prompt_tokens": 0,
-        "completion_tokens": 0,
-        "max_prompt": 0,
-        "total_tokens": 0
+        "calls": 2,
+        "prompt_tokens": 7178,
+        "completion_tokens": 248,
+        "max_prompt": 3905,
+        "total_tokens": 7426
       },
-      "answer_preview": "Loi he thong: unhandled errors in a TaskGroup (1 sub-exception)"
+      "answer_preview": "Đây không phải câu hỏi trong phạm vi Công tác xã hội (CTXH) của trường — tôi chỉ hỗ trợ giải đáp quy định CTXH, tra cứu mã hoạt động, quy đổi ngày, ki"
     },
     {
       "id": "q12",
       "category": "no_answer",
       "query": "Theo nội quy trường Đại học Bách Khoa Hà Nội, sinh viên vi phạm kỷ luật phòng thi lần đầu bị xử lý ở mức nào?",
       "is_no_answer": true,
-      "is_refused": false,
-      "keyword_recall": 0.0,
+      "is_refused": true,
+      "keyword_recall": 0.33,
       "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 0.19,
+      "duration_seconds": 58.26,
       "usage": {
-        "calls": 1,
-        "prompt_tokens": 0,
-        "completion_tokens": 0,
-        "max_prompt": 0,
-        "total_tokens": 0
+        "calls": 2,
+        "prompt_tokens": 7134,
+        "completion_tokens": 70,
+        "max_prompt": 3863,
+        "total_tokens": 7204
       },
-      "answer_preview": "Loi he thong: unhandled errors in a TaskGroup (1 sub-exception)"
+      "answer_preview": "Quy định này không có trong văn bản quy định Công tác xã hội hiện hành của trường."
     }
   ]
 }
