@@ -1,0 +1,363 @@
+{
+  "title": "QUY ĐỊNH MÃ HÓA, THANG ĐIỂM & QUY ĐỔI NGÀY CTXH (HCMUTE)",
+  "source_files": [
+    "00_Toan_van_Quy_dinh_CTXH_2023.pdf",
+    "00_Toan_van_Quy_dinh_CTXH_2024.docx",
+    "00_Toan_van_Quy_dinh_CTXH_2025.pdf",
+    "01_Phan_I_Quy_dinh_chung_2023.pdf",
+    "01_Phan_I_Quy_dinh_chung_2024.docx",
+    "01_Phan_I_Quy_dinh_chung_2025.pdf",
+    "02_Phan_II_Noi_dung_va_Quy_doi_ngay_CTXH_2023.txt",
+    "02_Phan_II_Noi_dung_va_Quy_doi_ngay_CTXH_2024.pdf",
+    "02_Phan_II_Noi_dung_va_Quy_doi_ngay_CTXH_2025.txt",
+    "03_Phan_III_Quy_trinh_to_chuc_va_danh_gia_2023.txt",
+    "03_Phan_III_Quy_trinh_to_chuc_va_danh_gia_2024.pdf",
+    "03_Phan_III_Quy_trinh_to_chuc_va_danh_gia_2025.txt",
+    "04_Phan_IV_Trach_nhiem_cac_don_vi_2023.docx",
+    "04_Phan_IV_Trach_nhiem_cac_don_vi_2024.txt",
+    "04_Phan_IV_Trach_nhiem_cac_don_vi_2025.docx",
+    "05_Phan_V_Kinh_phi_2023.docx",
+    "05_Phan_V_Kinh_phi_2024.txt",
+    "05_Phan_V_Kinh_phi_2025.docx",
+    "QD_Khen_Thuong_2023.txt",
+    "QD_Khen_Thuong_2025.txt"
+  ],
+  "calculation_rules": {
+    "formula": "Lấy tổng điểm hoạt động CTXH SV đã tích lũy chia cho 10 (số lẻ dưới 5 làm tròn xuống; tròn 5 điểm, quy đổi thành nửa ngày CTXH; trên 5 làm tròn thành 10, quy đổi thành một ngày CTXH). Quy định 2025 áp dụng chia cho 12 đối với các hoạt động chuẩn mới.",
+    "deduction_rules": [
+      "SV đăng ký tham gia hoạt động CTXH nhưng không thực hiện mà không có lý do hoặc lý do không chính đáng bị trừ 0,5 đến 2,0 ngày CTXH và hạ bậc ĐRL.",
+      "SV không hoàn thành nhiệm vụ, gây ảnh hưởng xấu bị trừ từ 01 đến toàn bộ số ngày đã tích lũy.",
+      "SV gian lận công nghệ (Fake GPS, can thiệp camera điểm danh) bị hủy bỏ toàn bộ số ngày CTXH đã tích lũy và xử lý kỷ luật.",
+      "SV gian lận công nghệ (Fake GPS, can thiệp camera điểm danh) bị hủy bỏ toàn bộ số ngày CTXH đã tích lũy và kỷ luật.",
+      "b. Trừ ngày công tác xã hội đối với các trường hợp sau (Quy định 2023):",
+      "SV đăng ký tham gia hoạt động CTXH nhưng vắng mặt không lý do chính đáng: Bị trừ 1,0 ngày CTXH (Quy định",
+      "cũ trừ 0,5 ngày);",
+      "SV đăng ký tham gia hoạt động nhưng bỏ dở nhiệm vụ, gây ảnh hưởng xấu: Bị xử lý kỷ luật khiển trách và trừ 02",
+      "b. Quy định xử lý kỷ luật và trừ ngày CTXH (Áp dụng 2024):",
+      "SV đăng ký nhưng vắng mặt không lý do hoặc hủy đăng ký muộn dưới 24h: **Bị trừ 1,5 ngày CTXH** và khóa chức năng đăng ký trên UniPortal trong 01 học kỳ kế tiếp.",
+      "b. Chế tài kỷ luật và trừ ngày CTXH (Quy định 2025):",
+      "SV đã đăng ký nhưng vắng mặt không lý do hoặc báo hủy muộn dưới 12h: Bị trừ 2,0 ngày CTXH và đồng thời bị",
+      "SV đăng ký tham gia hoạt động CTXH nhưng vắng mặt không lý do chính đáng: Bị trừ 1,0 ngày CTXH (Quy định cũ trừ 0,5 ngày);",
+      "SV đăng ký tham gia hoạt động nhưng bỏ dở nhiệm vụ, gây ảnh hưởng xấu: Bị xử lý kỷ luật khiển trách và trừ 02 ngày CTXH đến toàn bộ số ngày đã tích lũy.",
+      "SV đăng ký nhưng vắng mặt không lý do hoặc hủy đăng ký muộn dưới 24h: Bị trừ 1,5 ngày CTXH và khóa chức",
+      "SV đã đăng ký nhưng vắng mặt không lý do hoặc báo hủy muộn dưới 12h: Bị trừ 2,0 ngày CTXH và đồng thời bị hạ 1 bậc Điểm rèn luyện của học kỳ đó."
+    ],
+    "exclusions": [
+      "Các hoạt động không mang tính chất CTXH như xem biểu diễn văn nghệ, xem thể thao, du lịch, tham quan, sinh hoạt CLB không được tính ngày CTXH.",
+      "Khi SV tham gia hoạt động CTXH đã được trả tiền công hoặc trả phí thì không được tính ngày CTXH.",
+      "lịch... không được tính ngày CTXH. ✓  Hoạt động đã được chi trả thù lao/tiền công thì không tính ngày CTXH.",
+      "Các hoạt động có nhận lương/thù lao không thuộc phạm vi tính ngày CTXH.",
+      "các hoạt động mang tính chất thương mại hoặc đã nhận thù lao.",
+      "Các hoạt động không mang tính chất CTXH như: xem biểu diễn nghệ thuật, thi đấu thể thao giải trí, tham quan, du lịch... không được tính ngày CTXH.",
+      "Hoạt động đã được chi trả thù lao/tiền công thì không tính ngày CTXH.",
+      "Không chấp nhận tính ngày CTXH cho các hoạt động mang tính chất thương mại hoặc đã nhận thù lao."
+    ]
+  },
+  "total_activities": 38,
+  "activities": [
+    {
+      "activity_code": "001101",
+      "category": "Mùa hè xanh",
+      "activity_name": "Tham gia suốt chiến dịch (01 tháng) tại các tỉnh",
+      "points": "25→50",
+      "converted_days": "2,5→5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001102",
+      "category": "Mùa hè xanh",
+      "activity_name": "Tham gia suốt chiến dịch (01 tháng) tại Tp. Hồ Chí Minh",
+      "points": "25→50",
+      "converted_days": "2,5→5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001103",
+      "category": "Mùa hè xanh",
+      "activity_name": "Tham gia suốt chiến dịch (01 tháng) tại trường",
+      "points": "25→45",
+      "converted_days": "2,5→4,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001104",
+      "category": "Mùa hè xanh",
+      "activity_name": "Tham gia đội hình chuyên ngắn ngày (02 tuần)",
+      "points": "20→35",
+      "converted_days": "2→3,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001105",
+      "category": "Mùa hè xanh",
+      "activity_name": "Tham gia đội hình chuyên ngắn ngày (01 tuần)",
+      "points": "10→25",
+      "converted_days": "1→2,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001201",
+      "category": "Hiến máu tình nguyện",
+      "activity_name": "Tổ chức hoạt động hiến máu tình nguyện (01 lần)",
+      "points": "5→10",
+      "converted_days": "0,5→1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001202",
+      "category": "Hiến máu tình nguyện",
+      "activity_name": "Trực tiếp hiến máu tình nguyện (01 lần)",
+      "points": "5",
+      "converted_days": "0,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001301",
+      "category": "Xuân tình nguyện",
+      "activity_name": "Tham gia suốt chương trình (04 ngày)",
+      "points": "10→20",
+      "converted_days": "1→2",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001401",
+      "category": "Đêm hội trăng rằm",
+      "activity_name": "Tham gia suốt chương trình (04 ngày)",
+      "points": "10→20",
+      "converted_days": "1→2",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001501",
+      "category": "Tiếp sức mùa thi",
+      "activity_name": "Tham gia suốt chương trình cấp thành (01 tháng)",
+      "points": "25→45",
+      "converted_days": "2,5→4,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001502",
+      "category": "Tiếp sức mùa thi",
+      "activity_name": "Tham gia suốt chương trình cấp trường (02 tuần)",
+      "points": "20→35",
+      "converted_days": "2→3,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001601",
+      "category": "Đại học Mở / Hướng nghiệp",
+      "activity_name": "Đại sứ tư vấn tuyển sinh và giới thiệu trường tại các tỉnh (01 đợt)",
+      "points": "10→20",
+      "converted_days": "1→2",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001602",
+      "category": "Tư vấn tuyển sinh",
+      "activity_name": "Tham gia ngày Hội tư vấn do các Báo tổ chức (01 lần)",
+      "points": "5→10",
+      "converted_days": "0,5→1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001603",
+      "category": "Tư vấn tuyển sinh",
+      "activity_name": "Hỗ trợ tổ chức Ngày hội Mở OpenDay (01 lần)",
+      "points": "5→10",
+      "converted_days": "0,5→1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001701",
+      "category": "Tiếp sức tân sinh viên",
+      "activity_name": "Tham gia suốt chương trình (02 tuần)",
+      "points": "20→30",
+      "converted_days": "2→3",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001801",
+      "category": "Tiếp sức tân sinh viên",
+      "activity_name": "Trực tiếp tham gia đội hình cứu trợ khẩn cấp (01 lần)",
+      "points": "15→25",
+      "converted_days": "1,5→2,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "001802",
+      "category": "Tiếp sức tân sinh viên",
+      "activity_name": "Tổ chức đợt quyên góp cứu trợ thiên tai (01 đợt)",
+      "points": "5→10",
+      "converted_days": "0,5→1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "002101",
+      "category": "Tiếp sức tân sinh viên",
+      "activity_name": "Tham gia Ngày Chủ nhật xanh vệ sinh khuôn viên (01 buổi)",
+      "points": "5",
+      "converted_days": "0,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "002102",
+      "category": "Hoạt động Đại học Xanh",
+      "activity_name": "Tình nguyện viên điều phối xe đạp công cộng & trạm sạc điện (01 tuần)",
+      "points": "12→18",
+      "converted_days": "1,2→1,8",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "002201",
+      "category": "Tiếp sức tân sinh viên",
+      "activity_name": "Tham gia tình nguyện tại khu dân cư (01 buổi)",
+      "points": "5→10",
+      "converted_days": "0,5→1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "002202",
+      "category": "Hoạt động ngoài trường",
+      "activity_name": "Phân luồng, điều phối an toàn giao thông tại địa phương (01 lần)",
+      "points": "5→10",
+      "converted_days": "0,5→1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "003101",
+      "category": "Tiếp sức tân sinh viên",
+      "activity_name": "Vận động cộng đồng phân loại rác tại nguồn (01 đợt)",
+      "points": "8→12",
+      "converted_days": "1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "003102",
+      "category": "Tiếp sức tân sinh viên",
+      "activity_name": "Ra quân làm sạch bãi biển, kênh rạch (01 ngày)",
+      "points": "8→12",
+      "converted_days": "1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "003201",
+      "category": "Tuyên truyền phân loại rác",
+      "activity_name": "Tập huấn phân loại rác tại nguồn cho 50 hộ dân (01 đợt)",
+      "points": "10→15",
+      "converted_days": "1→1,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "004101",
+      "category": "Đền ơn đáp nghĩa",
+      "activity_name": "Chăm sóc cựu thanh niên xung phong, Bà mẹ VNAH (01 đợt)",
+      "points": "10→15",
+      "converted_days": "1→1,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "004102",
+      "category": "Tuyên truyền pháp luật",
+      "activity_name": "Tôn tạo nghĩa trang liệt sĩ, thắp nến tri ân (01 lần)",
+      "points": "5→10",
+      "converted_days": "0,5→1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "004201",
+      "category": "Chăm sóc trẻ em, người già",
+      "activity_name": "Chăm sóc người già neo đơn, trẻ mồ côi tại trung tâm bảo trợ (01 lần)",
+      "points": "8→12",
+      "converted_days": "1",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "005101",
+      "category": "Dạy học tình nguyện",
+      "activity_name": "Tham gia lớp học tình thương cho trẻ em nghèo (01 tuần)",
+      "points": "20→30",
+      "converted_days": "2→3",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "005201",
+      "category": "Quyên góp sách vở",
+      "activity_name": "Tổ chức quyên góp tủ sách vùng cao (01 đợt)",
+      "points": "10→15",
+      "converted_days": "1→1,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "006101",
+      "category": "Cán bộ Đoàn - Hội, Lớp",
+      "activity_name": "Hoàn thành nhiệm vụ cán bộ cấp trường (đánh giá cả năm)",
+      "points": "25→45",
+      "converted_days": "2,5→4,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "006102",
+      "category": "Lãnh đạo phong trào SV",
+      "activity_name": "Cán bộ Đoàn - Hội cấp khoa hoàn thành xuất sắc (01 năm học)",
+      "points": "20→35",
+      "converted_days": "2→3,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "006103",
+      "category": "Lãnh đạo phong trào SV",
+      "activity_name": "Ban cán sự lớp, chi hội trưởng hoàn thành tốt (01 năm học)",
+      "points": "15→25",
+      "converted_days": "1,5→2,5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "007101",
+      "category": "Hỗ trợ dịch vụ công trực tuyến",
+      "activity_name": "Trực hỗ trợ công dân nộp hồ sơ trực tuyến tại bộ phận 1 cửa (01 tuần)",
+      "points": "20→30",
+      "converted_days": "2→3",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "007102",
+      "category": "Chuyển đổi số cộng đồng",
+      "activity_name": "Hỗ trợ tin học hóa cơ sở dữ liệu cho UBND xã/phường (01 tuần)",
+      "points": "20→30",
+      "converted_days": "2→3",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "009101",
+      "category": "Ứng dụng AI vì cộng đồng",
+      "activity_name": "Xây dựng ứng dụng AI hỗ trợ người khiếm thị / người khiếm thính (01 dự án)",
+      "points": "36→60",
+      "converted_days": "3→5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "009102",
+      "category": "Ứng dụng AI vì cộng đồng",
+      "activity_name": "Huấn luyện mô hình AI phát hiện điểm nóng ô nhiễm môi trường (01 dự án)",
+      "points": "24→48",
+      "converted_days": "2→4",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "009103",
+      "category": "Ứng dụng AI vì cộng đồng",
+      "activity_name": "Đào tạo phổ cập kỹ năng ứng dụng AI có đạo đức cho học sinh (01 tuần)",
+      "points": "24→36",
+      "converted_days": "2→3",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    },
+    {
+      "activity_code": "010101",
+      "category": "Dự án Tình nguyện quốc tế",
+      "activity_name": "Tham gia dự án giao lưu phụng sự cộng đồng Đông Nam Á (02 tuần)",
+      "points": "36→60",
+      "converted_days": "3→5",
+      "formula": "Điểm / 10 = Ngày CTXH"
+    }
+  ]
+}

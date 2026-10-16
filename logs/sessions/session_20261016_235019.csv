@@ -1,0 +1,5 @@
+﻿id,category,query,is_no_answer,is_refused,keyword_recall,has_citation,faithfulness_score,duration_seconds,calls,prompt_tokens,completion_tokens,max_prompt,total_tokens,answer_preview
+Q1,interactive,"mssv toi la 23110005, va toi muon dang ky hoat dong 001101",False,False,1.0,True,1.0,36.35,2,8404,340,4725,8744,"Sinh viên được xác minh: **Hoàng Minh Đức (23110005)**, đạt yêu cầu để đăng ký.  Hoạt động **001101 – Mùa hè xanh**: - Nội dung: Tham gia trọn chiến d"
+Q2,interactive,3 ngay,False,False,1.0,False,1.0,28.65,0,0,0,0,0,Loi ket noi LLM: Goi Groq API that bai sau 3 lan thu: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in orga
+Q3,interactive,3 ngay,False,False,1.0,False,1.0,20.96,0,0,0,0,0,Loi ket noi LLM: Goi Groq API that bai sau 3 lan thu: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in orga
+Q4,interactive,3 ngay,False,False,1.0,False,1.0,21.29,0,0,0,0,0,Loi ket noi LLM: Goi Groq API that bai sau 3 lan thu: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in orga

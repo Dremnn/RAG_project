@@ -1,0 +1,214 @@
+[
+  {
+    "mssv": "23110005",
+    "student_name": "Hoàng Minh Đức",
+    "faculty": "Công nghệ May & Thời trang",
+    "course_year": "2023",
+    "required_days": 2.0,
+    "accumulated_days": 3.0,
+    "registered_activities": [
+      {
+        "reg_id": "REG-CTXH-20261017-F167",
+        "activity_code": "001101",
+        "activity_name": "Tham gia trọn chiến dịch Mùa hè xanh tại địa bàn khó khăn (01 tháng)",
+        "points": 5,
+        "converted_days": 3.0,
+        "status": "CONFIRMED",
+        "registration_date": "2026-10-17",
+        "note": "Dang ky thanh cong qua Tro ly CTXH"
+      }
+    ]
+  },
+  {
+    "mssv": "23110112",
+    "student_name": "Nguyễn Thị Lan Anh",
+    "faculty": "Công nghệ Thông tin",
+    "course_year": "2023",
+    "required_days": 3.0,
+    "accumulated_days": 2.5,
+    "registered_activities": [
+      {
+        "reg_id": "REG-CTXH-20261016-76FB",
+        "activity_code": "001202",
+        "activity_name": "Trực tiếp hiến máu tình nguyện (01 lần)",
+        "points": 5,
+        "converted_days": 0.5,
+        "status": "CONFIRMED",
+        "registration_date": "2026-10-16",
+        "note": "Hiến máu đợt 1 năm học 2023-2024"
+      },
+      {
+        "reg_id": "REG-CTXH-20261016-919C",
+        "activity_code": "001104",
+        "activity_name": "Tham gia đội hình chuyên Mùa hè xanh (02 tuần)",
+        "points": 20,
+        "converted_days": 2.0,
+        "status": "CONFIRMED",
+        "registration_date": "2026-10-16",
+        "note": "Mùa hè xanh 2024 tại Bến Tre"
+      }
+    ]
+  },
+  {
+    "mssv": "23110234",
+    "student_name": "Trần Quốc Bảo",
+    "faculty": "Công nghệ Thông tin",
+    "course_year": "2023",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "23119018",
+    "student_name": "Lê Thị Thu Hà",
+    "faculty": "Công nghệ May & Thời trang",
+    "course_year": "2023",
+    "required_days": 2.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "23143056",
+    "student_name": "Phạm Văn Hậu",
+    "faculty": "Cơ khí Chế tạo máy",
+    "course_year": "2023",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "23161027",
+    "student_name": "Võ Thanh Tùng",
+    "faculty": "Điện - Điện tử",
+    "course_year": "2023",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "23124071",
+    "student_name": "Đặng Ngọc Mai",
+    "faculty": "Kinh tế",
+    "course_year": "2023",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "23126033",
+    "student_name": "Bùi Gia Hân",
+    "faculty": "Ngoại ngữ",
+    "course_year": "2023",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "22110145",
+    "student_name": "Huỳnh Minh Khoa",
+    "faculty": "Công nghệ Thông tin",
+    "course_year": "2022",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "22119009",
+    "student_name": "Ngô Thị Kim Ngân",
+    "faculty": "Công nghệ May & Thời trang",
+    "course_year": "2022",
+    "required_days": 2.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "22143088",
+    "student_name": "Dương Hoài Nam",
+    "faculty": "Cơ khí Chế tạo máy",
+    "course_year": "2022",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "22161102",
+    "student_name": "Lý Thành Đạt",
+    "faculty": "Điện - Điện tử",
+    "course_year": "2022",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "22149051",
+    "student_name": "Phan Thị Cẩm Tú",
+    "faculty": "Công nghệ Hóa học & Thực phẩm",
+    "course_year": "2022",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "22124017",
+    "student_name": "Trương Quang Huy",
+    "faculty": "Kinh tế",
+    "course_year": "2022",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "21110067",
+    "student_name": "Đỗ Thị Phương Thảo",
+    "faculty": "Công nghệ Thông tin",
+    "course_year": "2021",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "21119024",
+    "student_name": "Vũ Hải Yến",
+    "faculty": "Công nghệ May & Thời trang",
+    "course_year": "2021",
+    "required_days": 2.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "21151039",
+    "student_name": "Mai Văn Lộc",
+    "faculty": "Xây dựng",
+    "course_year": "2021",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "21143120",
+    "student_name": "Cao Minh Triết",
+    "faculty": "Cơ khí Chế tạo máy",
+    "course_year": "2021",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "24110078",
+    "student_name": "Nguyễn Hữu Phước",
+    "faculty": "Công nghệ Thông tin",
+    "course_year": "2024",
+    "required_days": 3.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  },
+  {
+    "mssv": "24119031",
+    "student_name": "Tô Ngọc Bích",
+    "faculty": "Công nghệ May & Thời trang",
+    "course_year": "2024",
+    "required_days": 2.0,
+    "accumulated_days": 0.0,
+    "registered_activities": []
+  }
+]

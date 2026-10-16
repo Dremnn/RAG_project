@@ -1,0 +1,2 @@
+﻿id,category,query,is_no_answer,is_refused,keyword_recall,has_citation,faithfulness_score,duration_seconds,calls,prompt_tokens,completion_tokens,max_prompt,total_tokens,answer_preview
+Q1,interactive,mssv toi la 22124017 va toi muon dang ky tham gia hoat dong 001101,False,False,1.0,True,1.0,14.78,2,8186,341,4505,8527,"Tôi đã tìm thấy sinh viên **Trương Quang Huy** (MSSV 22124017, khoa Kinh tế, hệ ĐH chính quy 4 năm). Mã hoạt động **001101** là:  **Mùa hè xanh** – Th"

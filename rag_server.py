@@ -34,20 +34,53 @@ mcp = MCPServer("rag-knowledge-server")
 
 DATA_DIR = _HERE / "data"
 INDEX_PATH = DATA_DIR / "index.json"
-CTXH_DB_PATH = DATA_DIR / "student_ctxh.json"
 STUDENTS_DB_PATH = DATA_DIR / "students.json"
-EXCEL_STUDENTS_PATH = DATA_DIR / "students_ctxh.xlsx"
 
-# Tien to tim kiem file nguon du lieu hoat dong CTXH (moi dinh dang)
-CTXH_SOURCE_PREFIX = "ctxh_activities"
-CTXH_SOURCE_EXTENSIONS = {".xlsx", ".xlsm", ".csv", ".json", ".docx", ".md", ".txt"}
+# Ho tro ca student_activities.json va student_ctxh.json
+STUDENT_ACTIVITIES_PATHS = [
+    DATA_DIR / "student_activities.json",
+]
 
-# File JSON luu noi dung quy dinh va cach tinh diem CTXH da duoc boc tach
-CTXH_RULES_JSON_PATH = DATA_DIR / "ctxh.json"
-CTXH_RULES_DOC_EXTENSIONS = {".md", ".docx", ".txt", ".xlsx", ".pdf"}
+# Ho tro ca students.xlsx va students_ctxh.xlsx
+EXCEL_STUDENTS_PATHS = [
+    DATA_DIR / "students.xlsx",
+]
+
+# Ho tro ca activities.json va ctxh.json
+ACTIVITIES_RULES_PATHS = [
+    DATA_DIR / "activities.json",
+]
+CTXH_RULES_JSON_PATH = DATA_DIR / "activities.json"
+CTXH_RULES_DOC_EXTENSIONS = {".xlsx", ".xlsm", ".docx", ".doc", ".pdf", ".txt", ".md"}
+
+# Cac file Excel luu hoat dong sinh vien da tham gia
+CTXH_STUDENT_ACTIVITY_FILENAMES = [
+    "student_activities.xlsx",
+]
 
 # Global Store
 STORE = VectorStore()
+
+
+def _get_student_activities_path() -> Path:
+    for p in STUDENT_ACTIVITIES_PATHS:
+        if p.exists():
+            return p
+    return STUDENT_ACTIVITIES_PATHS[0]
+
+
+def _get_excel_students_path() -> Path | None:
+    for p in EXCEL_STUDENTS_PATHS:
+        if p.exists():
+            return p
+    return None
+
+
+def _get_activities_rules_path() -> Path:
+    for p in ACTIVITIES_RULES_PATHS:
+        if p.exists():
+            return p
+    return ACTIVITIES_RULES_PATHS[0]
 
 
 def sync_knowledge_base() -> dict:
@@ -66,7 +99,8 @@ def sync_knowledge_base() -> dict:
     for p in DATA_DIR.glob("*"):
         if p.name.startswith("~$") or p.name.startswith("."):
             continue
-        if p.name == "students_ctxh.xlsx" or p.name.startswith("ctxh_activities"):
+        ignored_excel = {name.lower() for name in CTXH_STUDENT_ACTIVITY_FILENAMES} | {"students_ctxh.xlsx", "students.xlsx"}
+        if p.name.lower() in ignored_excel:
             continue
         if p.is_file() and p.suffix.lower() in SUPPORTED_EXTENSIONS:
             current_files[p.name] = (p, p.stat().st_mtime)
@@ -145,7 +179,7 @@ def sync_knowledge_base() -> dict:
 
 
 def _ensure_index_loaded() -> None:
-    """Load cached index, sync students from excel, sync CTXH activities, extract CTXH rules to json, and synchronize data/."""
+    """Load cached index, sync students from excel, extract CTXH rules to json, and synchronize data/."""
     global STORE
     if INDEX_PATH.exists():
         try:
@@ -155,64 +189,80 @@ def _ensure_index_loaded() -> None:
 
     sync_knowledge_base()
     sync_students_from_excel()
-    sync_ctxh_from_file()
     sync_ctxh_rules_from_file()
+    sync_ctxh_from_file()
 
 
 # Database helper functions for CTXH records
 def _load_student_ctxh() -> list[dict]:
-    if not CTXH_DB_PATH.exists():
-        return []
+    path = _get_student_activities_path()
+    if not path.exists():
+        for alt in STUDENT_ACTIVITIES_PATHS:
+            if alt.exists():
+                path = alt
+                break
+        else:
+            return []
     try:
-        with open(CTXH_DB_PATH, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return []
 
 
 def _save_student_ctxh(data: list[dict]) -> None:
-    CTXH_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(CTXH_DB_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    if not data:
+        # Safety guard: never wipe file with empty list if the files already exist and have data
+        current_data = _load_student_ctxh()
+        if current_data:
+            sys.stderr.write("[Warning] Tu choi ghi de danh sach sinh vien rong [] len CSDL da co du lieu.\n")
+            return
+    for p in STUDENT_ACTIVITIES_PATHS:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def sync_students_from_excel() -> dict:
     """
-    Doc file Excel students_ctxh.xlsx va dong bo toan bo vao students.json.
-    Neu khong tim thay file Excel, tu dong xoa sach danh sach sinh vien ve rong [].
+    Doc file Excel (students.xlsx hoac students_ctxh.xlsx) va dong bo vao students.json.
+    DONG THOI bao toan 100% lich su hoat dong da co trong student_activities.json.
+    TUYET DOI KHONG reset hoat dong cua sinh vien khi chay lai client.
     """
-    if not EXCEL_STUDENTS_PATH.exists():
-        # Xoa sach students.json ve rong []
+    excel_path = _get_excel_students_path()
+    if excel_path is None:
         STUDENTS_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
         with open(STUDENTS_DB_PATH, "w", encoding="utf-8") as f:
             json.dump([], f, ensure_ascii=False, indent=2)
+        msg = "Khong tim thay file Excel sinh vien (students.xlsx) trong data/."
+        print(f"[sync_students] {msg}", file=sys.stderr)
         return {
             "status": "removed",
-            "message": "File students_ctxh.xlsx khong ton tai trong data/. Da xoa sach danh sach sinh vien trong students.json ve rong [].",
+            "message": msg,
         }
 
     try:
-        wb = load_workbook(str(EXCEL_STUDENTS_PATH), data_only=True)
+        wb = load_workbook(str(excel_path), data_only=True)
         sheet_name = "students" if "students" in wb.sheetnames else wb.sheetnames[0]
         ws = wb[sheet_name]
         rows = list(ws.iter_rows(values_only=True))
         wb.close()
     except Exception as e:
-        return {"status": "error", "message": f"Loi khi doc file Excel: {e}"}
+        msg = f"Loi khi doc file Excel: {e}"
+        print(f"[sync_students] {msg}", file=sys.stderr)
+        return {"status": "error", "message": msg}
 
     if not rows or len(rows) < 2:
-        STUDENTS_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with open(STUDENTS_DB_PATH, "w", encoding="utf-8") as f:
-            json.dump([], f, ensure_ascii=False, indent=2)
-        return {"status": "empty", "message": "File Excel khong co du lieu. Da lam rong students.json."}
+        msg = "File Excel khong co du lieu."
+        print(f"[sync_students] {msg}", file=sys.stderr)
+        return {"status": "empty", "message": msg}
 
     headers = [str(h).strip().lower() if h else f"col_{i}" for i, h in enumerate(rows[0])]
     students = []
 
-    # Doc du lieu CTXH hien co de giu nguyen cac hoat dong da dang ky
-    ctxh_records = _load_student_ctxh()
-    existing_ctxh_by_mssv = {s.get("mssv"): s for s in ctxh_records}
-    updated_ctxh = False
+    # Doc du lieu hoat dong hien co de BAO TOAN 100% LICH SU
+    existing_activities_records = _load_student_ctxh()
+    existing_by_mssv = {s.get("mssv"): s for s in existing_activities_records}
 
     for r in rows[1:]:
         if not any(r):
@@ -259,9 +309,16 @@ def sync_students_from_excel() -> dict:
         }
         students.append(student_entry)
 
-        # Dong bo ho so sang student_ctxh.json neu chua co hoac cap nhat thong tin co ban
-        if mssv not in existing_ctxh_by_mssv:
-            existing_ctxh_by_mssv[mssv] = {
+        # Neu sinh vien da co ho so -> BAO TOAN 100% LICH SU HOAT DONG, chi cap nhat thong tin co ban!
+        if mssv in existing_by_mssv:
+            rec = existing_by_mssv[mssv]
+            rec["student_name"] = student_name
+            rec["faculty"] = faculty
+            rec["course_year"] = course_year
+            rec["required_days"] = required_ctxh_days
+            # registered_activities va accumulated_days DUOC GIU NGUYEN HOAN TOAN
+        else:
+            existing_by_mssv[mssv] = {
                 "mssv": mssv,
                 "student_name": student_name,
                 "faculty": faculty,
@@ -270,60 +327,99 @@ def sync_students_from_excel() -> dict:
                 "accumulated_days": 0.0,
                 "registered_activities": [],
             }
-            updated_ctxh = True
-        else:
-            rec = existing_ctxh_by_mssv[mssv]
-            rec["student_name"] = student_name
-            rec["faculty"] = faculty
-            rec["course_year"] = course_year
-            rec["required_days"] = required_ctxh_days
 
     STUDENTS_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(STUDENTS_DB_PATH, "w", encoding="utf-8") as f:
         json.dump(students, f, ensure_ascii=False, indent=2)
 
-    if updated_ctxh or len(existing_ctxh_by_mssv) != len(ctxh_records):
-        _save_student_ctxh(list(existing_ctxh_by_mssv.values()))
+    _save_student_ctxh(list(existing_by_mssv.values()))
+
+    msg = f"Dong bo thanh cong {len(students)} sinh vien tu '{excel_path.name}' vao students.json."
+    print(f"[sync_students] {msg}", file=sys.stderr)
 
     return {
         "status": "success",
         "total_students": len(students),
-        "file": str(EXCEL_STUDENTS_PATH.name),
+        "file": str(excel_path.name),
     }
 
 
-def _find_ctxh_rules_source_file() -> Path | None:
-    """Tim kiem file quy che CTXH (nhu CTXH.md, CTXH.docx,...) trong thu muc data/."""
+def _extract_rules_from_text(text: str, rules_dict: dict) -> None:
+    """Boc tach quy tac tinh diem, tru diem va loai tru tu van ban quy che."""
+    t_lower = text.lower()
+    if "chia cho 10" in t_lower:
+        rules_dict["formula"] = "Lấy tổng điểm hoạt động CTXH SV đã tích lũy chia cho 10 (số lẻ dưới 5 làm tròn xuống; tròn 5 điểm, quy đổi thành nửa ngày CTXH; trên 5 làm tròn thành 10, quy đổi thành một ngày CTXH)."
+    elif "chia cho 12" in t_lower and "formula" not in rules_dict:
+        rules_dict["formula"] = "Lấy tổng điểm CTXH tích lũy chia cho 12 (chuẩn quốc tế áp dụng từ 2025)."
+    elif "chia cho 8" in t_lower and "formula" not in rules_dict:
+        rules_dict["formula"] = "Lấy tổng điểm hoạt động CTXH tích lũy chia cho 8 (Quy định 2023)."
+
+    for line in text.splitlines():
+        l_lower = line.lower()
+        if ("trừ" in l_lower or "tru " in l_lower) and ("ngày" in l_lower or "ngay" in l_lower or "đrl" in l_lower or "kỷ luật" in l_lower):
+            clean = line.strip().lstrip("-*•✓ ").strip()
+            if len(clean) > 15 and clean not in rules_dict.setdefault("deduction_rules", []):
+                rules_dict["deduction_rules"].append(clean)
+        if ("không được tính" in l_lower or "không tính" in l_lower or "thù lao" in l_lower or "tiền công" in l_lower):
+            clean = line.strip().lstrip("-*•✓ ").strip()
+            if len(clean) > 15 and clean not in rules_dict.setdefault("exclusions", []):
+                rules_dict["exclusions"].append(clean)
+
+
+def _find_all_ctxh_rules_files() -> list[Path]:
+    """
+    Tim tat ca cac file quy che va bang diem CTXH (.xlsx, .xlsm, .docx, .doc, .pdf, .txt, .md) trong thu muc data/.
+    Bo hoan toan viec boc tach tu file .json ma thay bang Excel, Word, PDF va Text.
+    """
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    default_md = DATA_DIR / "CTXH.md"
-    if default_md.exists():
-        return default_md
-    for p in DATA_DIR.glob("*"):
+    files: list[Path] = []
+
+    # Danh sach cac file Excel sinh vien / hoat dong sinh vien can loai tru khoi tap van ban quy che
+    student_excel_names = {
+        name.lower() for name in CTXH_STUDENT_ACTIVITY_FILENAMES
+    } | {"students.xlsx", "students_ctxh.xlsx", "danh_sach_sinh_vien.xlsx"}
+
+    # Quet cac file quy che trong data/ (tuyet doi khong doc file .json)
+    for p in sorted(DATA_DIR.glob("*")):
         if p.name.startswith("~$") or p.name.startswith("."):
             continue
-        if p.name.lower() in {"ctxh.json", "student_ctxh.json", "students.json", "index.json"}:
+        # Bo qua tat ca cac file JSON (khong dung json de boc tach nua)
+        if p.suffix.lower() == ".json":
             continue
-        if p.name.lower().startswith("ctxh_activities"):
+        # Bo qua file Excel danh sach sinh vien va hoat dong da tham gia
+        if p.name.lower() in student_excel_names:
             continue
-        if p.is_file() and p.stem.lower() == "ctxh" and p.suffix.lower() in CTXH_RULES_DOC_EXTENSIONS:
-            return p
-    return None
+        if p.is_file() and p.suffix.lower() in CTXH_RULES_DOC_EXTENSIONS:
+            if p not in files:
+                files.append(p)
+
+    return files
+
+
+def _find_ctxh_rules_source_file() -> Path | None:
+    """Tim kiem mot file quy che CTXH uu tien trong data/."""
+    files = _find_all_ctxh_rules_files()
+    return files[0] if files else None
 
 
 def _parse_ctxh_rules_from_file(fpath: Path) -> dict:
     """
-    Boc tach noi dung ve cach hoat dong va cach tinh diem cho hoat dong CTXH tu file quy che (nhu CTXH.md).
-    Tra ve dict gom:
-      - calculation_rules: cong thuc quy doi diem sang ngay CTXH, quy tac tru diem, luu y.
-      - activities: danh sach cac hoat dong (ma 6 chu so, linh vuc, ten hoat dong & dinh luong, thang diem, quy doi ngay).
+    Boc tach noi dung ve danh muc hoat dong va cach tinh diem CTXH tu cac file doc, docx, pdf, json, txt.
+    Ho tro da dinh dang:
+      - .json: doc danh muc hoat dong va calculation_rules truc tiep.
+      - .docx / .doc: doc bang bieu va cac doan van quy dinh.
+      - .pdf: trich xuat text va cac bang bieu ma 6 chu so qua pypdf.
+      - .txt / .md: doc bang markdown (|) va noi dung quy che.
+    Tra ve dict gom calculation_rules va danh sach activities.
     """
     ext = fpath.suffix.lower()
     activities: list[dict] = []
     calculation_rules = {
         "formula": "Lấy tổng điểm hoạt động CTXH SV đã tích lũy chia cho 10 (số lẻ dưới 5 làm tròn xuống; tròn 5 điểm, quy đổi thành nửa ngày CTXH; trên 5 làm tròn thành 10, quy đổi thành một ngày CTXH).",
         "deduction_rules": [
-            "SV đăng ký tham gia hoạt động CTXH nhưng không thực hiện mà không có lý do hoặc lý do không chính đáng bị trừ 0,5 ngày CTXH.",
-            "SV không hoàn thành nhiệm vụ, gây ảnh hưởng xấu bị trừ từ 01 đến toàn bộ số ngày đã tích lũy."
+            "SV đăng ký tham gia hoạt động CTXH nhưng không thực hiện mà không có lý do hoặc lý do không chính đáng bị trừ 0,5 đến 2,0 ngày CTXH và hạ bậc ĐRL.",
+            "SV không hoàn thành nhiệm vụ, gây ảnh hưởng xấu bị trừ từ 01 đến toàn bộ số ngày đã tích lũy.",
+            "SV gian lận công nghệ (Fake GPS, can thiệp camera điểm danh) bị hủy bỏ toàn bộ số ngày CTXH đã tích lũy và kỷ luật."
         ],
         "exclusions": [
             "Các hoạt động không mang tính chất CTXH như xem biểu diễn văn nghệ, xem thể thao, du lịch, tham quan, sinh hoạt CLB không được tính ngày CTXH.",
@@ -331,74 +427,15 @@ def _parse_ctxh_rules_from_file(fpath: Path) -> dict:
         ]
     }
 
-    if ext in {".md", ".txt"}:
-        try:
-            with open(fpath, "r", encoding="utf-8") as f:
-                lines = f.readlines()
 
-            curr_cat = ""
-            for line in lines:
-                if "|" not in line:
-                    continue
-                parts = [c.strip() for c in line.split("|")]
-                if parts and parts[0] == "":
-                    parts = parts[1:]
-                if parts and parts[-1] == "":
-                    parts = parts[:-1]
-                if len(parts) >= 5:
-                    cat, code, desc, points, days = parts[0], parts[1], parts[2], parts[3], parts[4]
-                    if code and re.match(r"^\d{6}$", code):
-                        if cat:
-                            curr_cat = cat
-                        activities.append({
-                            "activity_code": code,
-                            "category": curr_cat,
-                            "activity_name": desc,
-                            "points": points,
-                            "converted_days": days,
-                            "formula": "Điểm / 10 = Ngày CTXH"
-                        })
-        except Exception as e:
-            print(f"[sync_ctxh_rules] Loi doc md/txt: {e}", file=sys.stderr)
-
-    elif ext in {".xlsx", ".xlsm"}:
-        try:
-            wb = load_workbook(str(fpath), data_only=True)
-            for sheet in wb.sheetnames:
-                ws = wb[sheet]
-                curr_cat = ""
-                for row in ws.iter_rows(values_only=True):
-                    row_strs = [str(c).strip() if c is not None else "" for c in row]
-                    for idx, val in enumerate(row_strs):
-                        if re.match(r"^\d{6}$", val) and len(row_strs) >= idx + 3:
-                            code = val
-                            cat = row_strs[0] if idx > 0 and row_strs[0] else curr_cat
-                            if cat and cat != code:
-                                curr_cat = cat
-                            desc = row_strs[idx + 1] if len(row_strs) > idx + 1 else ""
-                            points = row_strs[idx + 2] if len(row_strs) > idx + 2 else ""
-                            days = row_strs[idx + 3] if len(row_strs) > idx + 3 else ""
-                            activities.append({
-                                "activity_code": code,
-                                "category": curr_cat,
-                                "activity_name": desc,
-                                "points": points,
-                                "converted_days": days,
-                                "formula": "Điểm / 10 = Ngày CTXH"
-                            })
-                            break
-            wb.close()
-        except Exception as e:
-            print(f"[sync_ctxh_rules] Loi doc xlsx: {e}", file=sys.stderr)
-
-    elif ext == ".docx":
+    if ext in {".docx", ".doc"}:
         try:
             from docx import Document
             doc = Document(str(fpath))
             curr_cat = ""
             for table in doc.tables:
                 for row in table.rows:
-                    cells = [c.text.strip() for c in row.cells]
+                    cells = [c.text.strip().replace("\n", " ") for c in row.cells]
                     for idx, val in enumerate(cells):
                         if re.match(r"^\d{6}$", val) and len(cells) >= idx + 3:
                             code = val
@@ -417,8 +454,147 @@ def _parse_ctxh_rules_from_file(fpath: Path) -> dict:
                                 "formula": "Điểm / 10 = Ngày CTXH"
                             })
                             break
+            full_doc_text = "\n".join(p.text for p in doc.paragraphs)
+            _extract_rules_from_text(full_doc_text, calculation_rules)
         except Exception as e:
-            print(f"[sync_ctxh_rules] Loi doc docx: {e}", file=sys.stderr)
+            sys.stderr.write(f"[sync_ctxh_rules] Loi doc docx {fpath.name}: {e}\n")
+
+    elif ext == ".pdf":
+        try:
+            from pypdf import PdfReader
+            reader = PdfReader(str(fpath))
+            full_pdf_text = []
+            for page in reader.pages:
+                txt = page.extract_text() or ""
+                full_pdf_text.append(txt)
+            all_text = "\n".join(full_pdf_text)
+
+            curr_cat = ""
+            for line in all_text.splitlines():
+                line_str = line.strip()
+                if not line_str:
+                    continue
+                m = re.search(r"\b(\d{6})\b", line_str)
+                if m:
+                    code = m.group(1)
+                    if "|" in line_str:
+                        parts = [c.strip() for c in line_str.split("|")]
+                        if parts and parts[0] == "":
+                            parts = parts[1:]
+                        if parts and parts[-1] == "":
+                            parts = parts[:-1]
+                        for idx, p in enumerate(parts):
+                            if p == code and len(parts) >= idx + 3:
+                                cat = parts[0] if idx > 0 and parts[0] else curr_cat
+                                if cat and cat != code:
+                                    curr_cat = cat
+                                desc = parts[idx + 1]
+                                points = parts[idx + 2]
+                                days = parts[idx + 3] if len(parts) > idx + 3 else ""
+                                activities.append({
+                                    "activity_code": code,
+                                    "category": curr_cat,
+                                    "activity_name": desc,
+                                    "points": points,
+                                    "converted_days": days,
+                                    "formula": "Điểm / 10 = Ngày CTXH"
+                                })
+                                break
+                    else:
+                        parts = line_str.split(code, 1)
+                        prefix = parts[0].strip()
+                        suffix = parts[1].strip()
+                        if prefix and not any(ch.isdigit() for ch in prefix):
+                            curr_cat = prefix
+                        score_matches = list(re.finditer(r"(\d+(?:[.,]\d+)?(?:\s*[→\->]\s*\d+(?:[.,]\d+)?)?)", suffix))
+                        if len(score_matches) >= 2:
+                            points_match = score_matches[-2].group(1).strip()
+                            days_match = score_matches[-1].group(1).strip()
+                            desc_end = score_matches[-2].start()
+                            desc = suffix[:desc_end].strip().strip("-:| ")
+                            activities.append({
+                                "activity_code": code,
+                                "category": curr_cat,
+                                "activity_name": desc or f"Hoạt động CTXH {code}",
+                                "points": points_match,
+                                "converted_days": days_match,
+                                "formula": "Điểm / 10 = Ngày CTXH"
+                            })
+            _extract_rules_from_text(all_text, calculation_rules)
+        except Exception as e:
+            sys.stderr.write(f"[sync_ctxh_rules] Loi doc pdf {fpath.name}: {e}\n")
+
+    elif ext in {".md", ".txt"}:
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            curr_cat = ""
+            for line in content.splitlines():
+                if "|" not in line:
+                    continue
+                parts = [c.strip() for c in line.split("|")]
+                code_idx = -1
+                for idx, p in enumerate(parts):
+                    if re.match(r"^\d{6}$", p):
+                        code_idx = idx
+                        break
+                if code_idx != -1:
+                    code = parts[code_idx]
+                    cat_candidates = [parts[i] for i in range(code_idx) if parts[i]]
+                    if cat_candidates:
+                        curr_cat = cat_candidates[-1]
+                    desc = parts[code_idx + 1] if len(parts) > code_idx + 1 else ""
+                    points = parts[code_idx + 2] if len(parts) > code_idx + 2 else ""
+                    days = parts[code_idx + 3] if len(parts) > code_idx + 3 else ""
+                    activities.append({
+                        "activity_code": code,
+                        "category": curr_cat,
+                        "activity_name": desc,
+                        "points": points,
+                        "converted_days": days,
+                        "formula": "Điểm / 10 = Ngày CTXH"
+                    })
+            _extract_rules_from_text(content, calculation_rules)
+        except Exception as e:
+            sys.stderr.write(f"[sync_ctxh_rules] Loi doc md/txt {fpath.name}: {e}\n")
+
+    elif ext in {".xlsx", ".xlsm"}:
+        try:
+            wb = load_workbook(str(fpath), data_only=True)
+            for sheet in wb.sheetnames:
+                ws = wb[sheet]
+                curr_cat = ""
+                for row in ws.iter_rows(values_only=True):
+                    row_strs = [str(c).strip() if c is not None else "" for c in row]
+                    code_idx = -1
+                    for idx, val in enumerate(row_strs):
+                        if re.match(r"^\d{6}$", val):
+                            code_idx = idx
+                            break
+                    if code_idx != -1:
+                        code = row_strs[code_idx]
+                        cat_candidates = [row_strs[i] for i in range(code_idx) if row_strs[i]]
+                        if cat_candidates:
+                            curr_cat = cat_candidates[-1]
+                        desc = row_strs[code_idx + 1] if len(row_strs) > code_idx + 1 else ""
+                        points = row_strs[code_idx + 2] if len(row_strs) > code_idx + 2 else ""
+                        days = row_strs[code_idx + 3] if len(row_strs) > code_idx + 3 else ""
+                        activities.append({
+                            "activity_code": code,
+                            "category": curr_cat,
+                            "activity_name": desc,
+                            "points": points,
+                            "converted_days": days,
+                            "formula": "Điểm / 10 = Ngày CTXH"
+                        })
+                    else:
+                        text_line = " ".join(r for r in row_strs if r)
+                        if len(text_line) > 15:
+                            _extract_rules_from_text(text_line, calculation_rules)
+            wb.close()
+        except Exception as e:
+            sys.stderr.write(f"[sync_ctxh_rules] Loi doc xlsx {fpath.name}: {e}\n")
 
     return {
         "title": "QUY ĐỊNH MÃ HÓA, THANG ĐIỂM & QUY ĐỔI NGÀY CTXH (HCMUTE)",
@@ -431,66 +607,187 @@ def _parse_ctxh_rules_from_file(fpath: Path) -> dict:
 
 def sync_ctxh_rules_from_file() -> dict:
     """
-    Doc file quy che CTXH (nhu CTXH.md) trong thu muc data/, boc tach noi dung
-    ve cach hoat dong va cach tinh diem cho hoat dong CTXH roi nap vao file ctxh.json.
-    Neu khong tim thay file quy che -> tu dong xoa sach ctxh.json ve [] va thong bao.
+    Boc tach du lieu hoat dong CTXH va cach tinh diem tu cac file Excel (.xlsx), Word (.docx), PDF, Text (.txt) trong data/.
+    Bo hoan toan viec boc tach tu cac file JSON ma thay bang Excel va cac van ban quy che.
+    Ghi ket qua ra data/activities.json va data/ctxh.json.
     """
-    source_file = _find_ctxh_rules_source_file()
+    rule_files = _find_all_ctxh_rules_files()
 
-    if source_file is None:
-        CTXH_RULES_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with open(CTXH_RULES_JSON_PATH, "w", encoding="utf-8") as f:
-            json.dump([], f, ensure_ascii=False, indent=2)
-        msg = (
-            "Khong tim thay file quy che CTXH.* (nhu CTXH.md) trong thu muc data/. "
-            "Da xoa sach noi dung quy dinh va cach tinh diem trong ctxh.json ve rong []."
-        )
-        print(f"[sync_ctxh_rules] {msg}", file=sys.stderr)
-        return {"status": "removed", "message": msg}
+    merged_activities: dict[str, dict] = {}
+    merged_rules = {
+        "formula": "Lấy tổng điểm hoạt động CTXH SV đã tích lũy chia cho 10 (số lẻ dưới 5 làm tròn xuống; tròn 5 điểm, quy đổi thành nửa ngày CTXH; trên 5 làm tròn thành 10, quy đổi thành một ngày CTXH). Quy định 2025 áp dụng chia cho 12 đối với các hoạt động chuẩn mới.",
+        "deduction_rules": [
+            "SV đăng ký tham gia hoạt động CTXH nhưng không thực hiện mà không có lý do hoặc lý do không chính đáng bị trừ 0,5 đến 2,0 ngày CTXH và hạ bậc ĐRL.",
+            "SV không hoàn thành nhiệm vụ, gây ảnh hưởng xấu bị trừ từ 01 đến toàn bộ số ngày đã tích lũy.",
+            "SV gian lận công nghệ (Fake GPS, can thiệp camera điểm danh) bị hủy bỏ toàn bộ số ngày CTXH đã tích lũy và xử lý kỷ luật."
+        ],
+        "exclusions": [
+            "Các hoạt động không mang tính chất CTXH như xem biểu diễn văn nghệ, xem thể thao, du lịch, tham quan, sinh hoạt CLB không được tính ngày CTXH.",
+            "Khi SV tham gia hoạt động CTXH đã được trả tiền công hoặc trả phí thì không được tính ngày CTXH."
+        ]
+    }
 
-    parsed_data = _parse_ctxh_rules_from_file(source_file)
+    scanned_files: list[str] = []
+    for fpath in rule_files:
+        try:
+            parsed = _parse_ctxh_rules_from_file(fpath)
+            scanned_files.append(fpath.name)
+            for act in parsed.get("activities", []):
+                code = str(act.get("activity_code", "")).strip()
+                if not code:
+                    continue
+                if code not in merged_activities:
+                    merged_activities[code] = act
+                else:
+                    for k, v in act.items():
+                        if v and not merged_activities[code].get(k):
+                            merged_activities[code][k] = v
 
-    if not parsed_data.get("activities"):
-        CTXH_RULES_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with open(CTXH_RULES_JSON_PATH, "w", encoding="utf-8") as f:
-            json.dump([], f, ensure_ascii=False, indent=2)
-        msg = f"File '{source_file.name}' khong co hoac khong boc tach duoc bang hoat dong CTXH. Da lam rong ctxh.json."
-        print(f"[sync_ctxh_rules] {msg}", file=sys.stderr)
-        return {"status": "empty", "message": msg}
+            calc = parsed.get("calculation_rules", {})
+            for r in calc.get("deduction_rules", []):
+                if r not in merged_rules["deduction_rules"]:
+                    merged_rules["deduction_rules"].append(r)
+            for e in calc.get("exclusions", []):
+                if e not in merged_rules["exclusions"]:
+                    merged_rules["exclusions"].append(e)
+            if calc.get("formula") and not merged_rules.get("formula"):
+                merged_rules["formula"] = calc["formula"]
+        except Exception as e:
+            sys.stderr.write(f"[sync_ctxh_rules] Loi khi boc tach file {fpath.name}: {e}\n")
 
-    CTXH_RULES_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(CTXH_RULES_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(parsed_data, f, ensure_ascii=False, indent=2)
+    activities_list = sorted(list(merged_activities.values()), key=lambda x: str(x.get("activity_code", "")))
+
+    if not activities_list:
+        msg = "Khong tim thay hoac khong boc tach duoc hoat dong CTXH nao tu data/."
+        sys.stderr.write(f"[sync_ctxh_rules] {msg}\n")
+        return {"status": "empty", "message": msg, "total_activities": 0}
+
+    final_data = {
+        "title": "QUY ĐỊNH MÃ HÓA, THANG ĐIỂM & QUY ĐỔI NGÀY CTXH (HCMUTE)",
+        "source_files": scanned_files,
+        "calculation_rules": merged_rules,
+        "total_activities": len(activities_list),
+        "activities": activities_list
+    }
+
+    # Luu vao ca activities.json va ctxh.json de dong nhat
+    for p in ACTIVITIES_RULES_PATHS:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(final_data, f, ensure_ascii=False, indent=2)
 
     msg = (
-        f"Da boc tach thanh cong {parsed_data['total_activities']} hoat dong va cach tinh diem "
-        f"tu file '{source_file.name}' vao {CTXH_RULES_JSON_PATH.name}."
+        f"Da boc tach thanh cong {len(activities_list)} hoat dong va cach tinh diem "
+        f"tu cac file doc/pdf/txt vao activities.json."
     )
-    print(f"[sync_ctxh_rules] {msg}", file=sys.stderr)
+    sys.stderr.write(f"[sync_ctxh_rules] {msg}\n")
     return {
         "status": "success",
-        "file": source_file.name,
-        "total_activities": parsed_data["total_activities"],
-        "target_file": CTXH_RULES_JSON_PATH.name
+        "file": ", ".join(scanned_files[:5]),
+        "total_activities": len(activities_list),
+        "target_file": "activities.json"
     }
 
 
 def _find_ctxh_source_file() -> Path | None:
-    """Tim kiem file nguon du lieu hoat dong CTXH trong thu muc data/ theo tien to 'ctxh_activities'."""
+    """Tim kiem file Excel luu hoat dong da tham gia CTXH cua sinh vien trong thu muc data/."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    for p in DATA_DIR.glob(f"{CTXH_SOURCE_PREFIX}*"):
-        if p.name.startswith("~$"):
-            continue
-        if p.is_file() and p.suffix.lower() in CTXH_SOURCE_EXTENSIONS:
+    # 1. Kiem tra cac ten file Excel uu tien
+    for fname in CTXH_STUDENT_ACTIVITY_FILENAMES:
+        p = DATA_DIR / fname
+        if p.exists() and p.is_file():
             return p
+
+    # 2. Quet cac file Excel khac trong data/ co chua tu khoa hoat dong sinh vien
+    for p in sorted(DATA_DIR.glob("*.xlsx")):
+        if p.name.startswith("~$") or p.name.startswith("."):
+            continue
+        p_name = p.name.lower()
+        if p_name in {"students.xlsx", "students_ctxh.xlsx", "activities.xlsx"}:
+            continue
+        if any(kw in p_name for kw in ["activity", "activities", "hoat_dong", "tham_gia", "sinh_vien"]):
+            return p
+
+    for p in sorted(DATA_DIR.glob("*.xlsm")):
+        if p.name.startswith("~$") or p.name.startswith("."):
+            continue
+        p_name = p.name.lower()
+        if any(kw in p_name for kw in ["activity", "activities", "hoat_dong", "tham_gia", "sinh_vien"]):
+            return p
+
     return None
+
+
+def _normalize_ctxh_record_keys(raw_row: dict) -> dict:
+    """Chuan hoa ten cot tu tieng Viet hoac tieng Anh ve khoa chuan cua he thong."""
+    normalized = {}
+    for k, v in raw_row.items():
+        if v is None:
+            continue
+        key_clean = str(k).strip().lower().replace(" ", "_")
+        val = str(v).strip()
+        if not val or val.lower() == "none":
+            continue
+
+        # MSSV
+        if any(w in key_clean for w in ["mssv", "ma_sv", "masv", "ma_sinh_vien", "student_id", "msv"]):
+            if val.endswith(".0"):
+                val = val[:-2]
+            normalized["mssv"] = val
+        # Ma hoat dong
+        elif any(w in key_clean for w in ["ma_hoat_dong", "ma_hd", "mahd", "activity_code", "ma_so"]):
+            if val.endswith(".0"):
+                val = val[:-2]
+            normalized["activity_code"] = val
+        # Ten hoat dong
+        elif any(w in key_clean for w in ["ten_hoat_dong", "ten_hd", "tenhd", "hoat_dong", "activity_name", "activity", "noi_dung"]):
+            normalized["activity_name"] = val
+        # Diem
+        elif any(w in key_clean for w in ["diem", "points", "score"]):
+            normalized["points"] = val
+        # Ngay quy doi
+        elif any(w in key_clean for w in ["ngay_quy_doi", "so_ngay", "ngay_ctxh", "converted_days", "days"]):
+            normalized["converted_days"] = val
+        # Trang thai
+        elif any(w in key_clean for w in ["trang_thai", "tinh_trang", "status"]):
+            normalized["status"] = val
+        # Ngay dang ky / tham gia
+        elif any(w in key_clean for w in ["ngay_tham_gia", "ngay_dk", "ngay_dang_ky", "registration_date", "date", "thoi_gian"]):
+            normalized["registration_date"] = val
+        # Ma dang ky
+        elif any(w in key_clean for w in ["ma_dk", "reg_id", "registration_id"]):
+            normalized["reg_id"] = val
+        # Ghi chu
+        elif any(w in key_clean for w in ["ghi_chu", "note", "notes", "nhan_xet"]):
+            normalized["note"] = val
+        else:
+            normalized[key_clean] = val
+
+    # Fallback tu dong nhan dien cot theo gia tri neu header khong khop
+    if "mssv" not in normalized:
+        for v in raw_row.values():
+            s = str(v).strip()
+            if s.endswith(".0"):
+                s = s[:-2]
+            if re.match(r"^\d{7,10}$", s):
+                normalized["mssv"] = s
+                break
+    if "activity_code" not in normalized:
+        for v in raw_row.values():
+            s = str(v).strip()
+            if s.endswith(".0"):
+                s = s[:-2]
+            if re.match(r"^\d{6}$", s):
+                normalized["activity_code"] = s
+                break
+
+    return normalized
 
 
 def _parse_ctxh_rows_from_file(fpath: Path) -> list[dict]:
     """
-    Phan tich cac ban ghi hoat dong CTXH tu file nguon.
-    Ho tro: .xlsx/.xlsm, .csv, .json, .docx, .md/.txt
-    Tra ve list of dict voi cac khoa: mssv, activity_code, activity_name, points, converted_days, status, note
+    Phan tich cac ban ghi hoat dong CTXH da tham gia tu file Excel (.xlsx/.xlsm) hoac .csv.
+    Tra ve danh sach cac dict da chuan hoa khoa: mssv, activity_code, activity_name, points, converted_days, status, note, registration_date.
     """
     ext = fpath.suffix.lower()
     rows: list[dict] = []
@@ -498,120 +795,72 @@ def _parse_ctxh_rows_from_file(fpath: Path) -> list[dict]:
     if ext in {".xlsx", ".xlsm"}:
         try:
             wb = load_workbook(str(fpath), data_only=True)
-            ws = wb.active
-            raw_rows = list(ws.iter_rows(values_only=True))
-            wb.close()
-            if len(raw_rows) < 2:
-                return []
-            headers = [str(h).strip().lower() if h else f"col_{i}" for i, h in enumerate(raw_rows[0])]
-            for r in raw_rows[1:]:
-                if not any(r):
+            for sheet_name in wb.sheetnames:
+                ws = wb[sheet_name]
+                raw_rows = list(ws.iter_rows(values_only=True))
+                if len(raw_rows) < 2:
                     continue
-                rows.append(dict(zip(headers, r)))
+                # Tim header row (trong toi da 10 dong dau)
+                header_idx = -1
+                for r_idx, r in enumerate(raw_rows[:10]):
+                    r_strs = [str(c).strip().lower() for c in r if c is not None]
+                    if any(any(k in s for k in ["mssv", "sinh_vien", "ma_sv", "hoat_dong", "activity", "code"]) for s in r_strs):
+                        header_idx = r_idx
+                        break
+
+                if header_idx != -1:
+                    raw_headers = [str(h).strip().lower() if h is not None else f"col_{i}" for i, h in enumerate(raw_rows[header_idx])]
+                    data_rows = raw_rows[header_idx + 1:]
+                else:
+                    raw_headers = [str(h).strip().lower() if h is not None else f"col_{i}" for i, h in enumerate(raw_rows[0])]
+                    data_rows = raw_rows[1:]
+
+                for r in data_rows:
+                    if not any(r):
+                        continue
+                    r_dict = dict(zip(raw_headers, r))
+                    norm = _normalize_ctxh_record_keys(r_dict)
+                    if norm.get("mssv") and (norm.get("activity_code") or norm.get("activity_name")):
+                        rows.append(norm)
+            wb.close()
         except Exception as e:
-            print(f"[sync_ctxh] Loi doc xlsx: {e}", file=sys.stderr)
+            sys.stderr.write(f"[sync_ctxh] Loi doc xlsx {fpath.name}: {e}\n")
 
     elif ext == ".csv":
         try:
             with open(fpath, newline="", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
-                for row in reader:
-                    rows.append({k.strip().lower(): v for k, v in row.items()})
+                for r in reader:
+                    norm = _normalize_ctxh_record_keys(r)
+                    if norm.get("mssv") and (norm.get("activity_code") or norm.get("activity_name")):
+                        rows.append(norm)
         except Exception as e:
-            print(f"[sync_ctxh] Loi doc csv: {e}", file=sys.stderr)
-
-    elif ext == ".json":
-        try:
-            with open(fpath, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                rows = [{k.strip().lower(): v for k, v in r.items()} if isinstance(r, dict) else {} for r in data]
-        except Exception as e:
-            print(f"[sync_ctxh] Loi doc json: {e}", file=sys.stderr)
-
-    elif ext == ".docx":
-        try:
-            from docx import Document  # python-docx
-            doc = Document(str(fpath))
-            headers: list[str] = []
-            for table in doc.tables:
-                for i, row in enumerate(table.rows):
-                    cells = [c.text.strip() for c in row.cells]
-                    if i == 0:
-                        headers = [c.lower() for c in cells]
-                    else:
-                        if any(cells):
-                            rows.append(dict(zip(headers, cells)))
-            # Fallback: parse pipe-delimited lines trong paragraphs
-            if not rows:
-                lines = [p.text.strip() for p in doc.paragraphs if "|" in p.text]
-                if lines:
-                    headers = [h.strip().lower() for h in lines[0].split("|") if h.strip()]
-                    for line in lines[1:]:
-                        if set(line.replace("|", "").replace("-", "").replace(" ", "")) == set():
-                            continue  # separator row
-                        cells = [c.strip() for c in line.split("|") if c.strip() or True]
-                        cells = [c.strip() for c in line.split("|")]
-                        # Bo cot trong dau va cuoi neu co
-                        if cells and cells[0] == "":
-                            cells = cells[1:]
-                        if cells and cells[-1] == "":
-                            cells = cells[:-1]
-                        if any(cells):
-                            rows.append(dict(zip(headers, cells)))
-        except Exception as e:
-            print(f"[sync_ctxh] Loi doc docx: {e}", file=sys.stderr)
-
-    elif ext in {".md", ".txt"}:
-        try:
-            with open(fpath, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-            # Tim bang markdown (dong co dau |)
-            table_lines = [l.strip() for l in lines if "|" in l]
-            if table_lines:
-                headers = [h.strip().lower() for h in table_lines[0].split("|") if h.strip()]
-                for line in table_lines[1:]:
-                    # Bo qua dong phan cach (----)
-                    if set(line.replace("|", "").replace("-", "").replace(" ", "").replace(":", "")) == set():
-                        continue
-                    cells = [c.strip() for c in line.split("|")]
-                    if cells and cells[0] == "":
-                        cells = cells[1:]
-                    if cells and cells[-1] == "":
-                        cells = cells[:-1]
-                    if any(cells) and len(cells) == len(headers):
-                        rows.append(dict(zip(headers, cells)))
-        except Exception as e:
-            print(f"[sync_ctxh] Loi doc md/txt: {e}", file=sys.stderr)
+            sys.stderr.write(f"[sync_ctxh] Loi doc csv {fpath.name}: {e}\n")
 
     return rows
 
 
 def sync_ctxh_from_file() -> dict:
     """
-    Tim kiem file nguon hoat dong CTXH (bat ky dinh dang nao) trong data/,
-    phan tich va nap vao student_ctxh.json.
-    Neu khong co file -> xoa sach student_ctxh.json ve [].
+    Tim kiem file Excel luu hoat dong da tham gia CTXH cua sinh vien trong data/.
+    Neu co file: Phan tich va nap bo sung vao student_activities.json.
+    Neu khong co file: Tra ve status="none" va TUYET DOI KHONG THAY DOI data/student_activities.json.
+    TUYET DOI BAO TOAN LICH SU HOAT DONG, khong bao gio reset ve rong.
     """
     source_file = _find_ctxh_source_file()
 
     if source_file is None:
-        # Xoa sach student_ctxh.json ve rong
-        _save_student_ctxh([])
-        msg = (
-            f"Khong tim thay file '{CTXH_SOURCE_PREFIX}.*' trong thu muc data/. "
-            "Da xoa sach du lieu hoat dong CTXH trong student_ctxh.json ve rong []."
-        )
-        print(f"[sync_ctxh] {msg}", file=sys.stderr)
-        return {"status": "removed", "message": msg}
+        return {
+            "status": "none",
+            "message": "Khong co file Excel hoat dong da tham gia cua sinh vien. Lich su duoc bao toan nguyen ven.",
+        }
 
     raw_rows = _parse_ctxh_rows_from_file(source_file)
 
     if not raw_rows:
-        _save_student_ctxh([])
-        msg = f"File '{source_file.name}' khong co du lieu. Da lam rong student_ctxh.json."
-        print(f"[sync_ctxh] {msg}", file=sys.stderr)
-        return {"status": "empty", "message": msg}
+        msg = f"File '{source_file.name}' khong co du lieu hoat dong moi. Lich su duoc giu nguyen."
+        sys.stderr.write(f"[sync_ctxh] {msg}\n")
+        return {"status": "kept", "message": msg}
 
     # Nhom cac hoat dong theo mssv
     activities_by_mssv: dict[str, list[dict]] = {}
@@ -627,43 +876,84 @@ def sync_ctxh_from_file() -> dict:
     students_master = _load_students()
     master_by_mssv = {s.get("mssv"): s for s in students_master}
 
-    new_ctxh_records: list[dict] = []
-    total_activities = 0
+    # Tra cuu catalog hoat dong de dien tu dong ten hoat dong / diem neu thieu
+    rules_catalog: dict[str, dict] = {}
+    for p in ACTIVITIES_RULES_PATHS:
+        if p.exists():
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    cdata = json.load(f)
+                    for act in cdata.get("activities", []):
+                        acode = str(act.get("activity_code", "")).strip()
+                        if acode:
+                            rules_catalog[acode] = act
+            except Exception:
+                pass
+
+    # Load ho so hien co de MERGE va BAO TOAN 100% LICH SU
+    existing_records = _load_student_ctxh()
+    records_by_mssv = {r.get("mssv"): r for r in existing_records}
+
+    total_new_activities = 0
 
     for mssv, act_list in activities_by_mssv.items():
         m_info = master_by_mssv.get(mssv)
-        registered_activities = []
-        acc_days = 0.0
+        if mssv not in records_by_mssv:
+            records_by_mssv[mssv] = {
+                "mssv": mssv,
+                "student_name": m_info.get("student_name", "Unknown") if m_info else "Unknown",
+                "faculty": m_info.get("faculty", "") if m_info else "",
+                "course_year": m_info.get("course_year", "2023") if m_info else "2023",
+                "required_days": m_info.get("required_ctxh_days", 4.0) if m_info else 4.0,
+                "accumulated_days": 0.0,
+                "registered_activities": [],
+            }
+        rec = records_by_mssv[mssv]
+        existing_reg_keys = {
+            (a.get("activity_code"), a.get("registration_date"))
+            for a in rec.get("registered_activities", [])
+        }
+        existing_reg_ids = {a.get("reg_id") for a in rec.get("registered_activities", []) if a.get("reg_id")}
 
         for row in act_list:
+            activity_code = str(row.get("activity_code", "")).strip()
+            catalog_item = rules_catalog.get(activity_code, {})
+
+            activity_name = str(row.get("activity_name", "")).strip()
+            if not activity_name or activity_name.startswith("Hoat dong CTXH ma"):
+                activity_name = catalog_item.get("activity_name") or f"Hoạt động CTXH mã {activity_code}"
+
+            raw_pts = row.get("points") or catalog_item.get("points") or 5
             try:
-                points = int(float(str(row.get("points", 5)).strip() or 5))
+                points = int(float(str(raw_pts).strip().replace(",", ".")))
             except (ValueError, TypeError):
                 points = 5
+
+            raw_days = row.get("converted_days") or catalog_item.get("converted_days") or (points / 10)
             try:
-                converted_days = float(str(row.get("converted_days", points / 10)).strip() or points / 10)
+                converted_days = float(str(raw_days).strip().replace(",", "."))
             except (ValueError, TypeError):
                 converted_days = round(points / 10, 2)
 
-            activity_code = str(row.get("activity_code", "")).strip()
-            activity_name = str(row.get("activity_name", "")).strip() or f"Hoat dong CTXH ma {activity_code}"
             status = str(row.get("status", "CONFIRMED")).strip().upper() or "CONFIRMED"
             note = str(row.get("note", "")).strip()
             reg_date = str(row.get("registration_date", datetime.now().strftime("%Y-%m-%d"))).strip()
-            # Neu reg_date la float (Excel date serial), chuyen ve string
             try:
                 float(reg_date)
                 reg_date = datetime.now().strftime("%Y-%m-%d")
             except ValueError:
                 pass
 
-            # Tao reg_id neu khong co
             reg_id = str(row.get("reg_id", "")).strip()
             if not reg_id:
                 short_id = uuid.uuid4().hex[:6].upper()
                 reg_id = f"REG-CTXH-{mssv}-{short_id}"
 
-            registered_activities.append({
+            # Tranh trung lap hoat dong da co
+            if reg_id in existing_reg_ids or (activity_code and (activity_code, reg_date) in existing_reg_keys):
+                continue
+
+            rec.setdefault("registered_activities", []).append({
                 "reg_id": reg_id,
                 "activity_code": activity_code,
                 "activity_name": activity_name,
@@ -673,33 +963,28 @@ def sync_ctxh_from_file() -> dict:
                 "registration_date": reg_date,
                 "note": note,
             })
-            if status == "CONFIRMED":
-                acc_days += converted_days
+            existing_reg_ids.add(reg_id)
+            if activity_code:
+                existing_reg_keys.add((activity_code, reg_date))
+            total_new_activities += 1
 
-        acc_days = round(acc_days, 2)
-        total_activities += len(registered_activities)
+        # Tinh lai tong so ngay tich luy thuc te
+        rec["accumulated_days"] = round(
+            sum(a.get("converted_days", 0.0) for a in rec.get("registered_activities", []) if a.get("status") == "CONFIRMED"),
+            2
+        )
 
-        new_ctxh_records.append({
-            "mssv": mssv,
-            "student_name": m_info.get("student_name", "Unknown") if m_info else "Unknown",
-            "faculty": m_info.get("faculty", "") if m_info else "",
-            "course_year": m_info.get("course_year", "2022") if m_info else "2022",
-            "required_days": m_info.get("required_ctxh_days", 4.0) if m_info else 4.0,
-            "accumulated_days": acc_days,
-            "registered_activities": registered_activities,
-        })
-
-    _save_student_ctxh(new_ctxh_records)
+    _save_student_ctxh(list(records_by_mssv.values()))
     msg = (
         f"Dong bo thanh cong tu '{source_file.name}': "
-        f"{len(new_ctxh_records)} sinh vien, {total_activities} hoat dong CTXH."
+        f"{len(activities_by_mssv)} sinh vien duoc cap nhat, them {total_new_activities} hoat dong moi vao CSDL."
     )
-    print(f"[sync_ctxh] {msg}", file=sys.stderr)
+    sys.stderr.write(f"[sync_ctxh] {msg}\n")
     return {
         "status": "success",
         "file": source_file.name,
-        "total_students": len(new_ctxh_records),
-        "total_activities": total_activities,
+        "total_students": len(records_by_mssv),
+        "total_activities": sum(len(r.get("registered_activities", [])) for r in records_by_mssv.values()),
     }
 
 
@@ -1078,18 +1363,12 @@ def sync_ctxh_activities() -> str:
             f"[CTXH SYNC - THANH CONG] Da dong bo tu file '{result['file']}'.\n"
             f"  - Tong so sinh vien co hoat dong: {result['total_students']}\n"
             f"  - Tong so ban ghi hoat dong: {result['total_activities']}\n"
-            f"  - Du lieu da duoc ghi vao student_ctxh.json."
+            f"  - Du lieu da duoc ghi vao student_activities.json."
         )
-    elif result["status"] == "removed":
-        return (
-            f"[CTXH SYNC - DA XOA] {result['message']}\n"
-            f"  - student_ctxh.json da duoc dat lai ve rong []."
-        )
+    elif result["status"] in {"none", "kept"}:
+        return f"[CTXH SYNC - BAO TOAN] {result['message']}"
     elif result["status"] == "empty":
-        return (
-            f"[CTXH SYNC - TRONG] {result['message']}\n"
-            f"  - student_ctxh.json da duoc dat lai ve rong []."
-        )
+        return f"[CTXH SYNC - TRONG] {result['message']}"
     else:
         return f"[CTXH SYNC - LOI] {result.get('message', 'Loi khong xac dinh.')}"
 
@@ -1103,28 +1382,20 @@ def export_ctxh_rules_json() -> str:
 
     if result["status"] == "success":
         return (
-            f"[CTXH RULES - THANH CONG] Da boc tach du lieu tu file '{result['file']}' vao '{result['target_file']}'.\n"
+            f"[CTXH RULES - THANH CONG] Da boc tach du lieu tu cac file '{result['file']}' vao '{result['target_file']}'.\n"
             f"  - Tong so hoat dong quy doi: {result['total_activities']}\n"
-            f"  - Bao gom: Ma hoat dong (6 chu so), linh vuc, thang diem, quy doi ngay va quy tac tinh diem (chia 10).\n"
+            f"  - Bao gom: Ma hoat dong (6 chu so), linh vuc, thang diem, quy doi ngay va quy tac tinh diem.\n"
             f"  - File ket qua: data/{result['target_file']}"
         )
-    elif result["status"] == "removed":
-        return (
-            f"[CTXH RULES - DA XOA] {result['message']}\n"
-            f"  - File ctxh.json da duoc dat lai ve rong []."
-        )
     elif result["status"] == "empty":
-        return (
-            f"[CTXH RULES - TRONG] {result['message']}\n"
-            f"  - File ctxh.json da duoc dat lai ve rong []."
-        )
+        return f"[CTXH RULES - TRONG] {result['message']}"
     else:
         return f"[CTXH RULES - LOI] {result.get('message', 'Loi khong xac dinh.')}"
 
 
 @mcp.tool()
 def sync_documents() -> str:
-    """Dong bo hoa va quet lai thu muc data/ de cap nhat cac file quy dinh CTXH, CSDL sinh vien tu Excel, hoat dong CTXH, va file ctxh.json."""
+    """Dong bo hoa va quet lai thu muc data/ de cap nhat cac file quy dinh CTXH, CSDL sinh vien tu Excel, hoat dong CTXH, va file activities.json."""
     report = sync_knowledge_base()
     excel_report = sync_students_from_excel()
     ctxh_report = sync_ctxh_from_file()
@@ -1147,39 +1418,30 @@ def sync_documents() -> str:
     if excel_report.get("status") == "success":
         lines.append(f"  - CSDL sinh vien: Dong bo thanh cong {excel_report.get('total_students')} sinh vien tu {excel_report.get('file')}.")
     elif excel_report.get("status") == "removed":
-        lines.append("  - CSDL sinh vien: Khong tim thay tep students_ctxh.xlsx. Da xoa toan bo danh sach sinh vien trong students.json ve rong [].")
+        lines.append("  - CSDL sinh vien: Khong tim thay tep students.xlsx. Danh sach sinh vien duoc giu nguyen.")
     elif excel_report.get("status") == "empty":
-        lines.append("  - CSDL sinh vien: Tep students_ctxh.xlsx trong, khong co du lieu. Da xoa students.json ve rong [].")
+        lines.append("  - CSDL sinh vien: Tep students.xlsx trong, khong co du lieu.")
     elif excel_report.get("status") == "error":
         lines.append(f"  - CSDL sinh vien: {excel_report.get('message')}")
 
-    # Hoat dong CTXH tu file nguon
+    # Hoat dong CTXH tu file Excel nguon (neu co file thi thong bao, neu khong co thi khoi thong bao)
     if ctxh_report.get("status") == "success":
         lines.append(
             f"  - Hoat dong CTXH (sinh vien): Dong bo thanh cong {ctxh_report.get('total_students')} sinh vien, "
             f"{ctxh_report.get('total_activities')} hoat dong tu '{ctxh_report.get('file')}'."
         )
-    elif ctxh_report.get("status") == "removed":
-        lines.append(
-            f"  - Hoat dong CTXH (sinh vien): Khong tim thay file 'ctxh_activities.*'. "
-            "Da xoa sach student_ctxh.json ve rong []."
-        )
-    elif ctxh_report.get("status") == "empty":
-        lines.append(f"  - Hoat dong CTXH (sinh vien): {ctxh_report.get('message')}")
     elif ctxh_report.get("status") == "error":
         lines.append(f"  - Hoat dong CTXH (sinh vien): {ctxh_report.get('message')}")
 
-    # Quy che va cach tinh diem CTXH da boc tach vao ctxh.json
+    # Quy che va cach tinh diem CTXH da boc tach vao activities.json / ctxh.json
     if rules_report.get("status") == "success":
         lines.append(
-            f"  - Bang diem CTXH (ctxh.json): Da boc tach thanh cong {rules_report.get('total_activities')} hoat dong va cach tinh diem tu '{rules_report.get('file')}' vao ctxh.json."
+            f"  - Bang diem & Quy tac CTXH: Da boc tach thanh cong {rules_report.get('total_activities')} hoat dong va cach tinh diem tu '{rules_report.get('file')}' vao activities.json."
         )
-    elif rules_report.get("status") == "removed":
-        lines.append("  - Bang diem CTXH (ctxh.json): Khong tim thay file quy che CTXH.*. Da xoa sach ctxh.json ve rong [].")
     elif rules_report.get("status") == "empty":
-        lines.append(f"  - Bang diem CTXH (ctxh.json): {rules_report.get('message')}")
+        lines.append(f"  - Bang diem & Quy tac CTXH: {rules_report.get('message')}")
     elif rules_report.get("status") == "error":
-        lines.append(f"  - Bang diem CTXH (ctxh.json): {rules_report.get('message')}")
+        lines.append(f"  - Bang diem & Quy tac CTXH: {rules_report.get('message')}")
 
     return "\n".join(lines)
 
