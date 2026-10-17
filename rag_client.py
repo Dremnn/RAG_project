@@ -13,6 +13,7 @@ import asyncio
 import json
 import os
 import sys
+import re   
 import time
 from pathlib import Path
 from datetime import datetime
@@ -36,8 +37,9 @@ load_dotenv()
 
 HERE = Path(__file__).resolve().parent
 MODEL = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
-FALLBACK_MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
-MAX_STEPS = 6
+ENABLE_FALLBACK = os.getenv("ENABLE_FALLBACK", "0") == "1"
+FALLBACK_MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"] if ENABLE_FALLBACK else []
+MAX_STEPS = 7
 LOGS_DIR = HERE / "logs" / "app"
 PROMPT_PATH = HERE / "prompts" / "system_agent.txt"
 
@@ -61,7 +63,7 @@ def load_system_prompt() -> str:
             return f.read().strip()
     return (
         "Ban la Tro ly AI Quy che & Thu tuc Sinh vien. "
-        "Luon tra cuu van ban quy che qua search_regulations va trich dan nguon [Nguon: ... | Chunk ID: ...]."
+        "Luon tra cuu van ban quy che qua search_ctxh_rules va trich dan nguon [Nguon: ... | Chunk ID: ...]."
     )
 
 
@@ -70,11 +72,14 @@ def call_groq_with_retry(
     messages: list[dict],
     tools: list[dict],
     tool_choice: str = "auto",
-    max_retries: int = 3,
+    max_retries: int = 5,
     timeout: float = 30.0,
 ) -> tuple[any, dict]:
     """Call Groq API with exponential backoff retry, rate limit handling, and model fallback."""
-    candidate_models = [MODEL] + [m for m in FALLBACK_MODELS if m != MODEL]
+    enable_fallback = os.getenv("ENABLE_FALLBACK", "0") == "1"
+    candidate_models = [MODEL]
+    if enable_fallback:
+        candidate_models += [m for m in FALLBACK_MODELS if m != MODEL]
     last_err = None
 
     for model_name in candidate_models:
@@ -100,14 +105,27 @@ def call_groq_with_retry(
                 err_str = str(e).lower()
                 print(f"[Canh bao] Model {model_name} gap su co (Thu lan {attempt}/{max_retries}): {e}")
 
-                # Neu cham han muc token theo ngay (TPD), fallback ngay sang model tiep theo
+                # 413: Payload too large - request vuot nguong kich thuoc, retry cung se loi -> ngat ngay
+                if "413" in err_str or "too large" in err_str or "payload" in err_str:
+                    raise RuntimeError(f"Request qua lon vuot nguong Groq (413 Payload Too Large): {e}")
+
+                # Neu cham han muc token theo ngay (TPD), fallback sang model tiep theo neu bat fallback
                 if "tokens per day" in err_str or "tpd" in err_str:
                     print(f"[Fallback] Model {model_name} vuot han muc TPD. Chuyen sang model tiep theo...")
                     break
 
                 if attempt < max_retries:
                     if "rate_limit" in err_str or "429" in err_str:
-                        time.sleep(4.0)
+                        m = re.search(r"try again in (\d+(?:\.\d+)?)\s*(ms|s)", str(e), re.IGNORECASE)
+                        if m:
+                            val = float(m.group(1))
+                            unit = m.group(2).lower()
+                            wait = (val / 1000.0) if unit == "ms" else val
+                        else:
+                            wait = 15.0
+                        wait_time = min(wait + 1.0, 65.0)
+                        print(f"[Rate Limit 429] Cho {wait_time:.1f} giay theo yeu cau cua Groq (Thu lan {attempt}/{max_retries})...")
+                        time.sleep(wait_time)
                     else:
                         time.sleep(delay)
                         delay *= 2
@@ -125,17 +143,19 @@ async def run_agent_loop(
 ) -> tuple[str, str, dict]:
     """
     Custom ReAct Agent Loop (Week 6 & Week 7).
-    - MAX_STEPS = 6
+    - MAX_STEPS = 7
     - Strict Grounding: First step enforces tool call
     - Ghi nhận trajectory và đẩy trace vào tracker.
     """
     accumulated_context = []
     trajectory = []
     total_tokens = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "api_calls": 0, "max_prompt": 0}
+    registered_mssv = None
+    verified_mssv = set()
 
     for step in range(MAX_STEPS):
-        # Strict Grounding: Bat buoc goi tool o buoc dau tien de tra cuu hoac xu ly
-        tool_choice = "required" if step == 0 else "auto"
+        # Tu dong quyet dinh tool_choice: 'auto' cac buoc dau de cho phep tu choi ngay; 'none' o buoc cuoi de ep tong hop
+        tool_choice = "none" if step == MAX_STEPS - 1 else "auto"
 
         try:
             response, usage = call_groq_with_retry(
@@ -145,8 +165,19 @@ async def run_agent_loop(
                 tool_choice=tool_choice,
             )
         except Exception as e:
-            err_msg = f"Loi ket noi LLM: {e}"
+            err_msg = f"Error: Loi ket noi LLM: {e}"
             print(f"[Loi] {err_msg}")
+            if tracker:
+                tracker.log_agent_run({
+                    "timestamp": datetime.now().isoformat(),
+                    "query": user_query,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "steps": step,
+                    "trajectory": trajectory,
+                    "final_answer": err_msg,
+                    "usage": total_tokens,
+                })
             return err_msg, "\n\n".join(accumulated_context), total_tokens
 
         total_tokens["prompt_tokens"] += usage["prompt_tokens"]
@@ -169,32 +200,39 @@ async def run_agent_loop(
                     tool_args = {}
 
                 print(f"\n[Hanh dong - Buoc {step + 1}] Goi cong cu: '{tool_name}'")
-                if tool_name in ["search_regulations", "search_documents", "search_ctxh_rules"]:
+                if tool_name in ["search_ctxh_rules", "search_regulations", "search_documents"]:
                     print(f"    -> Tu khoa: \"{tool_args.get('query')}\"")
                     if tool_args.get("year"):
                         print(f"    -> Nam (year): {tool_args.get('year')}")
+                elif tool_name == "get_activity":
+                    print(f"    -> [TRA CUU QUY CHE] Ma/Tu khoa: {tool_args.get('code_or_name')}")
                 elif tool_name in ["check_student_exists", "check_graduation_eligibility"]:
                     print(f"    -> [THAM DINH HO SO] MSSV: {tool_args.get('mssv')}")
-                elif tool_name in ["submit_academic_request", "register_ctxh_activity"]:
-                    print(f"    -> [GHI DU LIEU] MSSV: {tool_args.get('mssv')} | Hoat dong: {tool_args.get('activity_code', tool_args.get('request_type', ''))}")
-                elif tool_name in ["get_request_status", "get_ctxh_status"]:
-                    print(f"    -> [KIEM CHUNG] MSSV/Ma: {tool_args.get('mssv', tool_args.get('request_id', ''))}")
+                elif tool_name in ["register_ctxh_activity", "submit_academic_request"]:
+                    print(f"    -> [GHI DU LIEU] MSSV: {tool_args.get('mssv')} | Ma hoat dong: {tool_args.get('activity_code', '')}")
+                elif tool_name in ["get_ctxh_status", "get_request_status"]:
+                    print(f"    -> [KIEM CHUNG] MSSV: {tool_args.get('mssv', tool_args.get('request_id', ''))}")
 
                 # Goi Tool tren MCP Server qua stdio an toan (khong crash)
                 try:
                     tool_result = await session.call_tool(tool_name, arguments=tool_args)
                     result_text = tool_result.content[0].text if tool_result.content else ""
                 except Exception as e:
-                    result_text = f"Loi khi thuc thi cong cu '{tool_name}': {e}"
+                    result_text = f"Error: Loi khi thuc thi cong cu '{tool_name}': {e}"
 
                 print(f"    -> Nhan phan hoi: {len(result_text)} ky tu.")
                 accumulated_context.append(result_text)
+
+                if tool_name == "register_ctxh_activity" and not result_text.startswith("Error"):
+                    registered_mssv = str(tool_args.get("mssv", "")).strip()
+                elif tool_name == "get_ctxh_status":
+                    verified_mssv.add(str(tool_args.get("mssv", "")).strip())
 
                 trajectory.append({
                     "step": step + 1,
                     "tool": tool_name,
                     "args": tool_args,
-                    "result_preview": result_text[:200] if len(result_text) > 200 else result_text,
+                    "result_preview": result_text[:500] if len(result_text) > 500 else result_text,
                 })
 
                 # Gui ket qua quan sat (Observation) lai cho LLM
@@ -206,6 +244,29 @@ async def run_agent_loop(
 
             continue
 
+        # [VERIFY GUARD] Kiem tra xem co hoat dong ghi nao chua duoc verify qua get_ctxh_status khong
+        if registered_mssv and registered_mssv not in verified_mssv and step < MAX_STEPS - 1:
+            print(f"\n    -> [VERIFY GUARD] Phat hien dang ky chua kiem chung. Tu dong thuc thi get_ctxh_status cho MSSV {registered_mssv}...")
+            try:
+                v_res = await session.call_tool("get_ctxh_status", arguments={"mssv": registered_mssv})
+                v_text = v_res.content[0].text if v_res.content else ""
+            except Exception as e:
+                v_text = f"Error: Loi khi tu dong verify: {e}"
+
+            verified_mssv.add(registered_mssv)
+            accumulated_context.append(v_text)
+            trajectory.append({
+                "step": step + 1,
+                "tool": "get_ctxh_status",
+                "args": {"mssv": registered_mssv},
+                "result_preview": v_text[:500] if len(v_text) > 500 else v_text,
+            })
+            messages.append({
+                "role": "user",
+                "content": f"[XÁC THỰC BẮT BUỘC TỪ HỆ THỐNG]: Đã tự động kiểm chứng qua get_ctxh_status:\n{v_text}\nHãy hoàn tất câu trả lời chính thức cho sinh viên, nêu rõ mã đăng ký, trạng thái CONFIRMED và tiến độ tích lũy.",
+            })
+            continue
+
         # Neu khong con tool_calls -> LLM da hoan tat suy luan va tra ve cau tra loi cuoi cung
         final_answer = response_message.content or ""
         messages.append({"role": "assistant", "content": final_answer})
@@ -215,6 +276,7 @@ async def run_agent_loop(
             tracker.log_agent_run({
                 "timestamp": datetime.now().isoformat(),
                 "query": user_query,
+                "status": "SUCCESS",
                 "steps": len(trajectory),
                 "trajectory": trajectory,
                 "final_answer": final_answer,
@@ -225,7 +287,7 @@ async def run_agent_loop(
 
     # Qua so buoc cho phep (Max steps reached)
     warning_msg = (
-        "[Thong bao] Da vuot qua gioi han 6 buoc xu ly cho phep. "
+        f"[Thong bao] Da vuot qua gioi han {MAX_STEPS} buoc xu ly cho phep. "
         "Vui long cung cap yeu cau cu the hon de tro ly phuc vu tot hon."
     )
     if tracker:
@@ -251,7 +313,7 @@ async def main():
         print("[Loi] Chua tim thay GROQ_API_KEY trong file .env")
         return
 
-    groq_client = Groq(api_key=api_key)
+    groq_client = Groq(api_key=api_key, max_retries=0)
     system_prompt = load_system_prompt()
 
     # Khoi tao SessionTracker (Phần 2) de quan ly toan bo CSV & Do thi
@@ -267,6 +329,18 @@ async def main():
 
             # Dynamic tool discovery (MCP Specification Week 7)
             mcp_tools = (await session.list_tools()).tools
+
+            # Tool denylist: Cac tool quan tri / tai lieu toan van danh rieng cho lenh CLI (/docs, /sync)
+            # Khong day vao groq_tools de giam token schema cho LLM (giai quyet triet de loi 429/413)
+            EXCLUDED_LLM_TOOLS = {
+                "list_indexed_documents",
+                "get_document_full",
+                "sync_ctxh_activities",
+                "export_ctxh_rules_json",
+                "sync_documents",
+                "check_graduation_eligibility",
+            }
+
             groq_tools = [
                 {
                     "type": "function",
@@ -277,10 +351,11 @@ async def main():
                     },
                 }
                 for t in mcp_tools
+                if t.name not in EXCLUDED_LLM_TOOLS
             ]
 
             print("[THANH CONG] Da ket noi MCP Server!")
-            print(f"Cac cong cu duoc phep goi: {', '.join([t.name for t in mcp_tools])}")
+            print(f"Cac cong cu agent duoc phep su dung ({len(groq_tools)}): {', '.join([t['function']['name'] for t in groq_tools])}")
             print("\nCac lenh tien ich nhanh:")
             print("   - /docs  : Xem danh muc cac van ban quy che hien hanh")
             print("   - /sync  : Quet va dong bo lai thu muc quy che data/")

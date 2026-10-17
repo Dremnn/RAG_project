@@ -16,5 +16,5 @@ eval:
 	uv run python tests/evaluate_testset.py
 
 clean:
-	@echo [CLEAN] Cleaning cache and temporary indices...
-	if exist data\index.json del /f /q data\index.json
+	uv run python -c "import pathlib; p = pathlib.Path('data/index.json'); p.unlink(missing_ok=True)"
+

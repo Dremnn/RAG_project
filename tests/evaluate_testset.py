@@ -11,6 +11,7 @@ Run using: uv run python tests/evaluate_testset.py
 import asyncio
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -54,9 +55,19 @@ async def evaluate_all():
         print("[Loi] Chua tim thay GROQ_API_KEY trong file .env")
         return
 
-    groq_client = Groq(api_key=api_key)
+    groq_client = Groq(api_key=api_key, max_retries=0)
     system_prompt = load_system_prompt()
     evaluator = FaithfulnessEvaluator(groq_client=groq_client)
+
+    # Sao luu student_activities.json de bao ve va reset sau khi eval (tranh dinh loi trung lap o q7)
+    activities_file = _ROOT / "data" / "student_activities.json"
+    activities_backup = None
+    if activities_file.exists():
+        try:
+            with open(activities_file, "r", encoding="utf-8") as f:
+                activities_backup = f.read()
+        except Exception:
+            pass
 
     if not TESTSET_FILE.exists():
         print(f"[Loi] Khong tim thay tap kiem thu {TESTSET_FILE}")
@@ -68,6 +79,17 @@ async def evaluate_all():
             line = line.strip()
             if line:
                 testcases.append(json.loads(line))
+
+    # Hỗ trợ tham số dòng lệnh --limit hoặc biến môi trường EVAL_LIMIT để test nhanh
+    limit = int(os.getenv("EVAL_LIMIT", 0))
+    for i, arg in enumerate(sys.argv):
+        if arg == "--limit" and i + 1 < len(sys.argv):
+            try:
+                limit = int(sys.argv[i + 1])
+            except ValueError:
+                pass
+    if limit > 0:
+        testcases = testcases[:limit]
 
     print("=" * 65)
     print(f"[DANH GIA HE THONG] BAT DAU DANH GIA {len(testcases)} CAU HOI KIEM THU (WEEK 5)")
@@ -103,6 +125,14 @@ async def evaluate_all():
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     mcp_tools = (await session.list_tools()).tools
+                    EXCLUDED_LLM_TOOLS = {
+                        "list_indexed_documents",
+                        "get_document_full",
+                        "sync_ctxh_activities",
+                        "export_ctxh_rules_json",
+                        "sync_documents",
+                        "check_graduation_eligibility",
+                    }
                     groq_tools = [
                         {
                             "type": "function",
@@ -113,6 +143,7 @@ async def evaluate_all():
                             },
                         }
                         for t in mcp_tools
+                        if t.name not in EXCLUDED_LLM_TOOLS
                     ]
 
                     answer, context, usage = await run_agent_loop(
@@ -133,6 +164,14 @@ async def evaluate_all():
         duration = time.time() - start_t
         total_prompt_tokens += usage.get("prompt_tokens", 0)
         total_completion_tokens += usage.get("completion_tokens", 0)
+
+        # Kiem tra xem co phai loi ha tang mang / rate-limit hay khong
+        is_infra_error = (
+            answer.startswith("Error: Loi ket noi LLM")
+            or "429" in answer
+            or "413" in answer
+            or "Loi he thong:" in answer
+        )
 
         # Danh gia Calibration cho cau hoi ngoai pham vi (no_answer)
         is_refused = False
@@ -155,18 +194,26 @@ async def evaluate_all():
             else:
                 print("    -> [CALIBRATION] Canh bao: Khong tu choi cau hoi ngoai pham vi!")
 
-        # Kiem tra trich dan nguon (Grounding Citation)
-        has_citation = ("[nguồn:" in answer.lower() or "[nguon:" in answer.lower()) and "chunk id:" in answer.lower()
+        # Kiem tra trich dan nguon (Grounding Citation: ho tro ca Chunk ID va Ma hoat dong)
+        has_citation = (
+            ("[nguồn:" in answer_lower or "[nguon:" in answer_lower)
+            and ("chunk id:" in answer_lower or "mã hoạt động:" in answer_lower or "ma hoat dong:" in answer_lower)
+        )
+        cids_cited = re.findall(r"chunk\s*id[:\s]+([a-zA-Z0-9_\-\.]+)", answer, re.IGNORECASE)
+        cid_grounded = any(cid in context for cid in cids_cited) if cids_cited else has_citation
 
         # Danh gia bo 3 chi so Week 5: Faithfulness, Answer Relevance, Context Precision
-        f_score = 1.0
-        rel_score = 1.0
-        prec_score = 1.0
+        f_score = None
+        rel_score = None
+        prec_score = None
 
-        if not is_no_ans:
+        if is_infra_error:
+            print("    -> [HA TANG] Lỗi kết nối mạng/quota LLM (ERROR), bỏ qua tính điểm chất lượng.")
+        elif not is_no_ans:
             # Answer Relevance: Danh gia muc do giai quyet dung trong tam cau hoi (khong phu thuoc context)
             rel_score = check_answer_relevance(query, answer, groq_client=groq_client)
-            relevance_scores.append(rel_score)
+            if rel_score is not None:
+                relevance_scores.append(rel_score)
 
             # Faithfulness: Tach menh de nguyen tu va doi chieu context
             if context.strip():
@@ -174,23 +221,33 @@ async def evaluate_all():
                     report = evaluator.evaluate(answer, context)
                     f_score = report.score
                 except Exception:
-                    f_score = 1.0
-                faithfulness_scores.append(f_score)
+                    f_score = None
+                if f_score is not None:
+                    faithfulness_scores.append(f_score)
 
-                # Context Precision: Xep hang chunk huu ich
-                prec_score = check_context_precision(query, [context], groq_client=groq_client)
-                precision_scores.append(prec_score)
+                # Context Precision: Xep hang chunk huu ich (tach thanh tung chunk rieng biet de danh gia Ranking)
+                chunks_list = []
+                for b in context.split("--- [Trich doan"):
+                    b_str = b.strip()
+                    if b_str:
+                        chunks_list.append(b_str)
+                if not chunks_list and context.strip():
+                    chunks_list = [context.strip()]
 
-                print(f"    -> [WEEK 5] Faithfulness: {f_score:.2f} | Relevance: {rel_score:.2f} | Precision: {prec_score:.2f}")
+                prec_score = check_context_precision(query, chunks_list, groq_client=groq_client)
+                if prec_score is not None:
+                    precision_scores.append(prec_score)
+
+                f_str = f"{f_score:.2f}" if f_score is not None else "None"
+                r_str = f"{rel_score:.2f}" if rel_score is not None else "None"
+                p_str = f"{prec_score:.2f}" if prec_score is not None else "None"
+                print(f"    -> [WEEK 5] Faithfulness: {f_str} | Relevance: {r_str} | Precision: {p_str}")
             else:
-                f_score = 0.0
-                prec_score = 0.0
-                faithfulness_scores.append(f_score)
-                precision_scores.append(prec_score)
-                print(f"    -> [WEEK 5] Khong co context: Faithfulness={f_score:.2f} | Relevance={rel_score:.2f}")
+                f_score = None
+                prec_score = None
+                r_str = f"{rel_score:.2f}" if rel_score is not None else "None"
+                print(f"    -> [WEEK 5] Khong co context: Faithfulness=N/A | Relevance={r_str}")
         else:
-            relevance_scores.append(1.0)
-            precision_scores.append(1.0)
             print(f"    -> [WEEK 5] Cau out-of-domain: Calibration Pass.")
 
         calls = usage.get("api_calls", 1)
@@ -224,14 +281,24 @@ async def evaluate_all():
             "answer_preview": answer[:150],
         })
 
-        # Nghỉ giữa các câu để tránh rate limit Groq free tier
-        time.sleep(2.0)
+        # Nghỉ giữa các câu dựa trên tổng token đã dùng để bảo toàn quota Groq (7000 TPM)
+        adaptive_sleep = max(4.0, (tot_tok / 6500.0) * 60.0)
+        print(f"    -> [RATE LIMIT PACING] Nghi {adaptive_sleep:.1f}s de phuc hoi quota Groq TPM...")
+        time.sleep(adaptive_sleep)
+
+    # Khoi phuc lai du lieu student_activities.json sau khi hoan tat cac cau hoi
+    if activities_backup is not None and activities_file.exists():
+        try:
+            with open(activities_file, "w", encoding="utf-8") as f:
+                f.write(activities_backup)
+        except Exception:
+            pass
 
     # Tinh toan tong the
     refusal_rate = (no_answer_refused_correctly / no_answer_total * 100) if no_answer_total > 0 else 0
-    avg_faithfulness = (sum(faithfulness_scores) / len(faithfulness_scores)) if faithfulness_scores else 1.0
-    avg_relevance = (sum(relevance_scores) / len(relevance_scores)) if relevance_scores else 1.0
-    avg_precision = (sum(precision_scores) / len(precision_scores)) if precision_scores else 1.0
+    avg_faithfulness = (sum(faithfulness_scores) / len(faithfulness_scores)) if faithfulness_scores else None
+    avg_relevance = (sum(relevance_scores) / len(relevance_scores)) if relevance_scores else None
+    avg_precision = (sum(precision_scores) / len(precision_scores)) if precision_scores else None
     avg_tokens = (total_prompt_tokens + total_completion_tokens) / len(testcases)
 
     diagnosis = diagnose_failure_mode(avg_faithfulness, avg_relevance, avg_precision)
@@ -240,9 +307,9 @@ async def evaluate_all():
         "total_testcases": len(testcases),
         "no_answer_testcases": no_answer_total,
         "refusal_rate_percent": round(refusal_rate, 2),
-        "average_faithfulness": round(avg_faithfulness, 2),
-        "average_answer_relevance": round(avg_relevance, 2),
-        "average_context_precision": round(avg_precision, 2),
+        "average_faithfulness": round(avg_faithfulness, 2) if avg_faithfulness is not None else None,
+        "average_answer_relevance": round(avg_relevance, 2) if avg_relevance is not None else None,
+        "average_context_precision": round(avg_precision, 2) if avg_precision is not None else None,
         "average_tokens_per_query": round(avg_tokens, 1),
         "total_prompt_tokens": total_prompt_tokens,
         "total_completion_tokens": total_completion_tokens,
@@ -337,18 +404,20 @@ def run_configuration_comparison(store, eval_dir: Path, charts_dir: Path) -> lis
         d_content = d_chunk.content.lower() if d_chunk else ""
         h_content = h_chunk.content.lower() if h_chunk else ""
 
-        d_hit = any(kw.lower() in d_content for kw in tc["check_kw"])
-        h_hit = any(kw.lower() in h_content for kw in tc["check_kw"])
+        d_hit = all(kw.lower() in d_content for kw in tc["check_kw"])
+        h_hit = all(kw.lower() in h_content for kw in tc["check_kw"])
 
         d_cid = d_chunk.chunk_id if d_chunk else "None"
         h_cid = h_chunk.chunk_id if h_chunk else "None"
 
         if h_hit and not d_hit:
-            winner = "Hybrid (Bắt đúng mã số)"
-        elif h_score > d_score and h_hit:
-            winner = "Hybrid (Tương đồng cao hơn)"
+            winner = "Hybrid (BM25 bắt đúng từ khóa)"
+        elif d_hit and not h_hit:
+            winner = "Dense"
+        elif h_hit and d_hit:
+            winner = "Tương đương" if abs(h_score - d_score) < 0.05 else ("Hybrid" if h_score > d_score else "Dense")
         else:
-            winner = "Tương đương"
+            winner = "Không khớp"
 
         records.append({
             "id": tc["id"],

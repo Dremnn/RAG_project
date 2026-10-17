@@ -1,0 +1,4 @@
+﻿id,short_label,query,expected_code,dense_score,dense_chunk,dense_hit,hybrid_score,hybrid_chunk,hybrid_hit,winner
+q1,Mã số chính xác,Mã hoạt động Trực tiếp hiến máu tình nguyện 01 lần là mã gì và được quy đổi bao nhiêu ngày,001201 / 001202,0.529,00_Toan_van_Quy_dinh_CTXH_2025_c008,True,0.998,02_Phan_II_Noi_dung_va_Quy_doi_ngay_CTXH_2025_c004,True,Hybrid (Tương đồng cao hơn)
+q3,Ngữ nghĩa tự nhiên,Sinh viên đăng ký tham gia hoạt động CTXH nhưng không thực hiện thì bị xử lý thế nào,"trừ 0,5 ngày",0.638,02_Phan_II_Noi_dung_va_Quy_doi_ngay_CTXH_2025_c009,True,1.0,02_Phan_II_Noi_dung_va_Quy_doi_ngay_CTXH_2025_c009,True,Hybrid (Tương đồng cao hơn)
+q6,Công thức quy đổi,công thức quy đổi điểm thành ngày CTXH trước khi xét tốt nghiệp,chia cho 10,0.781,02_Phan_II_Noi_dung_va_Quy_doi_ngay_CTXH_2025_c010,True,1.0,02_Phan_II_Noi_dung_va_Quy_doi_ngay_CTXH_2025_c010,True,Hybrid (Tương đồng cao hơn)

@@ -48,11 +48,11 @@ def save_session_csv(records: list[dict[str, Any]], output_file: str | Path) -> 
                 r.get("query", ""),
                 r.get("is_no_answer", False),
                 r.get("is_refused", False),
-                r.get("keyword_recall", 1.0),
+                r.get("keyword_recall") if r.get("keyword_recall") is not None else "",
                 r.get("has_citation", False),
-                r.get("faithfulness_score", 1.0),
-                r.get("answer_relevance", 1.0),
-                r.get("context_precision", 1.0),
+                r.get("faithfulness_score") if r.get("faithfulness_score") is not None else "",
+                r.get("answer_relevance") if r.get("answer_relevance") is not None else "",
+                r.get("context_precision") if r.get("context_precision") is not None else "",
                 r.get("duration_seconds", 0.0),
                 calls,
                 p_tok,
@@ -140,17 +140,17 @@ def generate_session_charts(
 
             if has_rel or has_prec:
                 width = 0.22
-                faith = [float(r.get("faithfulness_score", 1.0)) * 100 for r in records]
-                relev = [float(r.get("answer_relevance", 1.0)) * 100 for r in records]
-                prec = [float(r.get("context_precision", 1.0)) * 100 for r in records]
+                faith = [(float(r["faithfulness_score"]) * 100) if r.get("faithfulness_score") is not None else float("nan") for r in records]
+                relev = [(float(r["answer_relevance"]) * 100) if r.get("answer_relevance") is not None else float("nan") for r in records]
+                prec = [(float(r["context_precision"]) * 100) if r.get("context_precision") is not None else float("nan") for r in records]
 
                 ax.bar(x - width, faith, width, label="Faithfulness (Grounded)", color="#059669", alpha=0.9)
                 ax.bar(x, relev, width, label="Answer Relevance", color="#2563eb", alpha=0.9)
                 ax.bar(x + width, prec, width, label="Context Precision", color="#d97706", alpha=0.9)
             else:
                 width = 0.35
-                faith = [float(r.get("faithfulness_score", 1.0)) * 100 for r in records]
-                recall = [float(r.get("keyword_recall", 1.0)) * 100 for r in records]
+                faith = [(float(r["faithfulness_score"]) * 100) if r.get("faithfulness_score") is not None else float("nan") for r in records]
+                recall = [(float(r["keyword_recall"]) * 100) if r.get("keyword_recall") is not None else float("nan") for r in records]
                 ax.bar(x - width/2, faith, width, label="Faithfulness (%)", color="#059669", alpha=0.9)
                 ax.bar(x + width/2, recall, width, label="Keyword Recall (%)", color="#0284c7", alpha=0.9)
 
@@ -187,16 +187,28 @@ def generate_session_charts(
             ax1.set_title("1. Phân bố thể loại", fontsize=10, fontweight="bold")
 
             # Subplot 2: Calibration rate / Refusal
-            ref_pct = summary.get("refusal_rate_percent", 100.0) if summary else 100.0
-            no_ans = summary.get("no_answer_testcases", sum(1 for r in records if r.get("is_no_answer"))) if summary else 1
-            if no_ans > 0:
-                ref_cnt = int(round(no_ans * ref_pct / 100))
-                fail_cnt = no_ans - ref_cnt
-                ax2.pie([max(ref_cnt, 1), max(fail_cnt, 0)], labels=["Từ chối đúng", "Chưa từ chối"],
-                        autopct="%1.0f%%", startangle=90, colors=["#10b981", "#ef4444"])
+            no_ans_count = sum(1 for r in records if r.get("is_no_answer"))
+            if summary and "refusal_rate_percent" in summary:
+                ref_pct = summary["refusal_rate_percent"]
+                no_ans = summary.get("no_answer_testcases", no_ans_count)
             else:
-                ax2.text(0.5, 0.5, "100% In-Scope", ha="center", va="center", fontsize=11, fontweight="bold")
-            ax2.set_title(f"2. Calibration (Refusal: {ref_pct}%)", fontsize=10, fontweight="bold")
+                no_ans = no_ans_count
+                ref_cnt = sum(1 for r in records if r.get("is_no_answer") and r.get("is_refused"))
+                ref_pct = (ref_cnt / no_ans * 100.0) if no_ans > 0 else None
+
+            if no_ans > 0 and ref_pct is not None:
+                ref_cnt = int(round(no_ans * ref_pct / 100.0))
+                fail_cnt = no_ans - ref_cnt
+                if ref_cnt + fail_cnt > 0:
+                    ax2.pie([ref_cnt, fail_cnt], labels=["Từ chối đúng", "Chưa từ chối"],
+                            autopct="%1.0f%%", startangle=90, colors=["#10b981", "#ef4444"])
+                else:
+                    ax2.text(0.5, 0.5, "Không có dữ liệu", ha="center", va="center", fontsize=11, fontweight="bold")
+                ax2.set_title(f"2. Calibration (Refusal: {ref_pct:.1f}%)", fontsize=10, fontweight="bold")
+            else:
+                ax2.text(0.5, 0.5, "N/A (Chưa đo Calibration\nhoặc 100% câu trong phạm vi)",
+                         ha="center", va="center", fontsize=10, fontweight="bold", color="#64748b")
+                ax2.set_title("2. Calibration (Chưa đo lường)", fontsize=10, fontweight="bold")
 
             # Subplot 3: Total token per question
             totals = [r.get("total_tokens", r.get("usage", {}).get("total_tokens", 0)) for r in records]
@@ -208,31 +220,42 @@ def generate_session_charts(
             # Subplot 4: Summary Info Box
             ax4.axis("off")
             total_cases = len(records)
-            avg_faith = (sum(float(r.get("faithfulness_score", 1.0)) for r in records) / total_cases) if total_cases else 1.0
-            avg_recall = (sum(float(r.get("keyword_recall", 1.0)) for r in records) / total_cases) if total_cases else 1.0
+            faith_vals = [float(r["faithfulness_score"]) for r in records if r.get("faithfulness_score") is not None]
+            avg_faith = (sum(faith_vals) / len(faith_vals)) if faith_vals else (summary.get("average_faithfulness") if summary else None)
+
+            recall_vals = [float(r["keyword_recall"]) for r in records if r.get("keyword_recall") is not None]
+            avg_recall = (sum(recall_vals) / len(recall_vals)) if recall_vals else None
             avg_tok = (sum(totals) / total_cases) if total_cases else 0
 
             has_rel = any("answer_relevance" in r for r in records)
             has_prec = any("context_precision" in r for r in records)
-            avg_rel = (sum(float(r.get("answer_relevance", 1.0)) for r in records) / total_cases) if total_cases else 1.0
-            avg_prec = (sum(float(r.get("context_precision", 1.0)) for r in records) / total_cases) if total_cases else 1.0
+            relev_vals = [float(r["answer_relevance"]) for r in records if r.get("answer_relevance") is not None]
+            avg_rel = (sum(relev_vals) / len(relev_vals)) if relev_vals else (summary.get("average_answer_relevance") if summary else None)
 
+            prec_vals = [float(r["context_precision"]) for r in records if r.get("context_precision") is not None]
+            avg_prec = (sum(prec_vals) / len(prec_vals)) if prec_vals else (summary.get("average_context_precision") if summary else None)
+
+            faith_str = f"{avg_faith:.2f} / 1.00" if avg_faith is not None else "N/A"
+            ref_str = f"{ref_pct:.1f}%" if ref_pct is not None else "N/A"
             lines_info = [
                 f"4. TỔNG HỢP {session_title.upper()}",
                 "────────────────────────────────────────────",
                 f"• Tổng số lượt truy vấn: {total_cases} câu",
-                f"• Tỷ lệ từ chối đúng   : {ref_pct:.1f}%",
-                f"• Faithfulness (Ground): {avg_faith:.2f} / 1.00",
+                f"• Tỷ lệ từ chối đúng   : {ref_str}",
+                f"• Faithfulness (Ground): {faith_str}",
             ]
             if has_rel:
-                lines_info.append(f"• Answer Relevance     : {avg_rel:.2f} / 1.00")
+                rel_str = f"{avg_rel:.2f} / 1.00" if avg_rel is not None else "N/A"
+                lines_info.append(f"• Answer Relevance     : {rel_str}")
             if has_prec:
-                lines_info.append(f"• Context Precision    : {avg_prec:.2f} / 1.00")
+                prec_str = f"{avg_prec:.2f} / 1.00" if avg_prec is not None else "N/A"
+                lines_info.append(f"• Context Precision    : {prec_str}")
+            if avg_recall is not None:
+                lines_info.append(f"• Độ phủ từ khóa        : {avg_recall*100:.1f}%")
             lines_info.extend([
-                f"• Độ phủ từ khóa        : {avg_recall*100:.1f}%",
                 f"• Token trung bình      : {avg_tok:,.1f} tok/câu",
                 "────────────────────────────────────────────",
-                "Trạng thái: HOÀN TẤT ĐÁNH GIÁ (WEEK 5)"
+                "Trạng thái: HOÀN TẤT ĐÁNH GIÁ (BENCHMARK)" if summary else "Trạng thái: PHIÊN TƯƠNG TÁC THỰC TẾ"
             ])
             info = "\n".join(lines_info)
             ax4.text(0.05, 0.5, info, fontsize=8.8, family="monospace",

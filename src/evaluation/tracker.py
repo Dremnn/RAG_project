@@ -27,10 +27,9 @@ class SessionTracker:
         self.records: list[dict[str, Any]] = []
 
     def log_agent_run(self, run_record: dict[str, Any]) -> None:
-        """Lưu trace từng lượt gọi agent vào logs/app/run_YYYYMMDD.jsonl."""
+        """Lưu trace từng lượt gọi agent vào logs/app/run_{session_id}.jsonl (mỗi phiên chạy một file riêng biệt)."""
         self.logs_dir.mkdir(parents=True, exist_ok=True)
-        today_str = datetime.now().strftime("%Y%m%d")
-        log_file = self.logs_dir / f"run_{today_str}.jsonl"
+        log_file = self.logs_dir / f"run_{self.session_id}.jsonl"
         with open(log_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(run_record, ensure_ascii=False) + "\n")
 
@@ -41,22 +40,41 @@ class SessionTracker:
         duration: float,
         usage: dict[str, Any],
         category: str = "interactive",
+        faithfulness_score: Optional[float] = None,
+        keyword_recall: Optional[float] = None,
+        is_no_answer: bool = False,
+        is_refused: Optional[bool] = None,
     ) -> dict[str, Any]:
-        """Tạo và lưu trữ record chỉ số của một lượt hỏi đáp."""
+        """Tạo và lưu trữ record chỉ số của một lượt hỏi đáp. Mặc định faithfulness_score và keyword_recall là None nếu chưa chấm."""
+        ans_low = answer.lower()
         has_cit = (
-            ("[nguồn:" in answer.lower() or "[nguon:" in answer.lower())
-            and "chunk id:" in answer.lower()
+            ("[nguồn:" in ans_low or "[nguon:" in ans_low)
+            and ("chunk id:" in ans_low or "mã hoạt động:" in ans_low or "ma hoat dong:" in ans_low)
         )
+        if is_refused is None:
+            refusal_keywords = [
+                "không có trong", "không có quy định", "không có thông tin", 
+                "quy định này không có", "không tìm thấy", "từ chối", "không thuộc", 
+                "không nằm trong", "chưa có quy định", "không áp dụng", "không quy định",
+                "ngoài phạm vi", "chỉ hỗ trợ giải đáp quy định",
+                "không tồn tại trong cơ sở dữ liệu", "không tồn tại trong hệ thống"
+            ]
+            is_ref = any(kw in ans_low for kw in refusal_keywords)
+        else:
+            is_ref = is_refused
+
         record = {
             "id": f"Q{len(self.records) + 1}",
             "category": category,
             "query": query,
+            "is_no_answer": is_no_answer,
+            "is_refused": is_ref,
             "final_answer": answer,
             "answer_preview": answer[:150],
             "duration_seconds": round(duration, 2),
             "has_citation": has_cit,
-            "faithfulness_score": 1.0,
-            "keyword_recall": 1.0,
+            "faithfulness_score": faithfulness_score,
+            "keyword_recall": keyword_recall,
             "calls": usage.get("api_calls", 1),
             "prompt_tokens": usage.get("prompt_tokens", 0),
             "completion_tokens": usage.get("completion_tokens", 0),

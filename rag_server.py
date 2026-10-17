@@ -231,6 +231,10 @@ def sync_students_from_excel() -> dict:
     """
     excel_path = _get_excel_students_path()
     if excel_path is None:
+        if STUDENTS_DB_PATH.exists():
+            msg = "Khong tim thay file Excel sinh vien, bao toan 100% du lieu students.json hien co."
+            print(f"[sync_students] {msg}", file=sys.stderr)
+            return {"status": "kept", "message": msg}
         STUDENTS_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
         with open(STUDENTS_DB_PATH, "w", encoding="utf-8") as f:
             json.dump([], f, ensure_ascii=False, indent=2)
@@ -349,10 +353,6 @@ def _extract_rules_from_text(text: str, rules_dict: dict) -> None:
     t_lower = text.lower()
     if "chia cho 10" in t_lower:
         rules_dict["formula"] = "Lấy tổng điểm hoạt động CTXH SV đã tích lũy chia cho 10 (số lẻ dưới 5 làm tròn xuống; tròn 5 điểm, quy đổi thành nửa ngày CTXH; trên 5 làm tròn thành 10, quy đổi thành một ngày CTXH)."
-    elif "chia cho 12" in t_lower and "formula" not in rules_dict:
-        rules_dict["formula"] = "Lấy tổng điểm CTXH tích lũy chia cho 12 (chuẩn quốc tế áp dụng từ 2025)."
-    elif "chia cho 8" in t_lower and "formula" not in rules_dict:
-        rules_dict["formula"] = "Lấy tổng điểm hoạt động CTXH tích lũy chia cho 8 (Quy định 2023)."
 
     for line in text.splitlines():
         l_lower = line.lower()
@@ -393,7 +393,14 @@ def _find_all_ctxh_rules_files() -> list[Path]:
             if p not in files:
                 files.append(p)
 
+    def _file_sort_key(p: Path) -> tuple[int, str]:
+        m = re.search(r"20\d\d", p.name)
+        yr = int(m.group(0)) if m else 0
+        return (yr, p.name)
+
+    files.sort(key=_file_sort_key, reverse=True)
     return files
+
 
 
 def _find_ctxh_rules_source_file() -> Path | None:
@@ -416,15 +423,8 @@ def _parse_ctxh_rules_from_file(fpath: Path) -> dict:
     activities: list[dict] = []
     calculation_rules = {
         "formula": "Lấy tổng điểm hoạt động CTXH SV đã tích lũy chia cho 10 (số lẻ dưới 5 làm tròn xuống; tròn 5 điểm, quy đổi thành nửa ngày CTXH; trên 5 làm tròn thành 10, quy đổi thành một ngày CTXH).",
-        "deduction_rules": [
-            "SV đăng ký tham gia hoạt động CTXH nhưng không thực hiện mà không có lý do hoặc lý do không chính đáng bị trừ 0,5 đến 2,0 ngày CTXH và hạ bậc ĐRL.",
-            "SV không hoàn thành nhiệm vụ, gây ảnh hưởng xấu bị trừ từ 01 đến toàn bộ số ngày đã tích lũy.",
-            "SV gian lận công nghệ (Fake GPS, can thiệp camera điểm danh) bị hủy bỏ toàn bộ số ngày CTXH đã tích lũy và kỷ luật."
-        ],
-        "exclusions": [
-            "Các hoạt động không mang tính chất CTXH như xem biểu diễn văn nghệ, xem thể thao, du lịch, tham quan, sinh hoạt CLB không được tính ngày CTXH.",
-            "Khi SV tham gia hoạt động CTXH đã được trả tiền công hoặc trả phí thì không được tính ngày CTXH."
-        ]
+        "deduction_rules": [],
+        "exclusions": []
     }
 
 
@@ -615,11 +615,10 @@ def sync_ctxh_rules_from_file() -> dict:
 
     merged_activities: dict[str, dict] = {}
     merged_rules = {
-        "formula": "Lấy tổng điểm hoạt động CTXH SV đã tích lũy chia cho 10 (số lẻ dưới 5 làm tròn xuống; tròn 5 điểm, quy đổi thành nửa ngày CTXH; trên 5 làm tròn thành 10, quy đổi thành một ngày CTXH). Quy định 2025 áp dụng chia cho 12 đối với các hoạt động chuẩn mới.",
+        "formula": "Lấy tổng điểm hoạt động CTXH SV đã tích lũy chia cho 10 (số lẻ dưới 5 làm tròn xuống; tròn 5 điểm, quy đổi thành nửa ngày CTXH; trên 5 làm tròn thành 10, quy đổi thành một ngày CTXH).",
         "deduction_rules": [
-            "SV đăng ký tham gia hoạt động CTXH nhưng không thực hiện mà không có lý do hoặc lý do không chính đáng bị trừ 0,5 đến 2,0 ngày CTXH và hạ bậc ĐRL.",
-            "SV không hoàn thành nhiệm vụ, gây ảnh hưởng xấu bị trừ từ 01 đến toàn bộ số ngày đã tích lũy.",
-            "SV gian lận công nghệ (Fake GPS, can thiệp camera điểm danh) bị hủy bỏ toàn bộ số ngày CTXH đã tích lũy và xử lý kỷ luật."
+            "SV đăng ký tham gia hoạt động CTXH nhưng không thực hiện mà không có lý do chính đáng bị trừ 0,5 ngày CTXH vào tổng số ngày tích lũy.",
+            "SV không hoàn thành nhiệm vụ, gây ảnh hưởng xấu bị trừ từ 01 đến toàn bộ số ngày đã tích lũy."
         ],
         "exclusions": [
             "Các hoạt động không mang tính chất CTXH như xem biểu diễn văn nghệ, xem thể thao, du lịch, tham quan, sinh hoạt CLB không được tính ngày CTXH.",
@@ -632,10 +631,18 @@ def sync_ctxh_rules_from_file() -> dict:
         try:
             parsed = _parse_ctxh_rules_from_file(fpath)
             scanned_files.append(fpath.name)
+            year_match = re.search(r"20\d\d", fpath.name)
+            file_year = year_match.group(0) if year_match else ""
+
             for act in parsed.get("activities", []):
                 code = str(act.get("activity_code", "")).strip()
                 if not code:
                     continue
+                if file_year and not act.get("year"):
+                    act["year"] = file_year
+                if not act.get("source_file"):
+                    act["source_file"] = fpath.name
+
                 if code not in merged_activities:
                     merged_activities[code] = act
                 else:
@@ -968,11 +975,9 @@ def sync_ctxh_from_file() -> dict:
                 existing_reg_keys.add((activity_code, reg_date))
             total_new_activities += 1
 
-        # Tinh lai tong so ngay tich luy thuc te
-        rec["accumulated_days"] = round(
-            sum(a.get("converted_days", 0.0) for a in rec.get("registered_activities", []) if a.get("status") == "CONFIRMED"),
-            2
-        )
+        # Tinh lai tong so ngay tich luy thuc te theo chuan quy tac lam tron HCMUTE (dong bo voi get_ctxh_status)
+        tot_points = sum(int(_parse_numeric_value(a.get("points", 0))) for a in rec.get("registered_activities", []) if a.get("status") == "CONFIRMED")
+        rec["accumulated_days"] = convert_points_to_ctxh_days(tot_points)
 
     _save_student_ctxh(list(records_by_mssv.values()))
     msg = (
@@ -998,6 +1003,60 @@ def _load_students() -> list[dict]:
         return []
 
 
+def _load_rules_catalog() -> dict[str, dict]:
+    """Nap toan bo danh muc hoat dong CTXH tu activities.json."""
+    catalog: dict[str, dict] = {}
+    for p in ACTIVITIES_RULES_PATHS:
+        if p.exists():
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    cdata = json.load(f)
+                    for act in cdata.get("activities", []):
+                        acode = str(act.get("activity_code", "")).strip()
+                        if acode:
+                            catalog[acode] = act
+            except Exception:
+                pass
+    return catalog
+
+
+def _parse_numeric_value(val_str: Any, default: float = 0.0) -> float:
+    """Boc tach gia tri so tu chuoi (vi du '0,5', '5->10', '25→50' -> lay so goc)."""
+    if val_str is None:
+        return default
+    if isinstance(val_str, (int, float)):
+        return float(val_str)
+    s = str(val_str).replace(",", ".").strip()
+    m = re.search(r"(\d+(?:\.\d+)?)", s)
+    if m:
+        try:
+            return float(m.group(1))
+        except ValueError:
+            return default
+    return default
+
+
+def _normalize_search_string(text: str) -> str:
+    """Loai bo dau cau (ngoac don, phay, cham, gach ngang...) de so khop tu vung khong bi lech ky tu."""
+    s = re.sub(r"[()\[\]\-:;,.\"/\\?!]", " ", (text or "").lower())
+    return " ".join(s.split())
+
+
+def _parse_points_range(points_str: Any) -> tuple[int, int]:
+    """Phan tich khoang diem tu quy che (vi du '5->10', '20→40', '5' -> (min_pts, max_pts))."""
+    if points_str is None:
+        return 5, 5
+    s = str(points_str).replace(",", ".").strip()
+    nums = [int(float(n)) for n in re.findall(r"\d+(?:\.\d+)?", s)]
+    if len(nums) >= 2:
+        return min(nums[0], nums[1]), max(nums[0], nums[1])
+    elif len(nums) == 1:
+        return nums[0], nums[0]
+    return 5, 5
+
+
+
+
 # Initialize and sync store on startup
 _ensure_index_loaded()
 
@@ -1010,7 +1069,6 @@ _ensure_index_loaded()
 def search_ctxh_rules(
     query: str,
     top_k: int = 3,
-    mode: str = "hybrid",
     year: Optional[str] = None,
 ) -> str:
     """Tra cuu van ban quy dinh Cong tac xa hoi (CTXH) bang Hybrid Search (BM25 + Dense Vector).
@@ -1020,9 +1078,9 @@ def search_ctxh_rules(
     Args:
         query: Tu khoa, ma hoat dong (001101, 001202...), hoac cau hoi can tra cuu quy dinh CTXH.
         top_k: So luong trich doan can lay (mac dinh 3, toi da 6).
-        mode: Che do tim kiem ('hybrid', 'vector', 'bm25').
         year: Nam ban hanh quy dinh cu the (vi du '2023', '2024', '2025'). Neu de trong, he thong tu dong uu tien ban moi nhat.
     """
+    mode = os.getenv("SEARCH_MODE", "hybrid")
     top_k = max(1, min(top_k, 6))
     results = STORE.search(query=query, top_k=top_k, mode=mode, year=year)
 
@@ -1064,11 +1122,77 @@ def search_ctxh_rules(
     return "\n\n".join(formatted_passages)
 
 
-# Alias for backward compatibility if needed
 @mcp.tool()
-def search_regulations(query: str, top_k: int = 4, year: Optional[str] = None) -> str:
-    """Tra cuu quy dinh CTXH. Tuong duong voi search_ctxh_rules."""
-    return search_ctxh_rules(query=query, top_k=top_k, mode="hybrid", year=year)
+def get_activity(code_or_name: str) -> str:
+    """[READ TOOL] Tra cuu danh muc hoat dong CTXH chinh xac theo ma 6 chu so hoac tu khoa ten hoat dong tu bang quy che.
+    Tra ve ma hoat dong, ten day du, linh vuc, thang diem chuan, va so ngay quy doi theo quy dinh kem trich dan nguon chuan.
+    Dac biet giup phan biet ro cac hoat dong de gay nham lan (vi du: to chuc hien mau 001201 vs truc tiep hien mau 001202).
+    """
+    code_or_name = (code_or_name or "").strip()
+    if not code_or_name:
+        return "Error: Vui long cung cap ma hoat dong hoac tu khoa ten hoat dong can tra cuu."
+
+    catalog = _load_rules_catalog()
+    matched = []
+
+    # 1. Exact match by code
+    if code_or_name in catalog:
+        matched.append(catalog[code_or_name])
+    else:
+        # Search by keyword / normalized words (loai bo dau ngoac nhu (01 lan) vs 01 lan)
+        q_norm = _normalize_search_string(code_or_name)
+        STOPWORDS = {
+            "hoạt", "động", "tham", "gia", "các", "tại", "cho", "của", "và", "trong", "với", "là", "được", "có",
+            "mã", "gì", "bao", "nhiêu", "ngày", "điểm", "nào", "số", "công", "tác", "xã", "hội", "ctxh", "em", "tôi", "muốn"
+        }
+        q_tokens = [w for w in q_norm.split() if len(w) > 1 and w not in STOPWORDS]
+
+        for c, act in catalog.items():
+            name_raw = act.get("activity_name", "")
+            cat_raw = act.get("category", "")
+            combined_raw = f"{c} {name_raw} {cat_raw}".lower()
+            combined_norm = _normalize_search_string(f"{c} {name_raw} {cat_raw}")
+
+            # Khop chuoi con nguyen ban hoac khop cum tu da chuan hoa
+            if code_or_name.lower() in combined_raw or (len(q_norm) >= 6 and q_norm in combined_norm):
+                matched.append(act)
+            elif q_tokens:
+                matched_tokens = sum(1 for tok in q_tokens if tok in combined_norm)
+                ratio = matched_tokens / len(q_tokens)
+                if ratio >= 0.8:
+                    matched.append(act)
+
+    if not matched:
+        return f"Error: Khong tim thay hoat dong CTXH nao phu hop voi '{code_or_name}' trong danh muc quy che."
+
+    lines = [f"[DANH MUC HOAT DONG CTXH] Tim thay {len(matched)} hoat dong phu hop:"]
+    for act in matched[:5]:
+        code = act.get("activity_code")
+        # Tra cuu chunk that trong kho tri thuc index.json (STORE.chunks) uu tien ban moi nhat
+        matching_chunks = [c for c in STORE.chunks.values() if code in c.content]
+        if matching_chunks:
+            from src.retrieval.vector_store import parse_version_key
+            matching_chunks.sort(
+                key=lambda c: parse_version_key((c.metadata or {}).get("version")),
+                reverse=True
+            )
+            real_chunk = matching_chunks[0]
+            src = real_chunk.metadata.get("file_name", "00_Toan_van_Quy_dinh_CTXH_2025.pdf")
+            ver = real_chunk.metadata.get("version", "2025")
+            cid = real_chunk.chunk_id
+            cit_line = f"[Nguồn: {src} | Phiên bản: {ver} | Mã hoạt động: {code} | Chunk ID: {cid}]"
+        else:
+            cit_line = f"[Nguồn: Quy chế CTXH HCMUTE (Bản mới nhất) | Mã hoạt động: {code}]"
+
+        lines.append(
+            f"- Ma hoat dong: {code}\n"
+            f"  + Ten hoat dong: {act.get('activity_name')}\n"
+            f"  + Linh vuc: {act.get('category', 'Chung')}\n"
+            f"  + Thang diem chuan: {act.get('points')} diem\n"
+            f"  + Quy doi ngay CTXH: {act.get('converted_days')} ngay (Cong thuc: {act.get('formula', 'Diem / 10')})\n"
+            f"  + Trích dẫn nguồn: {cit_line}"
+        )
+    return "\n".join(lines)
 
 
 @mcp.tool()
@@ -1129,7 +1253,7 @@ def get_document_full(doc_id: str) -> str:
 def check_student_exists(mssv: str) -> str:
     """[READ TOOL] Kiem tra thong tin sinh vien co ton tai trong he thong co so du lieu cua truong hay khong.
     Tra ve Ho ten, Khoa, Khoa hoc, He dao tao, va so ngay CTXH tieu chuan de tot nghiep.
-    Nen goi cong cu nay de xac dinh danh tinh sinh vien truoc khi dang ky hoat dong."""
+    Bat buoc goi cong cu nay de xac minh danh tinh sinh vien truoc khi xu ly ho so hoac dang ky."""
     students = _load_students()
     for s in students:
         if s.get("mssv") == mssv:
@@ -1143,174 +1267,189 @@ def check_student_exists(mssv: str) -> str:
                 f"- So ngay CTXH yeu cau de tot nghiep: {s.get('required_ctxh_days')} ngay\n"
                 f"- Tinh trang hoc tap: {s.get('status', 'Dang hoc')}"
             )
-    return f"Loi: Khong tim thay sinh vien co MSSV '{mssv}' trong co so du lieu sinh vien cua truong HCMUTE."
+    return f"Error: Khong tim thay sinh vien co MSSV '{mssv}' trong co so du lieu sinh vien cua truong HCMUTE."
 
 
 @mcp.tool()
 def check_graduation_eligibility(mssv: str) -> str:
     """[SYNTHESIS/CALCULATION TOOL] Tham dinh va tinh toan tien do tich luy ngay CTXH so voi chuan tot nghiep.
-    Doi chieu giua ho so sinh vien (students.json) va so ngay da tich luy thuc te (student_ctxh.json).
-    Tra ve so ngay da co, so ngay con thieu, va ket luan sinh vien da du dieu kien tot nghiep hay chua."""
-    students = _load_students()
-    student_master = next((s for s in students if s.get("mssv") == mssv), None)
-
-    ctxh_data = _load_student_ctxh()
-    student_ctxh = next((s for s in ctxh_data if s.get("mssv") == mssv), None)
-
-    if not student_master and not student_ctxh:
-        return f"Loi: Khong tim thay thong tin sinh vien co MSSV '{mssv}' trong he thong de kiem tra dieu kien tot nghiep."
-
-    name = student_master.get("student_name") if student_master else student_ctxh.get("student_name", "N/A")
-    faculty = student_master.get("faculty") if student_master else student_ctxh.get("faculty", "N/A")
-    req_days = student_master.get("required_ctxh_days", 4.0) if student_master else student_ctxh.get("required_days", 4.0)
-    acc_days = student_ctxh.get("accumulated_days", 0.0) if student_ctxh else 0.0
-
-    activities = student_ctxh.get("registered_activities", []) if student_ctxh else []
-    total_points = sum(a.get("points", 0) for a in activities)
-    req_points_est = int(req_days * 10)
-
-    diff = round(req_days - acc_days, 2)
-    diff_points = max(0, req_points_est - total_points)
-
-    if diff <= 0:
-        status_text = "DA DU DIEU KIEN TOT NGHIEP CTXH"
-        detail_msg = f"Sinh vien da hoan tat {acc_days}/{req_days} ngay CTXH (Tong diem tich luy: {total_points} diem)."
-    else:
-        status_text = f"CHUA DU DIEU KIEN TOT NGHIEP (CON THIEU {diff} NGAY)"
-        detail_msg = (
-            f"Sinh vien hien co {total_points} diem CTXH, quy doi duoc {acc_days}/{req_days} ngay CTXH. "
-            f"Can tich luy them it nhat {diff} ngay nua (tuong duong khoang {diff_points} diem hoat dong)."
-        )
-
-    return (
-        f"[KET QUA THAM DINH DIEU KIEN TOT NGHIEP CTXH]\n"
-        f"- MSSV: {mssv} | Ho ten: {name} | Khoa: {faculty}\n"
-        f"- Tong diem CTXH da tich luy: {total_points} diem\n"
-        f"- So ngay da quy doi thuc te: {acc_days} ngay (Cong thuc: Tong diem / 10 theo quy dinh)\n"
-        f"- So ngay tieu chuan can tich luy: {req_days} ngay (uoc tinh khoang {req_points_est} diem)\n"
-        f"- Danh gia tien do: {status_text}\n"
-        f"- Chi tiet: {detail_msg}"
-    )
+    Tuong duong get_ctxh_status."""
+    return get_ctxh_status(mssv)
 
 
 @mcp.tool()
 def register_ctxh_activity(
     mssv: str,
     activity_code: str,
-    activity_name: str = "",
-    points: int = 5,
-    converted_days: float = 0.5,
+    points: Optional[int] = None,
     note: str = "",
 ) -> str:
     """[WRITE TOOL - SIDE EFFECT] Dang ky hoat dong CTXH va ghi nhan vao ho so sinh vien trong he thong du lieu.
-    Cap nhat so ngay tich luy thuc te cua sinh vien.
-    Bat buoc goi tiep cong cu get_ctxh_status ngay sau khi goi tool nay de verify trang thai ho so.
-    If the student does not exist, a new record is created with default values.
-    """
+    Tu dong kiem tra MSSV ton tai, kiem tra ma hoat dong hop le, kiem tra thang diem hop le theo quy che,
+    va kiem tra chong dang ky trung lap.
+    Bat buoc goi cong cu get_ctxh_status ngay sau khi goi tool nay de verify trang thai ho so."""
+    # 1. Kiem tra MSSV trong he thong goc
+    students_master = _load_students()
+    master_info = next((s for s in students_master if s.get("mssv") == mssv), None)
+    if not master_info:
+        return f"Error: Sinh vien co MSSV '{mssv}' khong ton tai trong he thong co so du lieu truong HCMUTE. Khong the dang ky hoat dong."
+
+    # 2. Kiem tra ma hoat dong trong catalog quy che
+    catalog = _load_rules_catalog()
+    if activity_code not in catalog:
+        return f"Error: Ma hoat dong '{activity_code}' khong ton tai trong quy che CTXH hien hanh."
+
+    act_info = catalog[activity_code]
+    min_pts, max_pts = _parse_points_range(act_info.get("points"))
+
+    if points is not None:
+        if points < min_pts or points > max_pts:
+            return (
+                f"Error: So diem dang ky {points} khong hop le cho ma hoat dong '{activity_code}'. "
+                f"Thang diem quy dinh trong quy che la: {min_pts} den {max_pts} diem."
+            )
+        points_val = points
+    else:
+        # Neu khong chi dinh diem, lay mac dinh muc co so trong quy che
+        points_val = min_pts
+
+    days_val = convert_points_to_ctxh_days(points_val)
+
+    # 3. Kiem tra ho so sinh vien trong student_activities.json
     data = _load_student_ctxh()
-    student = None
-    for s in data:
-        if s.get("mssv") == mssv:
-            student = s
-            break
+    student = next((s for s in data if s.get("mssv") == mssv), None)
     if not student:
-        # Lay thong tin tu danh sach sinh vien goc neu co
-        students_master = _load_students()
-        m_info = next((m for m in students_master if m.get("mssv") == mssv), None)
         student = {
             "mssv": mssv,
-            "student_name": m_info.get("student_name", "Unknown") if m_info else "Unknown",
-            "faculty": m_info.get("faculty", "") if m_info else "",
-            "course_year": m_info.get("course_year", "2022") if m_info else "2022",
-            "required_days": m_info.get("required_ctxh_days", 4.0) if m_info else 4.0,
+            "student_name": master_info.get("student_name", "Unknown"),
+            "faculty": master_info.get("faculty", ""),
+            "course_year": master_info.get("course_year", "2023"),
+            "required_days": master_info.get("required_ctxh_days", 4.0),
             "accumulated_days": 0.0,
             "registered_activities": [],
         }
         data.append(student)
+
+    # 4. Kiem tra chong dang ky trung lap hoat dong da xac nhan trong cung ngay
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    for existing_act in student.get("registered_activities", []):
+        if (
+            existing_act.get("activity_code") == activity_code
+            and existing_act.get("status") == "CONFIRMED"
+            and existing_act.get("registration_date") == today_str
+        ):
+            return (
+                f"Error: Sinh vien {mssv} ({student.get('student_name')}) da dang ky hoat dong ma '{activity_code}' "
+                f"trong ngay hom nay ({today_str}) voi ma dang ky '{existing_act.get('reg_id')}'. "
+                f"He thong khong cho phep dang ky trung lap cung mot hoat dong trong cung mot ngay."
+            )
+
+    # 5. Ghi nhan ban ghi moi su dung Dataclass CTXHRegistration
     now_str = datetime.now().strftime("%Y%m%d")
     short_id = uuid.uuid4().hex[:4].upper()
     reg_id = f"REG-CTXH-{now_str}-{short_id}"
-    code_names = {
-        "001202": "Truc tiep hien mau tinh nguyen (01 lan)",
-        "001201": "To chuc hoat dong hien mau tinh nguyen",
-        "001101": "Mua he xanh - Suot chien dich tai tinh (01 thang)",
-        "001104": "Mua he xanh - Doi hinh chuyen 02 tuan",
-        "001105": "Mua he xanh - Doi hinh chuyen 01 tuan",
-        "001301": "Xuan tinh nguyen (04 ngay)",
-        "001401": "Dem hoi trang ram (04 ngay)",
-        "001501": "Tiep suc mua thi - Cap thanh (01 thang)",
-        "001502": "Tiep suc mua thi - Cap truong (02 tuan)",
-        "002101": "Ngay chu nhat xanh (01 buoi)",
-        "002102": "Ngay chu nhat xanh (01 ngay)",
-    }
-    if not activity_name:
-        activity_name = code_names.get(activity_code, f"Hoat dong CTXH ma {activity_code}")
-    new_reg = {
-        "reg_id": reg_id,
-        "activity_code": activity_code,
-        "activity_name": activity_name,
-        "points": points,
-        "converted_days": converted_days,
-        "status": "CONFIRMED",
-        "registration_date": datetime.now().strftime("%Y-%m-%d"),
-        "note": note or "Dang ky thanh cong qua Tro ly CTXH",
-    }
+
+    reg_obj = CTXHRegistration(
+        reg_id=reg_id,
+        activity_code=activity_code,
+        activity_name=act_info.get("activity_name", f"Hoat dong CTXH ma {activity_code}"),
+        points=points_val,
+        converted_days=days_val,
+        status="CONFIRMED",
+        registration_date=today_str,
+        note=note or "Dang ky thanh cong qua Tro ly CTXH",
+    )
+    new_reg = reg_obj.to_dict()
+    new_reg["category"] = act_info.get("category", "")
     student.setdefault("registered_activities", []).append(new_reg)
-    student["accumulated_days"] = round(student.get("accumulated_days", 0.0) + converted_days, 2)
+
+    # Tinh lai tong so ngay tich luy tu tong diem cac hoat dong CONFIRMED theo quy tac lam tron quy che
+    confirmed_acts = [a for a in student.get("registered_activities", []) if a.get("status") == "CONFIRMED"]
+    total_pts = sum(int(_parse_numeric_value(a.get("points", 0))) for a in confirmed_acts)
+    student["accumulated_days"] = convert_points_to_ctxh_days(total_pts)
     _save_student_ctxh(data)
+
+    range_note = ""
+    if min_pts != max_pts:
+        if points is None:
+            range_note = f"\n- Luu y: Hoat dong co khung diem tu {min_pts} den {max_pts} diem. Vi chua co so diem cu the, he thong mac dinh ghi nhan muc co so {min_pts} diem ({days_val} ngay)."
+        else:
+            range_note = f"\n- Luu y: So diem ghi nhan {points_val} diem nam trong khung quy che {min_pts} den {max_pts} diem."
+
     return (
-        f"Dang ky hoat dong thanh cong! Ma dang ky: {reg_id}. "
-        f"Sinh vien: {student.get('student_name', 'Unknown')} (MSSV: {mssv}). "
-        f"Hoat dong: {activity_name} (Ma: {activity_code}) | Diem: {points} | Ngay quy doi: +{converted_days}. "
-        f"Tong ngay tich luy moi: {student['accumulated_days']}/{student.get('required_days', 4.0)} ngay. "
-        f"Hay goi ngay get_ctxh_status('{mssv}') de kiem tra xac thuc."
+        f"[DANG KY HOAT DONG THANH CONG]\n"
+        f"- Ma dang ky: {reg_id}\n"
+        f"- Sinh vien: {student.get('student_name')} (MSSV: {mssv})\n"
+        f"- Hoat dong: {act_info.get('activity_name')} (Ma: {activity_code})\n"
+        f"- Linh vuc: {act_info.get('category', 'Chung')}\n"
+        f"- Diem ghi nhan: {points_val} diem | So ngay quy doi: +{days_val} ngay\n"
+        f"- Tong ngay CTXH tich luy hien tai: {student['accumulated_days']}/{student.get('required_days', 4.0)} ngay (Tong diem: {total_pts} diem)\n"
+        f"- Trang thai: CONFIRMED{range_note}\n"
+        f"Hay goi ngay get_ctxh_status('{mssv}') de xac thuc va kiem tra tien do ho so."
     )
 
 
-# Alias for compatibility with general prompt
-@mcp.tool()
-def submit_academic_request(
-    mssv: str,
-    student_name: str,
-    request_type: str,
-    course_name: str = "",
-    exam_date: str = "",
-    submission_date: str = "",
-    reason: str = "",
-    attachment: str = "",
-) -> str:
-    """[WRITE TOOL - ALIAS] Ho tro dang ky hoat dong CTXH qua interface chung."""
-    return register_ctxh_activity(
-        mssv=mssv,
-        activity_code="001202",
-        activity_name=f"Dang ky CTXH: {request_type}",
-        points=5,
-        converted_days=0.5,
-        note=f"{reason} (Minh chung: {attachment})",
-    )
+def convert_points_to_ctxh_days(total_points: float | int) -> float:
+    """
+    Quy doi tong diem CTXH sang so ngay CTXH theo quy che HCMUTE:
+    Lấy tổng điểm chia cho 10:
+    - Số lẻ dưới 5 làm tròn xuống (ví dụ 14 điểm -> 1.0 ngày).
+    - Tròn 5 điểm quy đổi thành nửa ngày (ví dụ 5 điểm -> 0.5 ngày; 15 điểm -> 1.5 ngày; 35 điểm -> 3.5 ngày).
+    - Trên 5 làm tròn thành 10 quy đổi thành một ngày (ví dụ 17 điểm -> 2.0 ngày).
+    """
+    pts = int(round(total_points))
+    tens = pts // 10
+    rem = pts % 10
+    if rem == 0:
+        return float(tens)
+    elif rem < 5:
+        return float(tens)
+    elif rem == 5:
+        return float(tens) + 0.5
+    else:
+        return float(tens + 1)
 
 
 @mcp.tool()
 def get_ctxh_status(mssv: str) -> str:
-    """[VERIFY READ TOOL] Kiem tra va xac thuc ho so CTXH thuc te cua sinh vien tu he thong du lieu.
-    Tra ve thong tin: MSSV, Ho ten, Khoa, So ngay tich luy, So ngay quy dinh tot nghiep, Tien do va Danh sach hoat dong da tham gia."""
+    """[VERIFY READ TOOL] Kiem tra, doi chieu tien do va xac thuc ho so CTXH thuc te cua sinh vien.
+    Doi chieu giua ho so goc (students.json) va lich su hoat dong thuc te (student_activities.json).
+    Tra ve day du: Thong tin sinh vien, Tong diem tich luy, So ngay da quy doi, So ngay con thieu,
+    Ket luan tham dinh tot nghiep (DA DU / CHUA DU DIEU KIEN), va Danh sach hoat dong da ghi nhan."""
+    students_master = _load_students()
+    master_info = next((s for s in students_master if s.get("mssv") == mssv), None)
+
     data = _load_student_ctxh()
-    student = None
-    for s in data:
-        if s.get("mssv") == mssv:
-            student = s
-            break
+    student = next((s for s in data if s.get("mssv") == mssv), None)
 
-    if not student:
-        return f"Loi xac thuc: Khong tim thay ho so sinh vien co MSSV '{mssv}' trong he thong."
+    if not student and not master_info:
+        return f"Error: Khong tim thay ho so sinh vien co MSSV '{mssv}' trong he thong."
 
-    acc = student.get("accumulated_days", 0.0)
-    req = student.get("required_days", 4.0)
-    diff = round(req - acc, 2)
-    progress_status = "DA DU DIEU KIEN TOT NGHIEP" if acc >= req else f"CON THIEU {diff} NGAY DE DU DIEU KIEN TOT NGHIEP"
+    name = (master_info or {}).get("student_name") or (student or {}).get("student_name", "N/A")
+    faculty = (master_info or {}).get("faculty") or (student or {}).get("faculty", "N/A")
+    course_year = (master_info or {}).get("course_year") or (student or {}).get("course_year", "N/A")
+    req_days = (master_info or {}).get("required_ctxh_days") or (student or {}).get("required_days", 4.0)
 
-    activities = student.get("registered_activities", [])
-    total_points = sum(a.get("points", 0) for a in activities)
+    activities = (student or {}).get("registered_activities", [])
+    confirmed_acts = [a for a in activities if a.get("status") == "CONFIRMED"]
+
+    total_points = sum(int(_parse_numeric_value(a.get("points", 0))) for a in confirmed_acts)
+    acc_days = convert_points_to_ctxh_days(total_points)
+    req_days = float(req_days)
+
+    diff = round(req_days - acc_days, 2)
+    req_points_est = int(req_days * 10)
+    diff_points = max(0, req_points_est - total_points)
+
+    if diff <= 0:
+        progress_status = "DA DU DIEU KIEN TOT NGHIEP CTXH"
+        detail_msg = f"Sinh vien da hoan tat {acc_days}/{req_days} ngay CTXH (Tong diem tich luy: {total_points} diem)."
+    else:
+        progress_status = f"CHUA DU DIEU KIEN TOT NGHIEP (CON THIEU {diff} NGAY)"
+        detail_msg = (
+            f"Sinh vien hien co {total_points} diem CTXH, quy doi duoc {acc_days}/{req_days} ngay CTXH. "
+            f"Can tich luy them it nhat {diff} ngay nua (tuong duong khoang {diff_points} diem hoat dong)."
+        )
 
     act_lines = []
     for a in activities:
@@ -1325,34 +1464,23 @@ def get_ctxh_status(mssv: str) -> str:
     acts_text = "\n".join(act_lines) if act_lines else "  (Chua co hoat dong nao)"
 
     return (
-        f"[XAC THUC HO SO CTXH THANH CONG]\n"
-        f"- MSSV: {student.get('mssv')} | Sinh vien: {student.get('student_name')}\n"
-        f"- Khoa: {student.get('faculty', 'N/A')} | Khoa hoc: {student.get('course_year', 'N/A')}\n"
+        f"[XAC THUC HO SO CTXH & DIEU KIEN TOT NGHIEP]\n"
+        f"- MSSV: {mssv} | Ho ten: {name}\n"
+        f"- Khoa: {faculty} | Khoa hoc: {course_year}\n"
         f"- Tong diem CTXH tich luy: {total_points} diem\n"
-        f"- So ngay tich luy hien tai: {acc} ngay (Quy doi tu tong diem chia 10)\n"
-        f"- So ngay toi thieu de tot nghiep: {req} ngay\n"
-        f"- Danh gia tien do: {progress_status}\n"
+        f"- So ngay tich luy thuc te: {acc_days} ngay (Cong thuc: Tong diem / 10)\n"
+        f"- So ngay tieu chuan can tich luy: {req_days} ngay\n"
+        f"- Danh gia tien do tot nghiep: {progress_status}\n"
+        f"- Chi tiet: {detail_msg}\n"
         f"- Danh sach hoat dong da ghi nhan:\n{acts_text}"
     )
 
 
-# Alias for verify tool
-@mcp.tool()
-def get_request_status(request_id: str) -> str:
-    """[VERIFY READ TOOL - ALIAS] Kiem tra trang thai ho so theo MSSV hoac ma dang ky."""
-    # If passed MSSV directly
-    data = _load_student_ctxh()
-    for s in data:
-        if s.get("mssv") == request_id:
-            return get_ctxh_status(request_id)
-        for act in s.get("registered_activities", []):
-            if act.get("reg_id") == request_id:
-                return get_ctxh_status(s.get("mssv"))
-    return f"Loi xac thuc: Khong tim thay ma ho so hoac sinh vien voi ma '{request_id}'."
-
 
 @mcp.tool()
 def sync_ctxh_activities() -> str:
+    """[ADMIN TOOL] Dong bo du lieu hoat dong da tham gia CTXH cua sinh vien tu file Excel trong data/ vao student_activities.json.
+    Bao toan 100% lich su hoat dong hien co cua sinh vien."""
     try:
         result = sync_ctxh_from_file()
     except Exception as e:
@@ -1375,6 +1503,7 @@ def sync_ctxh_activities() -> str:
 
 @mcp.tool()
 def export_ctxh_rules_json() -> str:
+    """[ADMIN TOOL] Boc tach quy dinh, ma hoat dong (6 chu so), thang diem va quy tac quy doi tu cac tai lieu quy che van ban vao activities.json."""
     try:
         result = sync_ctxh_rules_from_file()
     except Exception as e:

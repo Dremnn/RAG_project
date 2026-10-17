@@ -31,10 +31,15 @@ def _call_groq_judge(
     temperature: float = 0.0,
     timeout: float = 25.0,
 ) -> str:
-    models_to_try = [preferred_model] + [m for m in FALLBACK_MODELS if m != preferred_model]
+    enable_fallback = os.getenv("ENABLE_FALLBACK", "0") == "1"
+    models_to_try = [preferred_model]
+    if enable_fallback:
+        models_to_try += [m for m in FALLBACK_MODELS if m != preferred_model]
+
     last_err: Optional[Exception] = None
     for m in models_to_try:
-        for attempt in range(2):
+        max_attempts = 4
+        for attempt in range(1, max_attempts + 1):
             try:
                 resp = client.chat.completions.create(
                     model=m,
@@ -56,15 +61,25 @@ def _call_groq_judge(
             except Exception as e:
                 last_err = e
                 err_msg = str(e).lower()
+                if "413" in err_msg or "too large" in err_msg:
+                    raise RuntimeError(f"Request qua lon cho Judge (413 Payload Too Large): {e}")
                 if "tokens per day" in err_msg or "tpd" in err_msg:
                     break
-                if "rate_limit" in err_msg or "429" in err_msg or "413" in err_msg:
-                    time.sleep(2.5)
+                if "rate_limit" in err_msg or "429" in err_msg:
+                    match_wait = re.search(r"try again in (\d+(?:\.\d+)?)\s*(ms|s)", str(e), re.IGNORECASE)
+                    if match_wait:
+                        val = float(match_wait.group(1))
+                        unit = match_wait.group(2).lower()
+                        wait_sec = (val / 1000.0) if unit == "ms" else val
+                    else:
+                        wait_sec = 15.0
+                    sleep_time = min(wait_sec + 1.0, 65.0)
+                    time.sleep(sleep_time)
                     continue
                 break
     if last_err is not None:
         raise last_err
-    raise RuntimeError("Khong co model kha dung tren Groq")
+    raise RuntimeError("Khong the thuc hien danh gia qua Groq Judge")
 
 
 
@@ -77,17 +92,17 @@ class ClaimVerdict:
 
 @dataclass
 class FaithfulnessReport:
-    score: float
-    total_claims: int
-    supported_claims: int
-    unsupported_claims: int
+    score: Optional[float] = None
+    total_claims: int = 0
+    supported_claims: int = 0
+    unsupported_claims: int = 0
     verdicts: list[ClaimVerdict] = field(default_factory=list)
     error_message: Optional[str] = None
 
     @property
     def is_trustworthy(self) -> bool:
         """Threshold >= 0.8 is considered trustworthy (Week 5 standard)."""
-        return self.score >= 0.8
+        return self.score is not None and self.score >= 0.8
 
     def format_terminal(self) -> str:
         """Format a clean visual report for terminal display."""
@@ -145,7 +160,7 @@ def check_faithfulness(
     context: str,
     groq_client: Optional[Groq] = None,
     model: str = DEFAULT_MODEL,
-) -> float:
+) -> Optional[float]:
     """
     Code Along 1.1 (Week 5 Slide 5):
     Answer -> decompose into atomic claims
@@ -166,14 +181,14 @@ def check_answer_relevance(
     answer: str,
     groq_client: Optional[Groq] = None,
     model: str = DEFAULT_MODEL,
-) -> float:
+) -> Optional[float]:
     """
     Code Along 1.2 (Week 5 Slide 6):
     Does the answer address the question?
     Computed WITHOUT context - an on-topic answer scores high, off-topic scores low.
     """
     if not question.strip() or not answer.strip():
-        return 0.0
+        return None
 
     client = _get_default_client(groq_client)
     prompt = f"""Bạn là Thẩm phán đánh giá độ liên quan của câu trả lời (Answer Relevance Judge - Week 5).
@@ -209,12 +224,12 @@ Trả về DUY NHẤT một JSON format:
         match = re.search(r"\{.*\}", raw, re.DOTALL)
         if match:
             data = json.loads(match.group(0))
-            score = float(data.get("score", 1.0))
+            score = float(data.get("score"))
             return max(0.0, min(1.0, round(score, 2)))
     except Exception:
         pass
 
-    return 1.0
+    return None
 
 
 # ==============================================================================
@@ -226,14 +241,14 @@ def check_context_precision(
     contexts: list[str],
     groq_client: Optional[Groq] = None,
     model: str = DEFAULT_MODEL,
-) -> float:
+) -> Optional[float]:
     """
     Code Along 1.2 (Week 5 Slide 6):
     Were the useful chunks ranked high?
     For each rank k, is the chunk relevant? Computes Precision@k.
     """
-    if not question.strip() or not contexts:
-        return 1.0
+    if not question.strip() or not contexts or not any(c.strip() for c in contexts):
+        return None
 
     client = _get_default_client(groq_client)
     formatted_chunks = "\n\n".join(
@@ -287,7 +302,7 @@ Trả về DUY NHẤT một JSON format (mỗi phần tử tương ứng với 1
     except Exception:
         pass
 
-    return 1.0
+    return None
 
 
 # ==============================================================================
@@ -295,9 +310,9 @@ Trả về DUY NHẤT một JSON format (mỗi phần tử tương ứng với 1
 # ==============================================================================
 
 def diagnose_failure_mode(
-    faithfulness: float,
-    relevance: float,
-    precision: float,
+    faithfulness: Optional[float],
+    relevance: Optional[float],
+    precision: Optional[float],
 ) -> dict[str, str]:
     """
     RAG Failure Modes & Actionable Recommendations (Week 5 Slide 12 & 13):
@@ -308,15 +323,15 @@ def diagnose_failure_mode(
     issues = []
     actions = []
 
-    if faithfulness < 0.7:
+    if faithfulness is not None and faithfulness < 0.7:
         issues.append("Faithfulness ↓ (Ảo giác / Câu trả lời không bám sát tài liệu)")
         actions.append("fix = strengthen_grounding_prompt() ('Chỉ trả lời dựa trên context')")
 
-    if relevance < 0.7:
+    if relevance is not None and relevance < 0.7:
         issues.append("Relevance ↓ (Trả lời sai trọng tâm hoặc lạc đề)")
         actions.append("fix = add_query_rewriting() (Thêm bước viết lại câu hỏi)")
 
-    if precision < 0.7:
+    if precision is not None and precision < 0.7:
         issues.append("Precision ↓ (Chunk hữu ích bị xếp hạng thấp)")
         actions.append("fix = add_reranking() (Thêm bộ tái xếp hạng Cross-Encoder)")
 
@@ -330,9 +345,9 @@ def diagnose_failure_mode(
     return {
         "status": status,
         "recommendation": rec,
-        "faithfulness": f"{faithfulness:.2f}",
-        "relevance": f"{relevance:.2f}",
-        "precision": f"{precision:.2f}",
+        "faithfulness": f"{faithfulness:.2f}" if faithfulness is not None else "N/A",
+        "relevance": f"{relevance:.2f}" if relevance is not None else "N/A",
+        "precision": f"{precision:.2f}" if precision is not None else "N/A",
     }
 
 
@@ -360,7 +375,7 @@ class FaithfulnessEvaluator:
         """
         if not answer.strip() or not context.strip():
             return FaithfulnessReport(
-                score=1.0, total_claims=0, supported_claims=0, unsupported_claims=0
+                score=None, total_claims=0, supported_claims=0, unsupported_claims=0
             )
 
         prompt = f"""Bạn là Thẩm phán đánh giá độ trung thực (Faithfulness & Groundedness Judge) theo chuẩn RAG Week 5.
@@ -412,18 +427,18 @@ Trả về DUY NHẤT một JSON format:
                         supported_count += 1
 
                 total = len(verdicts)
-                score = (supported_count / total) if total > 0 else 1.0
+                score = (supported_count / total) if total > 0 else None
                 return FaithfulnessReport(
-                    score=round(score, 2),
+                    score=round(score, 2) if score is not None else None,
                     total_claims=total,
                     supported_claims=supported_count,
                     unsupported_claims=total - supported_count,
                     verdicts=verdicts,
                 )
         except Exception as e:
-            # Fallback an toàn khi mạng gặp sự cố
+            # Fallback an toàn khi mạng gặp sự cố (ghi rõ lỗi, không tự gán 1.0)
             return FaithfulnessReport(
-                score=1.0,
+                score=None,
                 total_claims=0,
                 supported_claims=0,
                 unsupported_claims=0,
@@ -432,7 +447,7 @@ Trả về DUY NHẤT một JSON format:
             )
 
         return FaithfulnessReport(
-            score=1.0, total_claims=0, supported_claims=0, unsupported_claims=0
+            score=None, total_claims=0, supported_claims=0, unsupported_claims=0
         )
 
     def evaluate_full(
