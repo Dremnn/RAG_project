@@ -1,2 +1,0 @@
-﻿id,category,query,is_no_answer,is_refused,keyword_recall,has_citation,faithfulness_score,duration_seconds,calls,prompt_tokens,completion_tokens,max_prompt,total_tokens,answer_preview
-Q1,interactive,"mssv toi la 23110005, va toi muon dang ky hoat dong 001101 3 ngay",False,False,1.0,True,1.0,102.86,4,18651,521,5259,19172,Đã đăng ký thành công cho em Hoàng Minh Đức (MSSV: 23110005). Chi tiết hồ sơ xác thực:  - **Tên hoạt động:** Tham gia trọn chiến dịch Mùa hè xanh tại

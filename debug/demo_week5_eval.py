@@ -194,11 +194,11 @@ Bảng phụ cấp:
         },
     ]
 
-    out_csv = Path("logs/sessions/test_eval_week5.csv")
+    out_csv = Path("logs/eval/test_eval_week5.csv")
     save_session_csv(sample_records, out_csv)
     print(f"  • Đã xuất file CSV: {out_csv} ({out_csv.stat().st_size} bytes)")
 
-    charts_dir = Path("logs/charts")
+    charts_dir = Path("logs/eval/charts")
     charts = generate_session_charts(
         records=sample_records,
         output_dir=charts_dir,

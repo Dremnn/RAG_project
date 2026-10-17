@@ -1,0 +1,2 @@
+﻿id,category,query,is_no_answer,is_refused,keyword_recall,has_citation,faithfulness_score,answer_relevance,context_precision,duration_seconds,calls,prompt_tokens,completion_tokens,max_prompt,total_tokens,answer_preview
+Q1,interactive,hien mau se duoc cong bao nhieu diem,False,False,1.0,True,1.0,1.0,1.0,53.57,2,8878,420,5218,9298,Hoạt động **Hiến máu cứu người** được quy định như sau (năm 2025):  | Mã | Nội dung | Thang điểm | Quy đổi ngày CTXH | |------|----------|-----------|

@@ -1,3 +1,0 @@
-﻿id,category,query,is_no_answer,is_refused,keyword_recall,has_citation,faithfulness_score,answer_relevance,context_precision,duration_seconds,calls,prompt_tokens,completion_tokens,max_prompt,total_tokens,answer_preview
-Q1,interactive,hiến máu được cộng bao nhiêu điểm,False,False,1.0,True,1.0,1.0,1.0,40.15,2,8682,303,5026,8985,"Theo quy định CTXH năm 2025, hoạt động **Hiến máu cứu người** được cộng điểm như sau:  - **Mã 001201** – Trực tiếp hiến máu toàn phần hoặc hiến tiểu c"
-Q2,interactive,truc tiep hien mau se duoc cong bao nhieu diem,False,False,1.0,False,1.0,1.0,1.0,20.87,0,0,0,0,0,Loi ket noi LLM: Goi Groq API that bai sau 3 lan thu: Error code: 429 - {'error': {'message': 'Rate limit reached for model `qwen/qwen3.8-27b` in orga

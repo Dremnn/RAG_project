@@ -3,6 +3,10 @@ Terminal RAG MCP Client with ReAct Agent Loop (Week 6 & Week 7).
 Connects to rag_server.py over stdio and interacts with user in the terminal.
 Designed for: Tro ly Quy che & Thu tuc Sinh vien.
 Run using: uv run python rag_client.py
+
+Kiến trúc mã nguồn được phân tách làm 2 phần rõ rệt:
+- PHẦN 1: CORE REACT AGENT LOOP & MCP INTERACTION (Suy luận, gọi tools, xử lý LLM Groq)
+- PHẦN 2: SESSION TELEMETRY & REPORTING (Ủy thác qua SessionTracker: ghi log jsonl, xuất CSV, vẽ biểu đồ)
 """
 
 import asyncio
@@ -19,7 +23,7 @@ from mcp.client.stdio import stdio_client
 from src.evaluation import (
     FaithfulnessEvaluator,
     check_answer_relevance,
-    save_and_plot_session,
+    SessionTracker,
 )
 
 
@@ -48,6 +52,11 @@ SERVER_PARAMS = StdioServerParameters(
 )
 
 
+# ==============================================================================
+# PHẦN 1: CORE REACT AGENT LOOP & MCP INTERACTION
+# (Chuyên trách: Prompting, Gọi LLM có Retry/Fallback, Vòng lặp ReAct, Gọi Tool)
+# ==============================================================================
+
 def load_system_prompt() -> str:
     """Load system prompt from external file (Week 2 clean architecture)."""
     if PROMPT_PATH.exists():
@@ -57,15 +66,6 @@ def load_system_prompt() -> str:
         "Ban la Tro ly AI Quy che & Thu tuc Sinh vien. "
         "Luon tra cuu van ban quy che qua search_regulations va trich dan nguon [Nguon: ... | Chunk ID: ...]."
     )
-
-
-def log_agent_run(run_record: dict) -> None:
-    """Save execution trace and token usage to logs/*.jsonl (Week 5 & Week 7 requirement)."""
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
-    today_str = datetime.now().strftime("%Y%m%d")
-    log_file = LOGS_DIR / f"run_{today_str}.jsonl"
-    with open(log_file, "a", encoding="utf-8") as f:
-        f.write(json.dumps(run_record, ensure_ascii=False) + "\n")
 
 
 def call_groq_with_retry(
@@ -124,12 +124,13 @@ async def run_agent_loop(
     groq_tools: list[dict],
     messages: list[dict],
     user_query: str,
+    tracker: SessionTracker | None = None,
 ) -> tuple[str, str, dict]:
     """
     Custom ReAct Agent Loop (Week 6 & Week 7).
     - MAX_STEPS = 6
     - Strict Grounding: First step enforces tool call
-    - Logs thoughts, actions, observations, and token usage.
+    - Ghi nhận trajectory và đẩy trace vào tracker.
     """
     accumulated_context = []
     trajectory = []
@@ -212,16 +213,16 @@ async def run_agent_loop(
         final_answer = response_message.content or ""
         messages.append({"role": "assistant", "content": final_answer})
 
-        # Ghi log jsonl
-        log_record = {
-            "timestamp": datetime.now().isoformat(),
-            "query": user_query,
-            "steps": len(trajectory),
-            "trajectory": trajectory,
-            "final_answer": final_answer,
-            "usage": total_tokens,
-        }
-        log_agent_run(log_record)
+        # Ghi log jsonl qua SessionTracker (Phần 2)
+        if tracker:
+            tracker.log_agent_run({
+                "timestamp": datetime.now().isoformat(),
+                "query": user_query,
+                "steps": len(trajectory),
+                "trajectory": trajectory,
+                "final_answer": final_answer,
+                "usage": total_tokens,
+            })
 
         return final_answer, "\n\n".join(accumulated_context), total_tokens
 
@@ -230,19 +231,24 @@ async def run_agent_loop(
         "[Thong bao] Da vuot qua gioi han 6 buoc xu ly cho phep. "
         "Vui long cung cap yeu cau cu the hon de tro ly phuc vu tot hon."
     )
-    log_record = {
-        "timestamp": datetime.now().isoformat(),
-        "query": user_query,
-        "steps": MAX_STEPS,
-        "trajectory": trajectory,
-        "final_answer": warning_msg,
-        "usage": total_tokens,
-        "status": "MAX_STEPS_REACHED",
-    }
-    log_agent_run(log_record)
+    if tracker:
+        tracker.log_agent_run({
+            "timestamp": datetime.now().isoformat(),
+            "query": user_query,
+            "steps": MAX_STEPS,
+            "trajectory": trajectory,
+            "final_answer": warning_msg,
+            "usage": total_tokens,
+            "status": "MAX_STEPS_REACHED",
+        })
 
     return warning_msg, "\n\n".join(accumulated_context), total_tokens
 
+
+# ==============================================================================
+# PHẦN 2: TERMINAL CLI & TELEMETRY INTEGRATION
+# (Chuyên trách: CLI Commands, Quản lý Session, Xuất CSV và Đồ thị qua Tracker)
+# ==============================================================================
 
 async def main():
     api_key = os.getenv("GROQ_API_KEY")
@@ -252,6 +258,9 @@ async def main():
 
     groq_client = Groq(api_key=api_key)
     system_prompt = load_system_prompt()
+
+    # Khoi tao SessionTracker (Phần 2) de quan ly toan bo CSV & Do thi
+    tracker = SessionTracker(logs_dir=LOGS_DIR)
 
     print("\n" + "=" * 65)
     print("[HE THONG] DANG KET NOI VOI TRO LY QUY CHE & THU TUC MCP SERVER...")
@@ -286,8 +295,6 @@ async def main():
             print("   - exit   : Thoat chuong trinh va tu dong luu bao cao phien")
             print("=" * 65)
 
-            session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-            session_records: list[dict] = []
             messages = [{"role": "system", "content": system_prompt}]
             evaluator = FaithfulnessEvaluator(groq_client=groq_client)
             last_answer = ""
@@ -318,7 +325,6 @@ async def main():
                         print("[THANH CONG] Da lam moi phien hoi thoai.")
                         continue
 
-
                     if user_input.lower() in ["/docs", "/list"]:
                         print("\n[DANG XU LY] Dang tra cuu danh muc van ban quy che...")
                         res = await session.call_tool("list_indexed_documents", arguments={})
@@ -331,23 +337,20 @@ async def main():
                         print(res.content[0].text)
                         continue
 
+                    # Xuất báo cáo CSV và đồ thị tức thì qua SessionTracker
                     if user_input.lower() in ["/chart", "/charts", "chart"]:
-                        if not session_records:
+                        if tracker.is_empty():
                             print("[Canh bao] Chua co cau hoi nao trong phien de ve bieu do.")
                             continue
                         print("\n[DANG XU LY] Dang xuat CSV va ve do thi cho phien lam viec...")
-                        session_dir = LOGS_DIR / "sessions"
-                        report_out = save_and_plot_session(
-                            records=session_records,
-                            output_dir=session_dir,
-                            session_id=session_id,
-                            session_title=f"Phiên tương tác {session_id}",
-                        )
-                        print(f"  -> File CSV phien: {report_out['csv_path']}")
-                        for chart_path in report_out["charts"]:
-                            print(f"  -> Bieu do phien : {chart_path}")
+                        report_out = tracker.export_report(is_manual=True)
+                        if report_out:
+                            print(f"  -> File CSV phien: {report_out['csv_path']}")
+                            for chart_path in report_out["charts"]:
+                                print(f"  -> Bieu do phien : {chart_path}")
                         continue
 
+                    # Thẩm định chất lượng câu trả lời bằng LLM-as-a-judge
                     if user_input.lower() in ["/eval", "eval"]:
                         if not last_answer:
                             print("[Canh bao] Chua co cau tra loi nao de tham dinh. Hay hoi mot cau truoc.")
@@ -365,11 +368,11 @@ async def main():
                             except Exception:
                                 pass
 
-                        # Cap nhat diem vao record gan nhat neu co
-                        if session_records:
-                            session_records[-1]["faithfulness_score"] = report.score
+                        # Cập nhật điểm chất lượng vào SessionTracker
+                        tracker.update_last_faithfulness(report.score)
                         continue
 
+                    # Bắt đầu lượt hỏi đáp với Agent Loop
                     messages.append({"role": "user", "content": user_input})
                     print("\n[DANG XU LY] Tro ly AI dang phan tich quy che va suy luan...")
 
@@ -380,31 +383,20 @@ async def main():
                         groq_tools=groq_tools,
                         messages=messages,
                         user_query=user_input,
+                        tracker=tracker,
                     )
                     duration = time.time() - start_time
                     last_answer = answer
                     last_context = context
                     last_question = user_input
 
-
-                    # Luu vao danh sach record cua phien
-                    has_cit = ("[nguồn:" in answer.lower() or "[nguon:" in answer.lower()) and "chunk id:" in answer.lower()
-                    session_records.append({
-                        "id": f"Q{len(session_records) + 1}",
-                        "category": "interactive",
-                        "query": user_input,
-                        "final_answer": answer,
-                        "answer_preview": answer[:150],
-                        "duration_seconds": round(duration, 2),
-                        "has_citation": has_cit,
-                        "faithfulness_score": 1.0,
-                        "keyword_recall": 1.0,
-                        "calls": usage.get("api_calls", 1),
-                        "prompt_tokens": usage.get("prompt_tokens", 0),
-                        "completion_tokens": usage.get("completion_tokens", 0),
-                        "max_prompt": usage.get("max_prompt", 0),
-                        "total_tokens": usage.get("total_tokens", 0),
-                    })
+                    # Ghi nhận lượt hỏi đáp vào SessionTracker (Phần 2)
+                    tracker.record_turn(
+                        query=user_input,
+                        answer=answer,
+                        duration=duration,
+                        usage=usage,
+                    )
 
                     print("\n" + "-" * 65)
                     print(f"KET QUA TRA LOI:\n{answer}")
@@ -413,20 +405,15 @@ async def main():
                     print("Goi y: Go /eval de tham dinh trung thuc, go /chart de xuat bieu do phien.")
 
             finally:
-                # Tu dong luu CSV va ve bieu do khi ket thuc phien neu co tuong tac
-                if session_records:
+                # Tự động xuất CSV và vẽ đồ thị khi kết thúc phiên
+                if not tracker.is_empty():
                     print("\n" + "=" * 65)
                     print("[BAO CAO PHIEN] Dang tu dong luu log CSV va ve bieu do phien...")
-                    session_dir = LOGS_DIR / "sessions"
-                    report_out = save_and_plot_session(
-                        records=session_records,
-                        output_dir=session_dir,
-                        session_id=session_id,
-                        session_title=f"Phiên tương tác {session_id}",
-                    )
-                    print(f"- Log CSV phien  : {report_out['csv_path']}")
-                    for chart_path in report_out["charts"]:
-                        print(f"- Bieu do phien : {chart_path}")
+                    report_out = tracker.export_report()
+                    if report_out:
+                        print(f"- Log CSV phien  : {report_out['csv_path']}")
+                        for chart_path in report_out["charts"]:
+                            print(f"- Bieu do phien : {chart_path}")
                     print("=" * 65)
 
 

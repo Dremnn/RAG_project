@@ -1,5 +1,0 @@
-﻿id,category,query,is_no_answer,is_refused,keyword_recall,has_citation,faithfulness_score,answer_relevance,context_precision,duration_seconds,calls,prompt_tokens,completion_tokens,max_prompt,total_tokens,answer_preview
-q1,logic_rules,Mã hiến máu tình nguyện và số ngày CTXH quy đổi?,False,False,1.0,True,1.0,1.0,1.0,2.1,2,1200,180,800,1380,"Mã hoạt động 001202, quy đổi 0.5 ngày CTXH."
-q2,logic_rules,Học 4 năm cần bao nhiêu ngày CTXH?,False,False,1.0,True,0.85,0.95,1.0,1.8,2,1100,160,750,1260,Cần tối thiểu 04 ngày CTXH.
-q3,calculation,35 điểm CTXH quy đổi thành bao nhiêu ngày?,False,False,1.0,True,0.9,1.0,0.85,2.5,2,1400,210,900,1610,Chia 10 được 3.5 ngày CTXH.
-q4,no_answer,Thủ tục xin visa du học Đức?,True,True,1.0,False,1.0,1.0,1.0,1.1,1,800,60,800,860,Quy định này không có trong tài liệu CTXH của trường.

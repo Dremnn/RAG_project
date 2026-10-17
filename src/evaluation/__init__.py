@@ -14,6 +14,7 @@ from src.evaluation.reporter import (
     save_comparison_csv,
     generate_comparison_chart,
 )
+from src.evaluation.tracker import SessionTracker
 
 __all__ = [
     "ClaimVerdict",
@@ -28,4 +29,5 @@ __all__ = [
     "save_and_plot_session",
     "save_comparison_csv",
     "generate_comparison_chart",
+    "SessionTracker",
 ]
