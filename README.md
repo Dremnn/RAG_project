@@ -62,6 +62,7 @@ RAG_project/
 │   ├── generate_charts.py      # Script tự động sinh đồ thị và dashboard
 │   └── test_metadata.py        # Kiểm thử tự động metadata và version filtering
 ├── Makefile                    # Lệnh chạy nhanh (setup, demo, eval, charts)
+├── requirements.txt            # Danh sách thư viện phụ thuộc (pip/uv)
 ├── rag_client.py               # ReAct Terminal Client
 ├── rag_server.py               # MCP Knowledge & Action Server
 └── ai-usage.md                 # Báo cáo sử dụng trợ lý AI
@@ -106,7 +107,8 @@ owner: Phòng Công tác sinh viên
 ### Cài đặt
 ```bash
 make setup
-# Hoac: uv pip install -e . && uv pip install matplotlib
+# Hoặc: uv pip install -r requirements.txt
+# Hoặc: pip install -r requirements.txt
 ```
 
 ### Chay Demo Terminal Assistant

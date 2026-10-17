@@ -11,6 +11,8 @@ from src.evaluation.reporter import (
     save_session_csv,
     generate_session_charts,
     save_and_plot_session,
+    save_comparison_csv,
+    generate_comparison_chart,
 )
 
 __all__ = [
@@ -24,4 +26,6 @@ __all__ = [
     "save_session_csv",
     "generate_session_charts",
     "save_and_plot_session",
+    "save_comparison_csv",
+    "generate_comparison_chart",
 ]

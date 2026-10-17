@@ -26,7 +26,8 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 load_dotenv()
 
 HERE = Path(__file__).resolve().parent
-MODEL = "qwen/qwen3.8-27b"
+MODEL = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
+FALLBACK_MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
 MAX_STEPS = 6
 LOGS_DIR = HERE / "logs" / "app"
 PROMPT_PATH = HERE / "prompts" / "system_agent.txt"
@@ -70,37 +71,46 @@ def call_groq_with_retry(
     max_retries: int = 3,
     timeout: float = 30.0,
 ) -> tuple[any, dict]:
-    """Call Groq API with exponential backoff retry and timeout handling (Week 2 & Week 6)."""
+    """Call Groq API with exponential backoff retry, rate limit handling, and model fallback."""
+    candidate_models = [MODEL] + [m for m in FALLBACK_MODELS if m != MODEL]
     last_err = None
-    delay = 2.0
 
-    for attempt in range(1, max_retries + 1):
-        try:
-            response = groq_client.chat.completions.create(
-                model=MODEL,
-                messages=messages,
-                tools=tools,
-                tool_choice=tool_choice,
-                max_tokens=750,
-                timeout=timeout,
-            )
-            usage_meta = {
-                "prompt_tokens": getattr(response.usage, "prompt_tokens", 0) if response.usage else 0,
-                "completion_tokens": getattr(response.usage, "completion_tokens", 0) if response.usage else 0,
-                "total_tokens": getattr(response.usage, "total_tokens", 0) if response.usage else 0,
-            }
-            return response, usage_meta
-        except Exception as e:
-            last_err = e
-            print(f"[Canh bao] Groq API gap su co (Thu lan {attempt}/{max_retries}): {e}")
-            if attempt < max_retries:
-                if "rate_limit" in str(e).lower() or "429" in str(e):
-                    time.sleep(10.0)
-                else:
-                    time.sleep(delay)
-                    delay *= 2
+    for model_name in candidate_models:
+        delay = 2.0
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = groq_client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    tools=tools,
+                    tool_choice=tool_choice,
+                    max_tokens=750,
+                    timeout=timeout,
+                )
+                usage_meta = {
+                    "prompt_tokens": getattr(response.usage, "prompt_tokens", 0) if response.usage else 0,
+                    "completion_tokens": getattr(response.usage, "completion_tokens", 0) if response.usage else 0,
+                    "total_tokens": getattr(response.usage, "total_tokens", 0) if response.usage else 0,
+                }
+                return response, usage_meta
+            except Exception as e:
+                last_err = e
+                err_str = str(e).lower()
+                print(f"[Canh bao] Model {model_name} gap su co (Thu lan {attempt}/{max_retries}): {e}")
 
-    raise RuntimeError(f"Goi Groq API that bai sau {max_retries} lan thu: {last_err}")
+                # Neu cham han muc token theo ngay (TPD), fallback ngay sang model tiep theo
+                if "tokens per day" in err_str or "tpd" in err_str:
+                    print(f"[Fallback] Model {model_name} vuot han muc TPD. Chuyen sang model tiep theo...")
+                    break
+
+                if attempt < max_retries:
+                    if "rate_limit" in err_str or "429" in err_str:
+                        time.sleep(4.0)
+                    else:
+                        time.sleep(delay)
+                        delay *= 2
+
+    raise RuntimeError(f"Goi Groq API that bai tren toan bo models: {last_err}")
 
 
 async def run_agent_loop(

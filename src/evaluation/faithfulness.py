@@ -47,6 +47,8 @@ def _call_groq_judge(
             except Exception as e:
                 last_err = e
                 err_msg = str(e).lower()
+                if "tokens per day" in err_msg or "tpd" in err_msg:
+                    break
                 if "rate_limit" in err_msg or "429" in err_msg or "413" in err_msg:
                     time.sleep(2.5)
                     continue

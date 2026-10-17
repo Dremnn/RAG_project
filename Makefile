@@ -4,9 +4,8 @@
 .PHONY: setup demo eval clean
 
 setup:
-	@echo [SETUP] Installing dependencies with uv...
-	uv pip install -e .
-	uv pip install matplotlib
+	@echo [SETUP] Installing dependencies from requirements.txt...
+	uv pip install -r requirements.txt
 
 demo:
 	@echo [DEMO] Launching Terminal Assistant with ReAct Agent Loop...

@@ -1,200 +1,228 @@
 {
   "total_testcases": 12,
   "no_answer_testcases": 4,
-  "refusal_rate_percent": 100.0,
-  "average_faithfulness": 1.0,
-  "average_keyword_recall": 0.61,
-  "average_tokens_per_query": 9315.9,
-  "total_prompt_tokens": 108661,
-  "total_completion_tokens": 3130,
+  "refusal_rate_percent": 75.0,
+  "average_faithfulness": 0.86,
+  "average_answer_relevance": 0.87,
+  "average_context_precision": 0.92,
+  "average_tokens_per_query": 12464.3,
+  "total_prompt_tokens": 145641,
+  "total_completion_tokens": 3931,
+  "failure_diagnosis": {
+    "status": "TỐI ƯU (Hệ thống cân bằng tốt cả 3 chỉ số Week 5)",
+    "recommendation": "Duy trì cấu hình hiện tại, tiếp tục mở rộng tập dữ liệu kiểm thử.",
+    "faithfulness": "0.86",
+    "relevance": "0.87",
+    "precision": "0.92"
+  },
   "details": [
     {
       "id": "q1",
       "category": "logic_rules",
       "query": "Mã hoạt động 'Trực tiếp hiến máu tình nguyện 01 lần' là mã gì và được quy đổi thành bao nhiêu ngày CTXH?",
+      "ground_truth": "Mã hoạt động là 001202, thang điểm 5 điểm và được quy đổi thành 0,5 ngày CTXH.",
       "is_no_answer": false,
       "is_refused": false,
-      "keyword_recall": 0.67,
       "has_citation": true,
       "faithfulness_score": 1.0,
-      "duration_seconds": 5.15,
+      "answer_relevance": 0.9,
+      "context_precision": 1.0,
+      "duration_seconds": 21.77,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 7035,
-        "completion_tokens": 117,
-        "max_prompt": 3762,
-        "total_tokens": 7152
+        "prompt_tokens": 8953,
+        "completion_tokens": 294,
+        "max_prompt": 5275,
+        "total_tokens": 9247
       },
-      "answer_preview": "Hoạt động **\"Trực tiếp hiến máu tình nguyện (01 lần)\"** có thông tin như sau:\n\n- **Mã hoạt động:** 001202\n- **Điểm:** 5\n- **Quy đổi thành ngày CTXH:**"
+      "answer_preview": "Hoạt động **Trực tiếp hiến máu tình nguyện 01 lần** (toàn phần hoặc tiểu cầu) thuộc lĩnh vực \"Hiến máu cứu người\":\n\n- **Mã hoạt động:** `001201`\n- **T"
     },
     {
       "id": "q2",
       "category": "logic_rules",
       "query": "Sinh viên hệ chính quy khóa đào tạo từ 4 năm trở lên phải tích lũy tối thiểu bao nhiêu ngày công tác xã hội để đủ điều kiện tốt nghiệp?",
+      "ground_truth": "Sinh viên hệ chính quy khóa đào tạo từ 4 năm trở lên phải tích lũy tối thiểu 04 ngày CTXH để đủ điều kiện tốt nghiệp (riêng khóa 2012 là 03 ngày).",
       "is_no_answer": false,
       "is_refused": false,
-      "keyword_recall": 1.0,
       "has_citation": true,
       "faithfulness_score": 1.0,
-      "duration_seconds": 59.89,
+      "answer_relevance": 0.9,
+      "context_precision": 1.0,
+      "duration_seconds": 69.0,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 7276,
-        "completion_tokens": 145,
-        "max_prompt": 3999,
-        "total_tokens": 7421
+        "prompt_tokens": 8183,
+        "completion_tokens": 291,
+        "max_prompt": 4501,
+        "total_tokens": 8474
       },
-      "answer_preview": "Sinh viên hệ chính quy thuộc **khóa đào tạo từ 4 năm trở lên** phải tích lũy tối thiểu **04 ngày CTXH** để đủ điều kiện tốt nghiệp.\n\nLưu ý thêm: riêng"
+      "answer_preview": "Theo quy định CTXH hiện hành (phiên bản 2025):\n\n**Sinh viên hệ chính quy, chương trình chuẩn (Đại trà) với thời gian đào tạo từ 4 năm trở lên phải tíc"
     },
     {
       "id": "q3",
       "category": "logic_rules",
       "query": "Sinh viên đăng ký tham gia hoạt động CTXH nhưng không thực hiện nội dung đã đăng ký mà không có lý do chính đáng thì bị xử lý như thế nào?",
+      "ground_truth": "Sinh viên sẽ bị trừ 0,5 ngày CTXH vào tổng số ngày tích lũy.",
       "is_no_answer": false,
-      "is_refused": true,
-      "keyword_recall": 1.0,
+      "is_refused": false,
       "has_citation": true,
       "faithfulness_score": 1.0,
-      "duration_seconds": 62.88,
+      "answer_relevance": 0.9,
+      "context_precision": 1.0,
+      "duration_seconds": 72.05,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 7572,
-        "completion_tokens": 209,
-        "max_prompt": 4294,
-        "total_tokens": 7781
+        "prompt_tokens": 8497,
+        "completion_tokens": 401,
+        "max_prompt": 4814,
+        "total_tokens": 8898
       },
-      "answer_preview": "Theo quy định hiện hành của trường, trường hợp sinh viên đăng ký tham gia hoạt động CTXH nhưng **không thực hiện nội dung đã đăng ký mà không có lý do"
+      "answer_preview": "Theo quy định CTXH hiện hành (2025), trường hợp sinh viên đã đăng ký nhưng không thực hiện nội dung đã đăng ký (vắng mặt không lý do / không có lý do "
     },
     {
       "id": "q4",
       "category": "version_comparison",
       "query": "So sánh yêu cầu tích lũy ngày CTXH tối thiểu giữa khóa 2012 và các khóa từ 2013 trở đi đối với chương trình đào tạo từ 4 năm trở lên có gì khác biệt?",
+      "ground_truth": "Khóa tuyển sinh năm 2012 yêu cầu tích lũy tối thiểu 03 ngày CTXH, trong khi các khóa từ năm 2013 trở đi yêu cầu tích lũy tối thiểu 04 ngày CTXH đối với chương trình đào tạo từ 4 năm trở lên.",
       "is_no_answer": false,
       "is_refused": false,
-      "keyword_recall": 1.0,
-      "has_citation": true,
-      "faithfulness_score": 1.0,
-      "duration_seconds": 118.75,
+      "has_citation": false,
+      "faithfulness_score": 0.0,
+      "answer_relevance": 0.0,
+      "context_precision": 0.0,
+      "duration_seconds": 219.01,
       "usage": {
-        "calls": 3,
-        "prompt_tokens": 14205,
-        "completion_tokens": 502,
-        "max_prompt": 6181,
-        "total_tokens": 14707
+        "calls": 5,
+        "prompt_tokens": 30430,
+        "completion_tokens": 399,
+        "max_prompt": 7433,
+        "total_tokens": 30829
       },
-      "answer_preview": "So sánh yêu cầu tích lũy ngày CTXH tối thiểu (đối với chương trình đào tạo **từ 4 năm trở lên**):\n\n| Khóa đào tạo | Số ngày CTXH tối thiểu (chương trì"
+      "answer_preview": "Loi ket noi LLM: Goi Groq API that bai tren toan bo models: Error code: 413 - {'error': {'message': 'Request too large for model `openai/gpt-oss-20b` "
     },
     {
       "id": "q5",
       "category": "calculation",
       "query": "Sinh viên tham gia Mùa hè xanh suốt chiến dịch 01 tháng tại tỉnh được đánh giá 40 điểm, và trực tiếp hiến máu tình nguyện 1 lần được 5 điểm. Hỏi tổng cộng sinh viên này quy đổi được bao nhiêu ngày CTXH?",
+      "ground_truth": "Tổng điểm là 40 + 5 = 45 điểm. Quy đổi: 40 điểm Mùa hè xanh quy đổi thành 4 ngày (hoặc 3-4 ngày theo chiến dịch) và 5 điểm hiến máu quy đổi thành 0,5 ngày, tổng cộng là 4,5 ngày CTXH.",
       "is_no_answer": false,
       "is_refused": false,
-      "keyword_recall": 0.67,
       "has_citation": true,
-      "faithfulness_score": 1.0,
-      "duration_seconds": 64.67,
+      "faithfulness_score": 0.89,
+      "answer_relevance": 0.9,
+      "context_precision": 1.0,
+      "duration_seconds": 77.37,
       "usage": {
-        "calls": 2,
-        "prompt_tokens": 7885,
-        "completion_tokens": 379,
-        "max_prompt": 4587,
-        "total_tokens": 8264
+        "calls": 3,
+        "prompt_tokens": 14740,
+        "completion_tokens": 860,
+        "max_prompt": 6056,
+        "total_tokens": 15600
       },
-      "answer_preview": "**Tổng điểm** = 40 (Mùa hè xanh, mã 001101, thang tối đa 40) + 5 (Trực tiếp hiến máu, mã 001202) = **45 điểm**.\n\n**Công thức quy đổi chung** (tại thời"
+      "answer_preview": "Xin phân tích dựa trên tài liệu quy định CTXH năm 2025:\n\n**1. Mùa hè xanh trọn chiến dịch 01 tháng (mã 001101)**\n- Thang điểm: 36→72, quy đổi ngày: 3→"
     },
     {
       "id": "q6",
       "category": "calculation",
       "query": "Một sinh viên có tổng cộng 35 điểm CTXH tích lũy trong suốt khóa học. Theo công thức quy đổi điểm thành ngày CTXH trước khi xét tốt nghiệp, sinh viên này được bao nhiêu ngày CTXH?",
+      "ground_truth": "Theo công thức lấy tổng điểm chia cho 10, 35 điểm chia 10 bằng 3,5 ngày CTXH.",
       "is_no_answer": false,
       "is_refused": false,
-      "keyword_recall": 1.0,
-      "has_citation": true,
+      "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 59.38,
+      "answer_relevance": 1.0,
+      "context_precision": 1.0,
+      "duration_seconds": 56.7,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 7285,
-        "completion_tokens": 261,
-        "max_prompt": 3997,
-        "total_tokens": 7546
+        "prompt_tokens": 8252,
+        "completion_tokens": 319,
+        "max_prompt": 4559,
+        "total_tokens": 8571
       },
-      "answer_preview": "Theo quy định, trước khi xét tốt nghiệp, tổng điểm hoạt động CTXH được quy đổi thành ngày CTXH theo công thức:\n\n**Lấy tổng điểm đã tích lũy chia cho 1"
+      "answer_preview": "Áp dụng công thức quy đổi điểm xét tốt nghiệp (Chuẩn 2025): lấy tổng điểm CTXH chia cho 12, sau đó:\n- Số lẻ dưới 6: làm tròn xuống\n- Tròn 6 điểm: quy "
     },
     {
       "id": "q7",
       "category": "action_write_verify",
       "query": "Tôi là sinh viên Nguyễn Văn Cường, MSSV 22110003, khoa Điện - Điện tử. Tôi đã trực tiếp tham gia hiến máu tình nguyện 1 lần (mã hoạt động 001202, 5 điểm, quy đổi 0.5 ngày). Hãy đăng ký ghi nhận hoạt động CTXH này vào hồ sơ cho tôi.",
+      "ground_truth": "Hệ thống ghi nhận hoạt động hiến máu mã 001202 (+0.5 ngày) với mã đăng ký REG-CTXH, trạng thái CONFIRMED và gọi get_ctxh_status xác thực hồ sơ.",
       "is_no_answer": false,
-      "is_refused": false,
-      "keyword_recall": 0.5,
+      "is_refused": true,
       "has_citation": true,
       "faithfulness_score": 1.0,
-      "duration_seconds": 182.09,
+      "answer_relevance": 0.9,
+      "context_precision": 1.0,
+      "duration_seconds": 65.4,
       "usage": {
-        "calls": 5,
-        "prompt_tokens": 21536,
-        "completion_tokens": 770,
-        "max_prompt": 5259,
-        "total_tokens": 22306
+        "calls": 2,
+        "prompt_tokens": 8513,
+        "completion_tokens": 645,
+        "max_prompt": 4785,
+        "total_tokens": 9158
       },
-      "answer_preview": "Đã ghi nhận và kiểm chứng hoàn tất.\n\n## Kết quả đăng ký CTXH\n\n| Mục | Chi tiết |\n|---|---|\n| Sinh viên | Nguyễn Văn Cường (MSSV 22110003) |\n| Khoa / K"
+      "answer_preview": "Tôi xin dừng và báo lại hai vấn đề trước khi ghi bất cứ thứ gì vào hệ thống:\n\n**1. Không tìm thấy hồ sơ sinh viên**\nMSSV **22110003** không có trong c"
     },
     {
       "id": "q8",
       "category": "missing_info",
       "query": "Em muốn đăng ký ghi nhận hoạt động CTXH, em đã tham gia hiến máu tình nguyện 1 lần rồi ạ. Đăng ký giúp em với.",
+      "ground_truth": "Trợ lý yêu cầu sinh viên cung cấp bổ sung Mã số sinh viên (MSSV) trước khi có thể thực hiện đăng ký.",
       "is_no_answer": false,
       "is_refused": false,
-      "keyword_recall": 0.5,
-      "has_citation": true,
+      "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 58.87,
+      "answer_relevance": 0.9,
+      "context_precision": 1.0,
+      "duration_seconds": 93.44,
       "usage": {
-        "calls": 2,
-        "prompt_tokens": 7081,
-        "completion_tokens": 263,
-        "max_prompt": 3807,
-        "total_tokens": 7344
+        "calls": 3,
+        "prompt_tokens": 13065,
+        "completion_tokens": 205,
+        "max_prompt": 4728,
+        "total_tokens": 13270
       },
-      "answer_preview": "Cần em cung cấp thêm thông tin để đăng ký chính xác, ạ:\n\n1. **MSSV** (mã số sinh viên) của em là gì?\n2. Em tham gia dưới hình thức nào sau đây để em c"
+      "answer_preview": "Nhờ bạn cung cấp MSSV để hệ thống xác minh hồ sơ trước khi đăng ký.\n\nĐã tra cứu được thông tin hoạt động:\n- **Nhóm hoạt động:** Hiến máu cứu người\n- *"
     },
     {
       "id": "q9",
       "category": "no_answer",
       "query": "Quy định về điểm rèn luyện theo học kỳ để được xét học bổng khuyến khích tại trường HCMUTE là bao nhiêu điểm?",
+      "ground_truth": "Quy định này không có trong văn bản quy định Công tác xã hội hiện hành của trường.",
       "is_no_answer": true,
       "is_refused": true,
-      "keyword_recall": 0.33,
       "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 56.39,
+      "answer_relevance": 1.0,
+      "context_precision": 1.0,
+      "duration_seconds": 70.75,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 7164,
-        "completion_tokens": 110,
-        "max_prompt": 3896,
-        "total_tokens": 7274
+        "prompt_tokens": 8347,
+        "completion_tokens": 55,
+        "max_prompt": 4674,
+        "total_tokens": 8402
       },
-      "answer_preview": "Câu hỏi về điểm rèn luyện xét học bổng khuyến khích không thuộc phạm vi văn bản quy định Công tác xã hội của trường (kết quả tra cứu chỉ liên quan đến"
+      "answer_preview": "Quy định này không có trong văn bản quy định Công tác xã hội hiện hành của trường."
     },
     {
       "id": "q10",
       "category": "no_answer",
       "query": "Thủ tục xin cấp Visa du học Đức và chứng minh tài chính cho sinh viên trường Đại học Sư phạm Kỹ thuật TP.HCM như thế nào?",
+      "ground_truth": "Quy định này không có trong văn bản quy định Công tác xã hội hiện hành của trường.",
       "is_no_answer": true,
       "is_refused": true,
-      "keyword_recall": 0.33,
       "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 59.18,
+      "answer_relevance": 1.0,
+      "context_precision": 1.0,
+      "duration_seconds": 67.57,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 7310,
-        "completion_tokens": 56,
-        "max_prompt": 4036,
-        "total_tokens": 7366
+        "prompt_tokens": 8184,
+        "completion_tokens": 68,
+        "max_prompt": 4505,
+        "total_tokens": 8252
       },
       "answer_preview": "Quy định này không có trong văn bản quy định Công tác xã hội hiện hành của trường."
     },
@@ -202,39 +230,43 @@
       "id": "q11",
       "category": "no_answer",
       "query": "Lịch thi cuối kỳ môn Cơ sở dữ liệu học kỳ 2 năm 2024 của khoa Công nghệ Thông tin là ngày nào?",
+      "ground_truth": "Quy định này không có trong văn bản quy định Công tác xã hội hiện hành của trường.",
       "is_no_answer": true,
       "is_refused": true,
-      "keyword_recall": 0.0,
       "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 58.23,
+      "answer_relevance": 1.0,
+      "context_precision": 1.0,
+      "duration_seconds": 93.94,
       "usage": {
         "calls": 2,
-        "prompt_tokens": 7178,
-        "completion_tokens": 248,
-        "max_prompt": 3905,
-        "total_tokens": 7426
+        "prompt_tokens": 7485,
+        "completion_tokens": 101,
+        "max_prompt": 3807,
+        "total_tokens": 7586
       },
-      "answer_preview": "Đây không phải câu hỏi trong phạm vi Công tác xã hội (CTXH) của trường — tôi chỉ hỗ trợ giải đáp quy định CTXH, tra cứu mã hoạt động, quy đổi ngày, ki"
+      "answer_preview": "Câu hỏi về lịch thi môn học không thuộc phạm vi Công tác xã hội (CTXH) của trường.\n\nQuy định này không có trong văn bản quy định Công tác xã hội hiện "
     },
     {
       "id": "q12",
       "category": "no_answer",
-      "query": "Theo nội quy trường Đại học Bách Khoa Hà Nội, sinh viên vi phạm kỷ luật phòng thi lần đầu bị xử lý ở mức nào?",
+      "query": "Mã hoạt động 'Cổ vũ giải bóng đá Ngoại hạng Anh tại rạp chiếu phim' là mã gì và được quy đổi thành bao nhiêu ngày CTXH?",
+      "ground_truth": "Hoạt động này không có trong văn bản quy định Công tác xã hội hiện hành của trường.",
       "is_no_answer": true,
-      "is_refused": true,
-      "keyword_recall": 0.33,
+      "is_refused": false,
       "has_citation": false,
       "faithfulness_score": 1.0,
-      "duration_seconds": 58.26,
+      "answer_relevance": 1.0,
+      "context_precision": 1.0,
+      "duration_seconds": 314.7,
       "usage": {
-        "calls": 2,
-        "prompt_tokens": 7134,
-        "completion_tokens": 70,
-        "max_prompt": 3863,
-        "total_tokens": 7204
+        "calls": 4,
+        "prompt_tokens": 20992,
+        "completion_tokens": 293,
+        "max_prompt": 6837,
+        "total_tokens": 21285
       },
-      "answer_preview": "Quy định này không có trong văn bản quy định Công tác xã hội hiện hành của trường."
+      "answer_preview": "Loi ket noi LLM: Goi Groq API that bai tren toan bo models: Error code: 413 - {'error': {'message': 'Request too large for model `openai/gpt-oss-20b` "
     }
   ]
 }

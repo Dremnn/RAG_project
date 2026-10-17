@@ -282,3 +282,89 @@ def save_and_plot_session(
         "charts": charts,
         "total_records": len(records),
     }
+
+
+def save_comparison_csv(comparison_data: list[dict[str, Any]], output_file: str | Path) -> Path:
+    """
+    Xuat bang so sanh 2 cau hinh (Dense-only vs Hybrid) ra CSV (encoding utf-8-sig).
+    """
+    path = Path(output_file)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    headers = [
+        "id", "short_label", "query", "expected_code",
+        "dense_score", "dense_chunk", "dense_hit",
+        "hybrid_score", "hybrid_chunk", "hybrid_hit",
+        "winner"
+    ]
+
+    with open(path, "w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+        for d in comparison_data:
+            writer.writerow([
+                d.get("id", ""),
+                d.get("short_label", ""),
+                d.get("query", ""),
+                d.get("expected_code", ""),
+                d.get("dense_score", 0.0),
+                d.get("dense_chunk", ""),
+                d.get("dense_hit", False),
+                d.get("hybrid_score", 0.0),
+                d.get("hybrid_chunk", ""),
+                d.get("hybrid_hit", False),
+                d.get("winner", ""),
+            ])
+    return path
+
+
+def generate_comparison_chart(
+    comparison_data: list[dict[str, Any]],
+    output_file: str | Path,
+) -> Path:
+    """
+    Ve do thi cot doi (Side-by-side Bar Chart) so sanh Dense-only vs Hybrid Search
+    theo chuan Week 5 de chen vao bao cao hoac cham diem cong (+1 diem).
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    out_path = Path(output_file)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    labels = [f"{d['id']}\n({d['short_label']})" for d in comparison_data]
+    dense_scores = [float(d["dense_score"]) for d in comparison_data]
+    hybrid_scores = [float(d["hybrid_score"]) for d in comparison_data]
+
+    x = np.arange(len(labels))
+    width = 0.35
+
+    fig, ax = plt.subplots(figsize=(8.5, 5), dpi=300)
+    rects1 = ax.bar(x - width / 2, dense_scores, width, label="Dense-only (Vector / Jina)", color="#f59e0b", alpha=0.85)
+    rects2 = ax.bar(x + width / 2, hybrid_scores, width, label="Hybrid Search (BM25 + Dense)", color="#2563eb", alpha=0.85)
+
+    ax.set_title("SO SÁNH HIỆU NĂNG TRUY XUẤT: DENSE-ONLY vs. HYBRID SEARCH\n(Bổ sung cấu hình so sánh theo yêu cầu Week 5 - Điểm cộng +1)", fontsize=11, fontweight="bold", pad=12)
+    ax.set_ylabel("Điểm tương đồng Top-1 (Relevance Score)", fontsize=10, labelpad=8)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, fontsize=9, fontweight="bold")
+    ax.set_ylim(0, 1.15)
+    ax.grid(axis="y", linestyle="--", alpha=0.5)
+    ax.legend(frameon=True, facecolor="white", loc="upper left")
+
+    for rect in rects1:
+        h = rect.get_height()
+        ax.annotate(f"{h:.3f}", xy=(rect.get_x() + rect.get_width() / 2, h),
+                    xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=8.5, fontweight="bold")
+
+    for rect in rects2:
+        h = rect.get_height()
+        ax.annotate(f"{h:.3f}", xy=(rect.get_x() + rect.get_width() / 2, h),
+                    xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=8.5, fontweight="bold", color="#1e40af")
+
+    plt.tight_layout()
+    fig.savefig(out_path)
+    plt.close(fig)
+    return out_path
+

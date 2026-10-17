@@ -1,0 +1,28 @@
+# ==============================================================================
+# Dependencies for Student Academic Regulations & Procedures Assistant (RAG Project)
+# Install via: pip install -r requirements.txt
+# Or with uv : uv pip install -r requirements.txt
+# ==============================================================================
+
+# LLM & Agent Client (Groq Cloud API)
+groq>=0.11.0
+
+# Model Context Protocol (MCP) Framework (Week 7 Standard)
+mcp>=1.0.0
+
+# Document Loaders (PDF, Word, Excel, Markdown/YAML metadata)
+pypdf>=4.0.0
+python-docx>=1.1.0
+openpyxl>=3.1.0
+PyYAML>=6.0
+
+# Retrieval Engine (BM25 Keyword Search & Dense Vector Math)
+rank-bm25>=0.2.2
+numpy>=1.24.0
+requests>=2.31.0
+
+# Environment Configuration
+python-dotenv>=1.0.0
+
+# Evaluation, Telemetry & Chart Visualization (Week 5 Eval)
+matplotlib>=3.8.0
