@@ -16,7 +16,12 @@ from dotenv import load_dotenv
 from groq import Groq
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-from src.evaluation import FaithfulnessEvaluator, save_and_plot_session
+from src.evaluation import (
+    FaithfulnessEvaluator,
+    check_answer_relevance,
+    save_and_plot_session,
+)
+
 
 # Ensure UTF-8 output on Windows terminal
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -277,6 +282,7 @@ async def main():
             evaluator = FaithfulnessEvaluator(groq_client=groq_client)
             last_answer = ""
             last_context = ""
+            last_question = ""
 
             try:
                 while True:
@@ -298,8 +304,10 @@ async def main():
                         messages = [{"role": "system", "content": system_prompt}]
                         last_answer = ""
                         last_context = ""
+                        last_question = ""
                         print("[THANH CONG] Da lam moi phien hoi thoai.")
                         continue
+
 
                     if user_input.lower() in ["/docs", "/list"]:
                         print("\n[DANG XU LY] Dang tra cuu danh muc van ban quy che...")
@@ -337,6 +345,16 @@ async def main():
                         print("\n[DANG XU LY] Dang danh gia do trung thuc (Faithfulness / LLM-as-a-judge)...")
                         report = evaluator.evaluate(last_answer, last_context)
                         print(report.format_terminal())
+
+                        if last_question:
+                            try:
+                                rel_score = check_answer_relevance(last_question, last_answer, groq_client=groq_client)
+                                rel_pct = int(round(rel_score * 100))
+                                rel_badge = "[ĐẠT TRỌNG TÂM]" if rel_score >= 0.7 else "[CẦN CẢI THIỆN]"
+                                print(f"-> Độ liên quan câu hỏi (Answer Relevance): {rel_pct}% | {rel_badge}")
+                            except Exception:
+                                pass
+
                         # Cap nhat diem vao record gan nhat neu co
                         if session_records:
                             session_records[-1]["faithfulness_score"] = report.score
@@ -356,6 +374,8 @@ async def main():
                     duration = time.time() - start_time
                     last_answer = answer
                     last_context = context
+                    last_question = user_input
+
 
                     # Luu vao danh sach record cua phien
                     has_cit = ("[nguồn:" in answer.lower() or "[nguon:" in answer.lower()) and "chunk id:" in answer.lower()
