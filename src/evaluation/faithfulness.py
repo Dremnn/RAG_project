@@ -27,7 +27,7 @@ def _call_groq_judge(
     client: Groq,
     prompt: str,
     preferred_model: str = DEFAULT_MODEL,
-    max_tokens: int = 800,
+    max_tokens: int = 1200,
     temperature: float = 0.0,
     timeout: float = 25.0,
 ) -> str:
@@ -38,12 +38,21 @@ def _call_groq_judge(
             try:
                 resp = client.chat.completions.create(
                     model=m,
-                    messages=[{"role": "user", "content": prompt}],
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a precise JSON evaluation judge for RAG systems. Always respond with valid JSON only.",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    response_format={"type": "json_object"},
                     temperature=temperature,
                     max_tokens=max_tokens,
                     timeout=timeout,
                 )
-                return resp.choices[0].message.content.strip()
+                content = resp.choices[0].message.content or ""
+                if content.strip():
+                    return content.strip()
             except Exception as e:
                 last_err = e
                 err_msg = str(e).lower()
@@ -56,6 +65,7 @@ def _call_groq_judge(
     if last_err is not None:
         raise last_err
     raise RuntimeError("Khong co model kha dung tren Groq")
+
 
 
 @dataclass
@@ -88,6 +98,14 @@ class FaithfulnessReport:
                 f"[CẢNH BÁO / LỖI KẾT NỐI] Không thể phân tích mệnh đề qua LLM Judge.",
                 f"Lý do: {self.error_message}",
                 "Gợi ý: Do hạn mức API Groq vừa chạm ngưỡng sau lượt trả lời trước, vui lòng đợi 3-5 giây rồi gõ lại /eval.",
+                "=" * 65,
+            ])
+
+        if self.total_claims == 0:
+            return "\n".join([
+                "=" * 65,
+                "BÁO CÁO THẨM ĐỊNH ĐỘ TRUNG THỰC (WEEK 5 FAITHFULNESS)",
+                "[THÔNG BÁO] Không có mệnh đề khẳng định sự thật nào để đánh giá trong câu trả lời.",
                 "=" * 65,
             ])
 
@@ -347,18 +365,19 @@ class FaithfulnessEvaluator:
 
         prompt = f"""Bạn là Thẩm phán đánh giá độ trung thực (Faithfulness & Groundedness Judge) theo chuẩn RAG Week 5.
 Quy trình đánh giá gồm 2 bước:
-Bước 1 (Decompose): Chia nhỏ toàn bộ câu trả lời của trợ lý AI thành TẤT CẢ các mệnh đề nguyên tử (atomic claims).
-  - Mỗi mệnh đề là một khẳng định sự thật độc lập (số lượng, điều kiện, hành động, quy định, mốc thời gian,...).
-  - Không gộp nhiều ý vào 1 mệnh đề. Số lượng mệnh đề thường từ 4 đến 10 mệnh đề tùy độ dài câu trả lời.
+Bước 1 (Decompose): Trích xuất các khẳng định sự thật, quy định, số liệu thực tế trong câu trả lời thành các mệnh đề nguyên tử (atomic claims).
+  - Chỉ trích xuất các mệnh đề mang tính khẳng định sự thật / quy chế / số liệu / điều kiện / quy đổi.
+  - BỎ QUA các câu chào hỏi, lời dẫn giao tiếp, câu hỏi ngược lại người dùng ("bạn muốn...", "cho tôi biết..."), và các tag trích dẫn [Nguồn:...].
+  - Tách nhỏ từng ý độc lập, không gộp nhiều ý vào 1 mệnh đề. Số lượng mệnh đề thường từ 3 đến 10 mệnh đề tùy độ dài câu trả lời.
 Bước 2 (Judge): Đối chiếu nghiêm ngặt từng mệnh đề nguyên tử với Ngữ cảnh gốc:
   - supported = true NẾU VÀ CHỈ NẾU ngữ cảnh gốc có nêu rõ hoặc suy luận trực tiếp được thông tin đó.
   - supported = false NẾU thông tin không có trong tài liệu, suy đoán ngoài, hoặc sai lệch số liệu.
 
 Ngữ cảnh gốc:
-\"\"\"{context[:2200]}\"\"\"
+\"\"\"{context[:8000]}\"\"\"
 
 Câu trả lời của trợ lý AI:
-\"\"\"{answer[:1400]}\"\"\"
+\"\"\"{answer[:3000]}\"\"\"
 
 Trả về DUY NHẤT một JSON format:
 {{
@@ -373,7 +392,7 @@ Trả về DUY NHẤT một JSON format:
                 client=self.client,
                 prompt=prompt,
                 preferred_model=self.model,
-                max_tokens=900,
+                max_tokens=1200,
                 timeout=25.0,
             )
             match = re.search(r"\{.*\}", raw, re.DOTALL)
@@ -405,8 +424,8 @@ Trả về DUY NHẤT một JSON format:
             # Fallback an toàn khi mạng gặp sự cố
             return FaithfulnessReport(
                 score=1.0,
-                total_claims=1,
-                supported_claims=1,
+                total_claims=0,
+                supported_claims=0,
                 unsupported_claims=0,
                 verdicts=[],
                 error_message=str(e),
