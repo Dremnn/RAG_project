@@ -52,10 +52,7 @@ SERVER_PARAMS = StdioServerParameters(
 )
 
 
-# ==============================================================================
-# PHẦN 1: CORE REACT AGENT LOOP & MCP INTERACTION
-# (Chuyên trách: Prompting, Gọi LLM có Retry/Fallback, Vòng lặp ReAct, Gọi Tool)
-# ==============================================================================
+# CORE REACT AGENT LOOP & MCP INTERACTION
 
 def load_system_prompt() -> str:
     """Load system prompt from external file (Week 2 clean architecture)."""
@@ -245,10 +242,8 @@ async def run_agent_loop(
     return warning_msg, "\n\n".join(accumulated_context), total_tokens
 
 
-# ==============================================================================
-# PHẦN 2: TERMINAL CLI & TELEMETRY INTEGRATION
-# (Chuyên trách: CLI Commands, Quản lý Session, Xuất CSV và Đồ thị qua Tracker)
-# ==============================================================================
+# TERMINAL CLI & TELEMETRY INTEGRATION
+
 
 async def main():
     api_key = os.getenv("GROQ_API_KEY")
